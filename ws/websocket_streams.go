@@ -32,7 +32,7 @@ type AggTradeEvent struct {
 
 // SubscribeAggTrade Stream Name: <symbol>@aggTrade
 func (s *WebsocketStreams) SubscribeAggTrade(symbol string) *AggTradeService {
-	s.c.combined()
+	s.c.combined(false)
 	s.c.Opt.Endpoint = fmt.Sprintf("%s/%s@aggTrade", s.c.Opt.Endpoint, strings.ToLower(symbol))
 	return &AggTradeService{s}
 }
@@ -75,8 +75,7 @@ type CombinedAggTradeEvent struct {
 }
 
 func (s *WebsocketStreams) SubscribeCombinedAggTrade(symbols []string) *CombinedAggTradeService {
-	s.c.Opt.Combined = true
-	s.c.combined()
+	s.c.combined(true)
 	endpoint := s.c.Opt.Endpoint
 	for _, symbol := range symbols {
 		endpoint += fmt.Sprintf("%s@aggTrade", strings.ToLower(symbol)) + "/"
@@ -132,7 +131,7 @@ type TradeEvent struct {
 
 // SubscribeTrade Stream Name: <symbol>@trade
 func (s *WebsocketStreams) SubscribeTrade(symbol string) *TradeService {
-	s.c.combined()
+	s.c.combined(false)
 	s.c.Opt.Endpoint = fmt.Sprintf("%s/%s@trade", s.c.Opt.Endpoint, strings.ToLower(symbol))
 	return &TradeService{s}
 }
@@ -175,8 +174,7 @@ type CombinedTradeEvent struct {
 }
 
 func (s *WebsocketStreams) SubscribeCombinedTrade(symbols []string) *CombinedTradeService {
-	s.c.Opt.Combined = true
-	s.c.combined()
+	s.c.combined(true)
 	endpoint := s.c.Opt.Endpoint
 	for _, symbol := range symbols {
 		endpoint += fmt.Sprintf("%s@trade", strings.ToLower(symbol)) + "/"
@@ -245,7 +243,7 @@ type KlineEvent struct {
 
 // SubscribeKline Stream Name: <symbol>@kline_<interval>
 func (s *WebsocketStreams) SubscribeKline(symbol, interval string) *KlineService {
-	s.c.combined()
+	s.c.combined(false)
 	s.c.Opt.Endpoint = fmt.Sprintf("%s/%s@kline_%s", s.c.Opt.Endpoint, strings.ToLower(symbol), interval)
 	return &KlineService{s}
 }
@@ -289,8 +287,7 @@ type CombinedKlineEvent struct {
 
 // SubscribeCombinedKline Stream Name: <symbol>@kline_<interval>
 func (s *WebsocketStreams) SubscribeCombinedKline(symbols map[string]string) *CombinedKlineService {
-	s.c.Opt.Combined = true
-	s.c.combined()
+	s.c.combined(true)
 	endpoint := s.c.Opt.Endpoint
 	for symbol, interval := range symbols {
 		endpoint += fmt.Sprintf("%s@kline_%s", strings.ToLower(symbol), interval) + "/"
@@ -346,7 +343,7 @@ type MiniTickerEvent struct {
 
 // SubscribeMiniTicker Stream Name: <symbol>@miniTicker
 func (s *WebsocketStreams) SubscribeMiniTicker(symbol string) *MiniTickerService {
-	s.c.combined()
+	s.c.combined(false)
 	s.c.Opt.Endpoint = fmt.Sprintf("%s/%s@miniTicker", s.c.Opt.Endpoint, strings.ToLower(symbol))
 	return &MiniTickerService{s}
 }
@@ -390,8 +387,7 @@ type CombinedMiniTickerEvent struct {
 
 // SubscribeCombinedMiniTicker Stream Name: <symbol>@miniTicker
 func (s *WebsocketStreams) SubscribeCombinedMiniTicker(symbols []string) *CombinedMiniTickerService {
-	s.c.Opt.Combined = true
-	s.c.combined()
+	s.c.combined(true)
 	endpoint := s.c.Opt.Endpoint
 	for _, symbol := range symbols {
 		endpoint += fmt.Sprintf("%s@miniTicker", strings.ToLower(symbol)) + "/"
@@ -437,7 +433,7 @@ type MiniTickerArrService struct {
 
 // SubscribeMiniTickerArr Stream Name: !miniTicker@arr
 func (s *WebsocketStreams) SubscribeMiniTickerArr() *MiniTickerArrService {
-	s.c.combined()
+	s.c.combined(false)
 	s.c.Opt.Endpoint = fmt.Sprintf("%s/!miniTicker@arr", s.c.Opt.Endpoint)
 	return &MiniTickerArrService{s}
 }
@@ -504,7 +500,7 @@ type TickerEvent struct {
 
 // SubscribeTicker Stream Name: <symbol>@ticker
 func (s *WebsocketStreams) SubscribeTicker(symbol string) *TickerService {
-	s.c.combined()
+	s.c.combined(false)
 	s.c.Opt.Endpoint = fmt.Sprintf("%s/%s@ticker", s.c.Opt.Endpoint, strings.ToLower(symbol))
 	return &TickerService{s}
 }
@@ -548,8 +544,7 @@ type CombinedTickerEvent struct {
 
 // SubscribeCombinedTicker Stream Name: <symbol>@ticker
 func (s *WebsocketStreams) SubscribeCombinedTicker(symbols []string) *CombinedTickerService {
-	s.c.Opt.Combined = true
-	s.c.combined()
+	s.c.combined(true)
 	endpoint := s.c.Opt.Endpoint
 	for _, symbol := range symbols {
 		endpoint += fmt.Sprintf("%s@ticker", strings.ToLower(symbol)) + "/"
@@ -596,7 +591,7 @@ type TickerArrService struct {
 
 // SubscribeTickerArr Stream Name: !ticker@arr
 func (s *WebsocketStreams) SubscribeTickerArr() *TickerArrService {
-	s.c.combined()
+	s.c.combined(false)
 	s.c.Opt.Endpoint = fmt.Sprintf("%s/!ticker@arr", s.c.Opt.Endpoint)
 	return &TickerArrService{s}
 }
@@ -657,7 +652,7 @@ type TickerWindowSizeEvent struct {
 // SubscribeTickerWindowSize Stream Name: <symbol>@ticker_<window_size>
 // windowSize: 1h,4h,1d
 func (s *WebsocketStreams) SubscribeTickerWindowSize(symbol, windowSize string) *TickerWindowSizeService {
-	s.c.combined()
+	s.c.combined(false)
 	s.c.Opt.Endpoint = fmt.Sprintf("%s/%s@ticker_%s", s.c.Opt.Endpoint, strings.ToLower(symbol), windowSize)
 	return &TickerWindowSizeService{s}
 }
@@ -702,8 +697,7 @@ type CombinedTickerWindowSizeEvent struct {
 // SubscribeCombinedTickerWindowSize Stream Name: <symbol>@ticker_<window_size>
 // windowSize: 1h,4h,1d
 func (s *WebsocketStreams) SubscribeCombinedTickerWindowSize(symbols map[string]string) *CombinedTickerWindowSizeService {
-	s.c.Opt.Combined = true
-	s.c.combined()
+	s.c.combined(true)
 	endpoint := s.c.Opt.Endpoint
 	for symbol, windowSize := range symbols {
 		endpoint += fmt.Sprintf("%s@ticker_%s", strings.ToLower(symbol), windowSize) + "/"
@@ -749,7 +743,7 @@ type TickerWindowSizeArrService struct {
 
 // SubscribeTickerWindowSizeArr Stream Name: !ticker_<window-size>@arr
 func (s *WebsocketStreams) SubscribeTickerWindowSizeArr(windowSize string) *TickerWindowSizeArrService {
-	s.c.combined()
+	s.c.combined(false)
 	s.c.Opt.Endpoint = fmt.Sprintf("%s/!ticker_%s@arr", s.c.Opt.Endpoint, windowSize)
 	return &TickerWindowSizeArrService{s}
 }
@@ -799,7 +793,7 @@ type BookTickerEvent struct {
 
 // SubscribeBookTicker Stream Name: <symbol>@bookTicker
 func (s *WebsocketStreams) SubscribeBookTicker(symbol string) *BookTickerService {
-	s.c.combined()
+	s.c.combined(false)
 	s.c.Opt.Endpoint = fmt.Sprintf("%s/%s@bookTicker", s.c.Opt.Endpoint, strings.ToLower(symbol))
 	return &BookTickerService{s}
 }
@@ -843,8 +837,7 @@ type CombinedBookTickerEvent struct {
 
 // SubscribeCombinedBookTicker Stream Name: <symbol>@bookTicker
 func (s *WebsocketStreams) SubscribeCombinedBookTicker(symbols []string) *CombinedBookTickerService {
-	s.c.Opt.Combined = true
-	s.c.combined()
+	s.c.combined(true)
 	endpoint := s.c.Opt.Endpoint
 	for _, symbol := range symbols {
 		endpoint += fmt.Sprintf("%s@bookTicker", strings.ToLower(symbol)) + "/"
@@ -897,7 +890,7 @@ type AvgPriceEvent struct {
 
 // SubscribeAvgPrice Stream Name: <symbol>@avgPrice
 func (s *WebsocketStreams) SubscribeAvgPrice(symbol string) *AvgPriceService {
-	s.c.combined()
+	s.c.combined(false)
 	s.c.Opt.Endpoint = fmt.Sprintf("%s/%s@avgPrice", s.c.Opt.Endpoint, strings.ToLower(symbol))
 	return &AvgPriceService{s}
 }
@@ -941,8 +934,7 @@ type CombinedAvgPriceEvent struct {
 
 // SubscribeCombinedAvgPrice Stream Name: <symbol>@avgPrice
 func (s *WebsocketStreams) SubscribeCombinedAvgPrice(symbols []string) *CombinedAvgPriceService {
-	s.c.Opt.Combined = true
-	s.c.combined()
+	s.c.combined(true)
 	endpoint := s.c.Opt.Endpoint
 	for _, symbol := range symbols {
 		endpoint += fmt.Sprintf("%s@avgPrice", strings.ToLower(symbol)) + "/"
@@ -994,7 +986,7 @@ type DepthLevelEvent struct {
 // Top <levels> bids and asks, pushed every second. Valid <levels> are 5, 10, or 20.
 // Update Speed: 1000ms or 100ms
 func (s *WebsocketStreams) SubscribeDepthLevel(symbol string, level int, interval ...string) *DepthLevelService {
-	s.c.combined()
+	s.c.combined(false)
 	s.c.Opt.Endpoint = fmt.Sprintf("%s/%s@depth%d", s.c.Opt.Endpoint, strings.ToLower(symbol), level)
 	if len(interval) != 0 {
 		s.c.Opt.Endpoint += "@" + interval[0]
@@ -1043,8 +1035,7 @@ type CombinedDepthLevelEvent struct {
 // Top <levels> bids and asks, pushed every second. Valid <levels> are 5, 10, or 20.
 // Update Speed: 1000ms or 100ms
 func (s *WebsocketStreams) SubscribeCombinedDepthLevel(symbols map[string]int, interval ...string) *CombinedDepthLevelService {
-	s.c.Opt.Combined = true
-	s.c.combined()
+	s.c.combined(true)
 	endpoint := s.c.Opt.Endpoint
 	for symbol, level := range symbols {
 		endpoint += fmt.Sprintf("%s@depth%d", strings.ToLower(symbol), level)
@@ -1103,7 +1094,7 @@ type DepthEvent struct {
 // SubscribeDepth Stream Names: <symbol>@depth OR <symbol>@depth@100ms
 // Update Speed: 1000ms or 100ms
 func (s *WebsocketStreams) SubscribeDepth(symbol string, interval ...string) *DepthService {
-	s.c.combined()
+	s.c.combined(false)
 	s.c.Opt.Endpoint = fmt.Sprintf("%s/%s@depth", s.c.Opt.Endpoint, strings.ToLower(symbol))
 	if len(interval) != 0 {
 		s.c.Opt.Endpoint += "@" + interval[0]
@@ -1151,8 +1142,7 @@ type CombinedDepthEvent struct {
 // SubscribeCombinedDepth Stream Names: <symbol>@depth OR <symbol>@depth@100ms
 // Update Speed: 1000ms or 100ms
 func (s *WebsocketStreams) SubscribeCombinedDepth(symbols []string, interval ...string) *CombinedDepthService {
-	s.c.Opt.Combined = true
-	s.c.combined()
+	s.c.combined(true)
 	endpoint := s.c.Opt.Endpoint
 	for _, symbol := range symbols {
 		endpoint += fmt.Sprintf("%s@depth", strings.ToLower(symbol))

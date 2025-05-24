@@ -38,8 +38,8 @@ func (c *Client) close() error {
 	return nil
 }
 
-func (c *Client) combined() {
-	if c.Opt.Combined {
+func (c *Client) combined(combine bool) {
+	if combine {
 		c.Opt.Endpoint = c.Opt.Endpoint + "/stream?streams="
 	} else {
 		c.Opt.Endpoint = c.Opt.Endpoint + "/ws"

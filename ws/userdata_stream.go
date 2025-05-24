@@ -137,7 +137,7 @@ type ExternalLockUpdate struct {
 }
 
 func (s *WebsocketStreams) SubscribeUserData(listenKey string) *UserDataStream {
-	s.c.combined()
+	s.c.combined(false)
 	s.c.Opt.Endpoint = fmt.Sprintf("%s/%s", s.c.Opt.Endpoint, listenKey)
 	return &UserDataStream{s}
 }

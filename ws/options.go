@@ -14,7 +14,6 @@ var WebsocketStreamsTimeout = time.Second * 60
 
 type Options struct {
 	Endpoint  string
-	Combined  bool
 	ApiKey    string
 	ApiSecret string
 }
