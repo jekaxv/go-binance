@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/jekaxv/go-binance/types"
+	"github.com/shopspring/decimal"
 )
 
 // Depth Get depth of a market
@@ -14,9 +15,9 @@ type Depth struct {
 }
 
 type DepthResponse struct {
-	LastUpdateId int        `json:"lastUpdateId"`
-	Bids         [][]string `json:"bids"` // first is PRICE, second is QTY
-	Asks         [][]string `json:"asks"`
+	LastUpdateId int                 `json:"lastUpdateId"`
+	Bids         [][]decimal.Decimal `json:"bids"` // first is PRICE, second is QTY
+	Asks         [][]decimal.Decimal `json:"asks"`
 }
 
 func (s *Depth) Symbol(symbol string) *Depth {
@@ -50,13 +51,13 @@ type Trades struct {
 }
 
 type TradesResponse struct {
-	Id           uint64 `json:"id,omitempty"`
-	Price        string `json:"price,omitempty"`
-	Qty          string `json:"qty,omitempty"`
-	Time         uint64 `json:"time,omitempty"`
-	QuoteQty     string `json:"quoteQty,omitempty"`
-	IsBuyerMaker bool   `json:"isBuyerMaker"`
-	IsBestMatch  bool   `json:"isBestMatch"`
+	Id           uint64          `json:"id,omitempty"`
+	Price        decimal.Decimal `json:"price,omitempty"`
+	Qty          decimal.Decimal `json:"qty,omitempty"`
+	Time         uint64          `json:"time,omitempty"`
+	QuoteQty     decimal.Decimal `json:"quoteQty,omitempty"`
+	IsBuyerMaker bool            `json:"isBuyerMaker"`
+	IsBestMatch  bool            `json:"isBestMatch"`
 }
 
 func (s *Trades) Symbol(symbol string) *Trades {
@@ -90,16 +91,6 @@ type HistoricalTrades struct {
 	fromId *uint64
 }
 
-type HistoricalTradesResponse struct {
-	Id           int    `json:"id"`
-	Price        string `json:"price"`
-	Qty          string `json:"qty"`
-	QuoteQty     string `json:"quoteQty"`
-	Time         uint64 `json:"time"`
-	IsBuyerMaker bool   `json:"isBuyerMaker"`
-	IsBestMatch  bool   `json:"isBestMatch"`
-}
-
 func (s *HistoricalTrades) Symbol(symbol string) *HistoricalTrades {
 	s.symbol = symbol
 	return s
@@ -117,8 +108,8 @@ func (s *HistoricalTrades) FromId(fromId uint64) *HistoricalTrades {
 	return s
 }
 
-func (s *HistoricalTrades) Do(ctx context.Context) ([]*HistoricalTradesResponse, error) {
-	var resp []*HistoricalTradesResponse
+func (s *HistoricalTrades) Do(ctx context.Context) ([]*TradesResponse, error) {
+	var resp []*TradesResponse
 	s.c.req.set("symbol", s.symbol)
 	if s.limit != nil {
 		s.c.req.set("limit", *s.limit)
@@ -132,7 +123,7 @@ func (s *HistoricalTrades) Do(ctx context.Context) ([]*HistoricalTradesResponse,
 	return resp, json.Unmarshal(s.c.resp.rawBody, &resp)
 }
 
-type AggregateTrades struct {
+type AggTrades struct {
 	c         *Client
 	symbol    string
 	fromId    *uint64
@@ -141,48 +132,48 @@ type AggregateTrades struct {
 	limit     *uint
 }
 
-type AggregateTradesResponse struct {
-	TradeId     int    `json:"a"`
-	Price       string `json:"p"`
-	Quantity    string `json:"q"`
-	FirstId     int    `json:"f"`
-	LastId      int    `json:"l"`
-	Timestamp   int64  `json:"T"`
-	IsMaker     bool   `json:"m"`
-	IsBestPrice bool   `json:"M"`
+type AggTradesResponse struct {
+	TradeId     int             `json:"a"`
+	Price       decimal.Decimal `json:"p"`
+	Quantity    decimal.Decimal `json:"q"`
+	FirstId     int             `json:"f"`
+	LastId      int             `json:"l"`
+	Timestamp   int64           `json:"T"`
+	IsMaker     bool            `json:"m"`
+	IsBestPrice bool            `json:"M"`
 }
 
-func (s *AggregateTrades) Symbol(symbol string) *AggregateTrades {
+func (s *AggTrades) Symbol(symbol string) *AggTrades {
 	s.symbol = symbol
 	return s
 }
 
 // FromId ID to get aggregate trades from INCLUSIVE.
-func (s *AggregateTrades) FromId(fromId uint64) *AggregateTrades {
+func (s *AggTrades) FromId(fromId uint64) *AggTrades {
 	s.fromId = &fromId
 	return s
 }
 
 // StartTime Timestamp in ms to get aggregate trades from INCLUSIVE.
-func (s *AggregateTrades) StartTime(startTime uint64) *AggregateTrades {
+func (s *AggTrades) StartTime(startTime uint64) *AggTrades {
 	s.startTime = &startTime
 	return s
 }
 
 // EndTime Timestamp in ms to get aggregate trades until INCLUSIVE.
-func (s *AggregateTrades) EndTime(endTime uint64) *AggregateTrades {
+func (s *AggTrades) EndTime(endTime uint64) *AggTrades {
 	s.endTime = &endTime
 	return s
 }
 
 // Limit Default 500; max 1000.
-func (s *AggregateTrades) Limit(limit uint) *AggregateTrades {
+func (s *AggTrades) Limit(limit uint) *AggTrades {
 	s.limit = &limit
 	return s
 }
 
-func (s *AggregateTrades) Do(ctx context.Context) ([]*AggregateTradesResponse, error) {
-	var resp []*AggregateTradesResponse
+func (s *AggTrades) Do(ctx context.Context) ([]*AggTradesResponse, error) {
+	var resp []*AggTradesResponse
 	s.c.req.set("symbol", s.symbol)
 	if s.limit != nil {
 		s.c.req.set("limit", *s.limit)
@@ -214,17 +205,17 @@ type KlineData struct {
 }
 
 type KlineDataResponse struct {
-	OpenTime                 uint64 `json:"openTime"`
-	OpenPrice                string `json:"openPrice"`
-	HighPrice                string `json:"highPrice"`
-	LowPrice                 string `json:"lowPrice"`
-	ClosePrice               string `json:"closePrice"`
-	Volume                   string `json:"volume"`
-	CloseTime                uint64 `json:"closeTime"`
-	QuoteAssetVolume         string `json:"quoteAssetVolume"`
-	NumberOfTrades           int    `json:"numberOfTrades"`
-	TakerBuyBaseAssetVolume  string `json:"takerBuyBaseAssetVolume"`
-	TakerBuyQuoteAssetVolume string `json:"takerBuyQuoteAssetVolume"`
+	OpenTime                 uint64          `json:"openTime"`
+	OpenPrice                decimal.Decimal `json:"openPrice"`
+	HighPrice                decimal.Decimal `json:"highPrice"`
+	LowPrice                 decimal.Decimal `json:"lowPrice"`
+	ClosePrice               decimal.Decimal `json:"closePrice"`
+	Volume                   decimal.Decimal `json:"volume"`
+	CloseTime                uint64          `json:"closeTime"`
+	QuoteAssetVolume         decimal.Decimal `json:"quoteAssetVolume"`
+	NumberOfTrades           int             `json:"numberOfTrades"`
+	TakerBuyBaseAssetVolume  decimal.Decimal `json:"takerBuyBaseAssetVolume"`
+	TakerBuyQuoteAssetVolume decimal.Decimal `json:"takerBuyQuoteAssetVolume"`
 }
 
 func (s *KlineData) Symbol(symbol string) *KlineData {
@@ -287,18 +278,26 @@ func parseKlineData(rawBody []byte) ([]*KlineDataResponse, error) {
 		return resp, err
 	}
 	for _, v := range res {
+		openPrice, _ := decimal.NewFromString(v[1].(string))
+		highPrice, _ := decimal.NewFromString(v[2].(string))
+		lowPrice, _ := decimal.NewFromString(v[3].(string))
+		closePrice, _ := decimal.NewFromString(v[4].(string))
+		volumePrice, _ := decimal.NewFromString(v[5].(string))
+		quoteAssetVolume, _ := decimal.NewFromString(v[7].(string))
+		takerBuyBaseAssetVolume, _ := decimal.NewFromString(v[9].(string))
+		takerBuyQuoteAssetVolume, _ := decimal.NewFromString(v[10].(string))
 		resp = append(resp, &KlineDataResponse{
 			OpenTime:                 uint64(v[0].(float64)),
-			OpenPrice:                v[1].(string),
-			HighPrice:                v[2].(string),
-			LowPrice:                 v[3].(string),
-			ClosePrice:               v[4].(string),
-			Volume:                   v[5].(string),
+			OpenPrice:                openPrice,
+			HighPrice:                highPrice,
+			LowPrice:                 lowPrice,
+			ClosePrice:               closePrice,
+			Volume:                   volumePrice,
 			CloseTime:                uint64(v[6].(float64)),
-			QuoteAssetVolume:         v[7].(string),
+			QuoteAssetVolume:         quoteAssetVolume,
 			NumberOfTrades:           int(v[8].(float64)),
-			TakerBuyBaseAssetVolume:  v[9].(string),
-			TakerBuyQuoteAssetVolume: v[10].(string),
+			TakerBuyBaseAssetVolume:  takerBuyBaseAssetVolume,
+			TakerBuyQuoteAssetVolume: takerBuyQuoteAssetVolume,
 		})
 	}
 	return resp, nil
@@ -376,9 +375,9 @@ type AveragePrice struct {
 }
 
 type AveragePriceResponse struct {
-	Mins      int    `json:"mins"`      // Average price interval (in minutes)
-	Price     string `json:"price"`     // Average price
-	CloseTime int64  `json:"closeTime"` // Last trade time
+	Mins      int             `json:"mins"`      // Average price interval (in minutes)
+	Price     decimal.Decimal `json:"price"`     // Average price
+	CloseTime int64           `json:"closeTime"` // Last trade time
 }
 
 func (s *AveragePrice) Symbol(symbol string) *AveragePrice {
@@ -404,27 +403,27 @@ type TickerPrice24h struct {
 }
 
 type TickerPrice24hResponse struct {
-	Symbol             string `json:"symbol"` // Symbol Name
-	PriceChange        string `json:"priceChange"`
-	PriceChangePercent string `json:"priceChangePercent"`
-	WeightedAvgPrice   string `json:"weightedAvgPrice"`
-	PrevClosePrice     string `json:"prevClosePrice"`
-	LastPrice          string `json:"lastPrice"` // Closing price of the interval
-	LastQty            string `json:"lastQty"`
-	BidPrice           string `json:"bidPrice"`
-	BidQty             string `json:"bidQty"`
-	AskPrice           string `json:"askPrice"`
-	AskQty             string `json:"askQty"`
-	OpenPrice          string `json:"openPrice"`   // Opening price of the Interval
-	HighPrice          string `json:"highPrice"`   // Highest price in the interval
-	LowPrice           string `json:"lowPrice"`    // Lowest  price in the interval
-	Volume             string `json:"volume"`      // Total trade volume (in base asset)
-	QuoteVolume        string `json:"quoteVolume"` // Total trade volume (in quote asset)
-	OpenTime           int64  `json:"openTime"`    // Start of the ticker interval
-	CloseTime          int64  `json:"closeTime"`   // End of the ticker interval
-	FirstId            int    `json:"firstId"`     // First tradeId considered
-	LastId             int    `json:"lastId"`      // Last tradeId considered
-	Count              int    `json:"count"`
+	Symbol             string          `json:"symbol"` // Symbol Name
+	PriceChange        decimal.Decimal `json:"priceChange"`
+	PriceChangePercent decimal.Decimal `json:"priceChangePercent"`
+	WeightedAvgPrice   decimal.Decimal `json:"weightedAvgPrice"`
+	PrevClosePrice     decimal.Decimal `json:"prevClosePrice"`
+	LastPrice          decimal.Decimal `json:"lastPrice"` // Closing price of the interval
+	LastQty            decimal.Decimal `json:"lastQty"`
+	BidPrice           decimal.Decimal `json:"bidPrice"`
+	BidQty             decimal.Decimal `json:"bidQty"`
+	AskPrice           decimal.Decimal `json:"askPrice"`
+	AskQty             decimal.Decimal `json:"askQty"`
+	OpenPrice          decimal.Decimal `json:"openPrice"`   // Opening price of the Interval
+	HighPrice          decimal.Decimal `json:"highPrice"`   // Highest price in the interval
+	LowPrice           decimal.Decimal `json:"lowPrice"`    // Lowest  price in the interval
+	Volume             decimal.Decimal `json:"volume"`      // Total trade volume (in base asset)
+	QuoteVolume        decimal.Decimal `json:"quoteVolume"` // Total trade volume (in quote asset)
+	OpenTime           int64           `json:"openTime"`    // Start of the ticker interval
+	CloseTime          int64           `json:"closeTime"`   // End of the ticker interval
+	FirstId            int             `json:"firstId"`     // First tradeId considered
+	LastId             int             `json:"lastId"`      // Last tradeId considered
+	Count              int             `json:"count"`
 }
 
 // Symbol Parameter symbol and symbols cannot be used in combination.
@@ -537,8 +536,8 @@ type PriceTicker struct {
 }
 
 type PriceTickerResponse struct {
-	Symbol string `json:"symbol"`
-	Price  string `json:"price"`
+	Symbol string          `json:"symbol"`
+	Price  decimal.Decimal `json:"price"`
 }
 
 func (s *PriceTicker) Symbol(symbol string) *PriceTicker {
@@ -581,11 +580,11 @@ type OrderBookTicker struct {
 }
 
 type OrderBookTickerResponse struct {
-	Symbol   string `json:"symbol"`
-	BidPrice string `json:"bidPrice"`
-	BidQty   string `json:"bidQty"`
-	AskPrice string `json:"askPrice"`
-	AskQty   string `json:"askQty"`
+	Symbol   string          `json:"symbol"`
+	BidPrice decimal.Decimal `json:"bidPrice"`
+	BidQty   decimal.Decimal `json:"bidQty"`
+	AskPrice decimal.Decimal `json:"askPrice"`
+	AskQty   decimal.Decimal `json:"askQty"`
 }
 
 func (s *OrderBookTicker) Symbol(symbol string) *OrderBookTicker {
@@ -630,21 +629,21 @@ type Ticker struct {
 }
 
 type TickerResponse struct {
-	Symbol             string `json:"symbol"`
-	PriceChange        string `json:"priceChange"`
-	PriceChangePercent string `json:"priceChangePercent"`
-	WeightedAvgPrice   string `json:"weightedAvgPrice"`
-	OpenPrice          string `json:"openPrice"`
-	HighPrice          string `json:"highPrice"`
-	LowPrice           string `json:"lowPrice"`
-	LastPrice          string `json:"lastPrice"`
-	Volume             string `json:"volume"`
-	QuoteVolume        string `json:"quoteVolume"`
-	OpenTime           int64  `json:"openTime"`
-	CloseTime          int64  `json:"closeTime"`
-	FirstId            int    `json:"firstId"`
-	LastId             int    `json:"lastId"`
-	Count              int    `json:"count"`
+	Symbol             string          `json:"symbol"`
+	PriceChange        decimal.Decimal `json:"priceChange"`
+	PriceChangePercent decimal.Decimal `json:"priceChangePercent"`
+	WeightedAvgPrice   decimal.Decimal `json:"weightedAvgPrice"`
+	OpenPrice          decimal.Decimal `json:"openPrice"`
+	HighPrice          decimal.Decimal `json:"highPrice"`
+	LowPrice           decimal.Decimal `json:"lowPrice"`
+	LastPrice          decimal.Decimal `json:"lastPrice"`
+	Volume             decimal.Decimal `json:"volume"`
+	QuoteVolume        decimal.Decimal `json:"quoteVolume"`
+	OpenTime           int64           `json:"openTime"`
+	CloseTime          int64           `json:"closeTime"`
+	FirstId            int             `json:"firstId"`
+	LastId             int             `json:"lastId"`
+	Count              int             `json:"count"`
 }
 
 func (s *Ticker) Symbol(symbol string) *Ticker {

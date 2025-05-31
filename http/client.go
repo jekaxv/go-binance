@@ -126,14 +126,14 @@ func (c *Client) NewHistoricalTrades() *HistoricalTrades {
 	return &HistoricalTrades{c: c}
 }
 
-// NewAggregateTrades Compressed/Aggregate trades list
-func (c *Client) NewAggregateTrades() *AggregateTrades {
+// NewAggTrades Compressed/Aggregate trades list
+func (c *Client) NewAggTrades() *AggTrades {
 	c.req = &request{path: "/api/v3/aggTrades", method: http.MethodGet}
-	return &AggregateTrades{c: c}
+	return &AggTrades{c: c}
 }
 
-// NewKlineData Kline/Candlestick data
-func (c *Client) NewKlineData() *KlineData {
+// NewKlines Kline/Candlestick data
+func (c *Client) NewKlines() *KlineData {
 	c.req = &request{path: "/api/v3/klines", method: http.MethodGet}
 	return &KlineData{c: c}
 }
@@ -144,8 +144,8 @@ func (c *Client) NewUIKlines() *UIKlines {
 	return &UIKlines{c: c}
 }
 
-// NewAveragePrice Current average price
-func (c *Client) NewAveragePrice() *AveragePrice {
+// NewAvgPrice Current average price
+func (c *Client) NewAvgPrice() *AveragePrice {
 	c.req = &request{path: "/api/v3/avgPrice", method: http.MethodGet}
 	return &AveragePrice{c: c}
 }
@@ -162,14 +162,14 @@ func (c *Client) NewTradingDayTicker() *TradingDayTicker {
 	return &TradingDayTicker{c: c}
 }
 
-// NewPriceTicker Symbol price ticker
-func (c *Client) NewPriceTicker() *PriceTicker {
+// NewTickerPrice Symbol price ticker
+func (c *Client) NewTickerPrice() *PriceTicker {
 	c.req = &request{path: "/api/v3/ticker/price", method: http.MethodGet}
 	return &PriceTicker{c: c}
 }
 
-// NewOrderBookTicker Symbol Order Book Ticker
-func (c *Client) NewOrderBookTicker() *OrderBookTicker {
+// NewBookTicker Symbol Order Book Ticker
+func (c *Client) NewBookTicker() *OrderBookTicker {
 	c.req = &request{path: "/api/v3/ticker/bookTicker", method: http.MethodGet}
 	return &OrderBookTicker{c: c}
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/shopspring/decimal"
 	"strings"
 )
 
@@ -17,17 +18,17 @@ type AggTradeService struct {
 }
 
 type AggTradeEvent struct {
-	Event        string `json:"e"`
-	Time         int64  `json:"E"`
-	Symbol       string `json:"s"`
-	AggTradeID   int64  `json:"a"`
-	Price        string `json:"p"`
-	Quantity     string `json:"q"`
-	FirstTradeID int64  `json:"f"`
-	LastTradeID  int64  `json:"l"`
-	TradeTime    int64  `json:"T"`
-	IsBuyerMaker bool   `json:"m"`
-	Placeholder  bool   `json:"M"` // Ignore
+	Event        string          `json:"e"`
+	Time         int64           `json:"E"`
+	Symbol       string          `json:"s"`
+	AggTradeID   int64           `json:"a"`
+	Price        decimal.Decimal `json:"p"`
+	Quantity     decimal.Decimal `json:"q"`
+	FirstTradeID int64           `json:"f"`
+	LastTradeID  int64           `json:"l"`
+	TradeTime    int64           `json:"T"`
+	IsBuyerMaker bool            `json:"m"`
+	Placeholder  bool            `json:"M"` // Ignore
 }
 
 // SubscribeAggTrade Stream Name: <symbol>@aggTrade
@@ -118,15 +119,15 @@ type TradeService struct {
 }
 
 type TradeEvent struct {
-	Event        string `json:"e"`
-	Time         int64  `json:"E"`
-	Symbol       string `json:"s"`
-	TradeId      int64  `json:"t"`
-	Price        string `json:"p"`
-	Quantity     string `json:"q"`
-	TradeTime    int64  `json:"T"`
-	IsBuyerMaker bool   `json:"m"`
-	Placeholder  bool   `json:"M"` // Ignore
+	Event        string          `json:"e"`
+	Time         int64           `json:"E"`
+	Symbol       string          `json:"s"`
+	TradeId      int64           `json:"t"`
+	Price        decimal.Decimal `json:"p"`
+	Quantity     decimal.Decimal `json:"q"`
+	TradeTime    int64           `json:"T"`
+	IsBuyerMaker bool            `json:"m"`
+	Placeholder  bool            `json:"M"` // Ignore
 }
 
 // SubscribeTrade Stream Name: <symbol>@trade
@@ -221,23 +222,23 @@ type KlineEvent struct {
 	Time   int64  `json:"E"`
 	Symbol string `json:"s"`
 	Kline  struct {
-		StartTime        int64  `json:"t"`
-		CloseTime        int64  `json:"T"`
-		Symbol           string `json:"s"`
-		Interval         string `json:"i"`
-		FirstTradeId     int    `json:"f"`
-		LastTradeId      int    `json:"L"`
-		OpenPrice        string `json:"o"`
-		ClosePrice       string `json:"c"`
-		HighPrice        string `json:"h"`
-		LowPrice         string `json:"l"`
-		BaseAssetVolume  string `json:"v"`
-		NumberOfTrades   int    `json:"n"`
-		IsClosed         bool   `json:"x"`
-		QuoteAssetVolume string `json:"q"`
-		TakerBaseVolume  string `json:"V"`
-		TakerQuoteVolume string `json:"Q"`
-		Placeholder      string `json:"B"`
+		StartTime        int64           `json:"t"`
+		CloseTime        int64           `json:"T"`
+		Symbol           string          `json:"s"`
+		Interval         string          `json:"i"`
+		FirstTradeId     int             `json:"f"`
+		LastTradeId      int             `json:"L"`
+		OpenPrice        decimal.Decimal `json:"o"`
+		ClosePrice       decimal.Decimal `json:"c"`
+		HighPrice        decimal.Decimal `json:"h"`
+		LowPrice         decimal.Decimal `json:"l"`
+		BaseAssetVolume  decimal.Decimal `json:"v"`
+		NumberOfTrades   int             `json:"n"`
+		IsClosed         bool            `json:"x"`
+		QuoteAssetVolume decimal.Decimal `json:"q"`
+		TakerBaseVolume  decimal.Decimal `json:"V"`
+		TakerQuoteVolume decimal.Decimal `json:"Q"`
+		Placeholder      string          `json:"B"`
 	} `json:"k"`
 }
 
@@ -330,15 +331,15 @@ type MiniTickerService struct {
 }
 
 type MiniTickerEvent struct {
-	Event                  string `json:"e"`
-	Time                   int64  `json:"E"`
-	Symbol                 string `json:"s"`
-	OpenPrice              string `json:"o"`
-	ClosePrice             string `json:"c"`
-	HighPrice              string `json:"h"`
-	LowPrice               string `json:"l"`
-	TotalTradedBaseVolume  string `json:"v"`
-	TotalTradedQuoteVolume string `json:"q"`
+	Event                  string          `json:"e"`
+	Time                   int64           `json:"E"`
+	Symbol                 string          `json:"s"`
+	OpenPrice              decimal.Decimal `json:"o"`
+	ClosePrice             decimal.Decimal `json:"c"`
+	HighPrice              decimal.Decimal `json:"h"`
+	LowPrice               decimal.Decimal `json:"l"`
+	TotalTradedBaseVolume  decimal.Decimal `json:"v"`
+	TotalTradedQuoteVolume decimal.Decimal `json:"q"`
 }
 
 // SubscribeMiniTicker Stream Name: <symbol>@miniTicker
@@ -473,29 +474,29 @@ type TickerService struct {
 }
 
 type TickerEvent struct {
-	Event                  string `json:"e"`
-	Time                   int64  `json:"E"`
-	Symbol                 string `json:"s"`
-	PriceChange            string `json:"p"`
-	PriceChangePercent     string `json:"P"`
-	WeightedAveragePrice   string `json:"w"`
-	FirstTradePrice        string `json:"x"`
-	LastTradePrice         string `json:"c"`
-	LastQuantity           string `json:"Q"`
-	BestBidPrice           string `json:"b"`
-	BestBidQuantity        string `json:"B"`
-	BestAskPrice           string `json:"a"`
-	BestAskQuantity        string `json:"A"`
-	OpenPrice              string `json:"o"`
-	HighPrice              string `json:"h"`
-	LowPrice               string `json:"l"`
-	TotalTradedBaseVolume  string `json:"v"`
-	TotalTradedQuoteVolume string `json:"q"`
-	OpenTime               int    `json:"O"`
-	CloseTime              int    `json:"C"`
-	FirstTradeID           int    `json:"F"`
-	LastTradeID            int    `json:"L"`
-	NumberOfTrades         int    `json:"n"`
+	Event                  string          `json:"e"`
+	Time                   int64           `json:"E"`
+	Symbol                 string          `json:"s"`
+	PriceChange            decimal.Decimal `json:"p"`
+	PriceChangePercent     decimal.Decimal `json:"P"`
+	WeightedAveragePrice   decimal.Decimal `json:"w"`
+	FirstTradePrice        decimal.Decimal `json:"x"`
+	LastTradePrice         decimal.Decimal `json:"c"`
+	LastQuantity           decimal.Decimal `json:"Q"`
+	BestBidPrice           decimal.Decimal `json:"b"`
+	BestBidQuantity        decimal.Decimal `json:"B"`
+	BestAskPrice           decimal.Decimal `json:"a"`
+	BestAskQuantity        decimal.Decimal `json:"A"`
+	OpenPrice              decimal.Decimal `json:"o"`
+	HighPrice              decimal.Decimal `json:"h"`
+	LowPrice               decimal.Decimal `json:"l"`
+	TotalTradedBaseVolume  decimal.Decimal `json:"v"`
+	TotalTradedQuoteVolume decimal.Decimal `json:"q"`
+	OpenTime               int             `json:"O"`
+	CloseTime              int             `json:"C"`
+	FirstTradeID           int             `json:"F"`
+	LastTradeID            int             `json:"L"`
+	NumberOfTrades         int             `json:"n"`
 }
 
 // SubscribeTicker Stream Name: <symbol>@ticker
@@ -630,23 +631,23 @@ type TickerWindowSizeService struct {
 }
 
 type TickerWindowSizeEvent struct {
-	Event                  string `json:"e"`
-	Time                   int64  `json:"E"`
-	Symbol                 string `json:"s"`
-	PriceChange            string `json:"p"`
-	PriceChangePercent     string `json:"P"`
-	OpenPrice              string `json:"o"`
-	HighPrice              string `json:"h"`
-	LowPrice               string `json:"l"`
-	LastPrice              string `json:"c"`
-	WeightedAveragePrice   string `json:"w"`
-	TotalTradedBaseVolume  string `json:"v"`
-	TotalTradedQuoteVolume string `json:"q"`
-	OpenTime               int    `json:"O"`
-	CloseTime              int    `json:"C"`
-	FirstTradeID           int    `json:"F"`
-	LastTradeID            int    `json:"L"`
-	NumberOfTrades         int    `json:"n"`
+	Event                  string          `json:"e"`
+	Time                   int64           `json:"E"`
+	Symbol                 string          `json:"s"`
+	PriceChange            decimal.Decimal `json:"p"`
+	PriceChangePercent     decimal.Decimal `json:"P"`
+	OpenPrice              decimal.Decimal `json:"o"`
+	HighPrice              decimal.Decimal `json:"h"`
+	LowPrice               decimal.Decimal `json:"l"`
+	LastPrice              decimal.Decimal `json:"c"`
+	WeightedAveragePrice   decimal.Decimal `json:"w"`
+	TotalTradedBaseVolume  decimal.Decimal `json:"v"`
+	TotalTradedQuoteVolume decimal.Decimal `json:"q"`
+	OpenTime               int             `json:"O"`
+	CloseTime              int             `json:"C"`
+	FirstTradeID           int             `json:"F"`
+	LastTradeID            int             `json:"L"`
+	NumberOfTrades         int             `json:"n"`
 }
 
 // SubscribeTickerWindowSize Stream Name: <symbol>@ticker_<window_size>
@@ -783,12 +784,12 @@ type BookTickerService struct {
 }
 
 type BookTickerEvent struct {
-	UpdateId     int    `json:"u"`
-	Symbol       string `json:"s"`
-	BestBidPrice string `json:"b"`
-	BestBidQty   string `json:"B"`
-	BestAskPrice string `json:"a"`
-	BestAskQty   string `json:"A"`
+	UpdateId     int             `json:"u"`
+	Symbol       string          `json:"s"`
+	BestBidPrice decimal.Decimal `json:"b"`
+	BestBidQty   decimal.Decimal `json:"B"`
+	BestAskPrice decimal.Decimal `json:"a"`
+	BestAskQty   decimal.Decimal `json:"A"`
 }
 
 // SubscribeBookTicker Stream Name: <symbol>@bookTicker
@@ -880,12 +881,12 @@ type AvgPriceService struct {
 }
 
 type AvgPriceEvent struct {
-	Event        string `json:"e"`
-	Time         int64  `json:"E"`
-	Symbol       string `json:"s"`
-	Interval     string `json:"i"`
-	AveragePrice string `json:"w"`
-	TradeTime    int64  `json:"T"`
+	Event        string          `json:"e"`
+	Time         int64           `json:"E"`
+	Symbol       string          `json:"s"`
+	Interval     string          `json:"i"`
+	AveragePrice decimal.Decimal `json:"w"`
+	TradeTime    int64           `json:"T"`
 }
 
 // SubscribeAvgPrice Stream Name: <symbol>@avgPrice
@@ -977,9 +978,9 @@ type DepthLevelService struct {
 }
 
 type DepthLevelEvent struct {
-	LastUpdateId int        `json:"lastUpdateId"`
-	Bids         [][]string `json:"bids"` // Bids to be updated. [0]Price level to be updated, [1]Quantity
-	Asks         [][]string `json:"asks"` // Asks to be updated. [0]Price level to be updated, [1]Quantity
+	LastUpdateId int                 `json:"lastUpdateId"`
+	Bids         [][]decimal.Decimal `json:"bids"` // Bids to be updated. [0]Price level to be updated, [1]Quantity
+	Asks         [][]decimal.Decimal `json:"asks"` // Asks to be updated. [0]Price level to be updated, [1]Quantity
 }
 
 // SubscribeDepthLevel Stream Names: <symbol>@depth<levels> OR <symbol>@depth<levels>@100ms
@@ -1082,13 +1083,13 @@ type DepthService struct {
 }
 
 type DepthEvent struct {
-	Event   string     `json:"e"`
-	Time    int64      `json:"E"`
-	Symbol  string     `json:"s"`
-	FirstId int64      `json:"U"`
-	FinalId int64      `json:"u"`
-	Bids    [][]string `json:"b"` // Bids to be updated. [0]Price level to be updated, [1]Quantity
-	Asks    [][]string `json:"a"` // Asks to be updated. [0]Price level to be updated, [1]Quantity
+	Event   string              `json:"e"`
+	Time    int64               `json:"E"`
+	Symbol  string              `json:"s"`
+	FirstId int64               `json:"U"`
+	FinalId int64               `json:"u"`
+	Bids    [][]decimal.Decimal `json:"b"` // Bids to be updated. [0]Price level to be updated, [1]Quantity
+	Asks    [][]decimal.Decimal `json:"a"` // Asks to be updated. [0]Price level to be updated, [1]Quantity
 }
 
 // SubscribeDepth Stream Names: <symbol>@depth OR <symbol>@depth@100ms

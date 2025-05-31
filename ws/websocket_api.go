@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/jekaxv/go-binance/types"
+	"github.com/shopspring/decimal"
 )
 
 type ApiRateLimit struct {
@@ -15,13 +16,13 @@ type ApiRateLimit struct {
 }
 
 type ApiFilter struct {
-	FilterType string `json:"filterType"`
-	MinPrice   string `json:"minPrice,omitempty"`
-	MaxPrice   string `json:"maxPrice,omitempty"`
-	TickSize   string `json:"tickSize,omitempty"`
-	MinQty     string `json:"minQty,omitempty"`
-	MaxQty     string `json:"maxQty,omitempty"`
-	StepSize   string `json:"stepSize,omitempty"`
+	FilterType string          `json:"filterType"`
+	MinPrice   decimal.Decimal `json:"minPrice,omitempty"`
+	MaxPrice   decimal.Decimal `json:"maxPrice,omitempty"`
+	TickSize   decimal.Decimal `json:"tickSize,omitempty"`
+	MinQty     decimal.Decimal `json:"minQty,omitempty"`
+	MaxQty     decimal.Decimal `json:"maxQty,omitempty"`
+	StepSize   decimal.Decimal `json:"stepSize,omitempty"`
 }
 
 type ApiSort struct {
@@ -30,13 +31,13 @@ type ApiSort struct {
 }
 
 type ApiFill struct {
-	Price           string `json:"price"`
-	Qty             string `json:"qty"`
-	Commission      string `json:"commission"`
-	CommissionAsset string `json:"commissionAsset"`
-	TradeId         int    `json:"tradeId"`
-	MatchType       string `json:"matchType"`
-	AllocId         int    `json:"allocId"`
+	Price           decimal.Decimal `json:"price"`
+	Qty             decimal.Decimal `json:"qty"`
+	Commission      decimal.Decimal `json:"commission"`
+	CommissionAsset string          `json:"commissionAsset"`
+	TradeId         int             `json:"tradeId"`
+	MatchType       string          `json:"matchType"`
+	AllocId         int             `json:"allocId"`
 }
 
 type ApiOrder struct {
@@ -46,36 +47,37 @@ type ApiOrder struct {
 }
 
 type ApiBalance struct {
-	Asset  string `json:"asset"`
-	Free   string `json:"free"`
-	Locked string `json:"locked"`
+	Asset  string          `json:"asset"`
+	Free   decimal.Decimal `json:"free"`
+	Locked decimal.Decimal `json:"locked"`
 }
 
 type ApiCommissionRate struct {
-	Maker  string `json:"maker"`
-	Taker  string `json:"taker"`
-	Buyer  string `json:"buyer"`
-	Seller string `json:"seller"`
+	Maker  decimal.Decimal `json:"maker"`
+	Taker  decimal.Decimal `json:"taker"`
+	Buyer  decimal.Decimal `json:"buyer"`
+	Seller decimal.Decimal `json:"seller"`
 }
 
 type ApiOrderReport struct {
-	Symbol                  string `json:"symbol"`
-	OrderId                 int64  `json:"orderId"`
-	OrderListId             int    `json:"orderListId"`
-	ClientOrderId           string `json:"clientOrderId"`
-	OrigClientOrderId       string `json:"origClientOrderId"`
-	TransactTime            int64  `json:"transactTime"`
-	Price                   string `json:"price"`
-	OrigQty                 string `json:"origQty"`
-	ExecutedQty             string `json:"executedQty"`
-	OrigQuoteOrderQty       string `json:"origQuoteOrderQty"`
-	CummulativeQuoteQty     string `json:"cummulativeQuoteQty"`
-	Status                  string `json:"status"`
-	TimeInForce             string `json:"timeInForce"`
-	Type                    string `json:"type"`
-	Side                    string `json:"side"`
-	StopPrice               string `json:"stopPrice,omitempty"`
-	SelfTradePreventionMode string `json:"selfTradePreventionMode"`
+	Symbol                  string          `json:"symbol"`
+	OrderId                 int64           `json:"orderId"`
+	OrderListId             int             `json:"orderListId"`
+	ClientOrderId           string          `json:"clientOrderId"`
+	OrigClientOrderId       string          `json:"origClientOrderId"`
+	TransactTime            int64           `json:"transactTime"`
+	Price                   decimal.Decimal `json:"price"`
+	OrigQty                 decimal.Decimal `json:"origQty"`
+	ExecutedQty             decimal.Decimal `json:"executedQty"`
+	OrigQuoteOrderQty       decimal.Decimal `json:"origQuoteOrderQty"`
+	CummulativeQuoteQty     decimal.Decimal `json:"cummulativeQuoteQty"`
+	Status                  string          `json:"status"`
+	TimeInForce             string          `json:"timeInForce"`
+	Type                    string          `json:"type"`
+	Side                    string          `json:"side"`
+	StopPrice               decimal.Decimal `json:"stopPrice,omitempty"`
+	IcebergQty              decimal.Decimal `json:"icebergQty,omitempty"`
+	SelfTradePreventionMode string          `json:"selfTradePreventionMode"`
 }
 
 type ApiSymbol struct {

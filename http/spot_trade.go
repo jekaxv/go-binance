@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/jekaxv/go-binance/types"
+	"github.com/shopspring/decimal"
 )
 
 // CreateOrder Send in a new order.
@@ -28,23 +29,23 @@ type CreateOrder struct {
 }
 
 type CreateOrderResponse struct {
-	Symbol                  string      `json:"symbol"`
-	OrderId                 int         `json:"orderId"`
-	OrderListId             int         `json:"orderListId"`
-	ClientOrderId           string      `json:"clientOrderId"`
-	TransactTime            int64       `json:"transactTime"`
-	Price                   string      `json:"price"`
-	OrigQty                 string      `json:"origQty"`
-	ExecutedQty             string      `json:"executedQty"`
-	OrigQuoteOrderQty       string      `json:"origQuoteOrderQty"`
-	CummulativeQuoteQty     string      `json:"cummulativeQuoteQty"`
-	Status                  string      `json:"status"`
-	TimeInForce             string      `json:"timeInForce"`
-	Type                    string      `json:"type"`
-	Side                    string      `json:"side"`
-	WorkingTime             int64       `json:"workingTime"`
-	SelfTradePreventionMode string      `json:"selfTradePreventionMode"`
-	Fills                   []*SpotFill `json:"fills"`
+	Symbol                  string          `json:"symbol"`
+	OrderId                 int             `json:"orderId"`
+	OrderListId             int             `json:"orderListId"`
+	ClientOrderId           string          `json:"clientOrderId"`
+	TransactTime            int64           `json:"transactTime"`
+	Price                   decimal.Decimal `json:"price"`
+	OrigQty                 decimal.Decimal `json:"origQty"`
+	ExecutedQty             decimal.Decimal `json:"executedQty"`
+	OrigQuoteOrderQty       decimal.Decimal `json:"origQuoteOrderQty"`
+	CummulativeQuoteQty     decimal.Decimal `json:"cummulativeQuoteQty"`
+	Status                  string          `json:"status"`
+	TimeInForce             string          `json:"timeInForce"`
+	Type                    string          `json:"type"`
+	Side                    string          `json:"side"`
+	WorkingTime             int64           `json:"workingTime"`
+	SelfTradePreventionMode string          `json:"selfTradePreventionMode"`
+	Fills                   []*SpotFill     `json:"fills"`
 }
 
 func (s *CreateOrder) Symbol(symbol string) *CreateOrder {
@@ -208,21 +209,22 @@ type TestCreateOrder struct {
 	computeCommissionRates  *bool
 }
 
+type OrderCommission struct {
+	Maker decimal.Decimal `json:"maker"`
+	Taker decimal.Decimal `json:"taker"`
+}
+
+type Discount struct {
+	EnabledForAccount bool            `json:"enabledForAccount"`
+	EnabledForSymbol  bool            `json:"enabledForSymbol"`
+	DiscountAsset     string          `json:"discountAsset"`
+	Discount          decimal.Decimal `json:"discount"`
+}
+
 type TestCreateOrderResponse struct {
-	StandardCommissionForOrder struct {
-		Maker string `json:"maker"`
-		Taker string `json:"taker"`
-	} `json:"standardCommissionForOrder"`
-	TaxCommissionForOrder struct {
-		Maker string `json:"maker"`
-		Taker string `json:"taker"`
-	} `json:"taxCommissionForOrder"`
-	Discount struct {
-		EnabledForAccount bool   `json:"enabledForAccount"`
-		EnabledForSymbol  bool   `json:"enabledForSymbol"`
-		DiscountAsset     string `json:"discountAsset"`
-		Discount          string `json:"discount"`
-	} `json:"discount"`
+	StandardCommissionForOrder OrderCommission `json:"standardCommissionForOrder"`
+	TaxCommissionForOrder      OrderCommission `json:"taxCommissionForOrder"`
+	Discount                   Discount        `json:"discount"`
 }
 
 func (s *TestCreateOrder) Symbol(symbol string) *TestCreateOrder {
@@ -388,26 +390,26 @@ type QueryOrder struct {
 }
 
 type QueryOrderResponse struct {
-	Symbol                  string `json:"symbol"`
-	OrderId                 int    `json:"orderId"`
-	OrderListId             int    `json:"orderListId"`
-	ClientOrderId           string `json:"clientOrderId"`
-	Price                   string `json:"price"`
-	OrigQty                 string `json:"origQty"`
-	ExecutedQty             string `json:"executedQty"`
-	CummulativeQuoteQty     string `json:"cummulativeQuoteQty"`
-	Status                  string `json:"status"`
-	TimeInForce             string `json:"timeInForce"`
-	Type                    string `json:"type"`
-	Side                    string `json:"side"`
-	StopPrice               string `json:"stopPrice"`
-	IcebergQty              string `json:"icebergQty"`
-	Time                    int64  `json:"time"`
-	UpdateTime              int64  `json:"updateTime"`
-	IsWorking               bool   `json:"isWorking"`
-	WorkingTime             int64  `json:"workingTime"`
-	OrigQuoteOrderQty       string `json:"origQuoteOrderQty"`
-	SelfTradePreventionMode string `json:"selfTradePreventionMode"`
+	Symbol                  string          `json:"symbol"`
+	OrderId                 int             `json:"orderId"`
+	OrderListId             int             `json:"orderListId"`
+	ClientOrderId           string          `json:"clientOrderId"`
+	Price                   decimal.Decimal `json:"price"`
+	OrigQty                 decimal.Decimal `json:"origQty"`
+	ExecutedQty             decimal.Decimal `json:"executedQty"`
+	OrigQuoteOrderQty       decimal.Decimal `json:"origQuoteOrderQty"`
+	CummulativeQuoteQty     decimal.Decimal `json:"cummulativeQuoteQty"`
+	Status                  string          `json:"status"`
+	TimeInForce             string          `json:"timeInForce"`
+	Type                    string          `json:"type"`
+	Side                    string          `json:"side"`
+	StopPrice               decimal.Decimal `json:"stopPrice"`
+	IcebergQty              decimal.Decimal `json:"icebergQty"`
+	Time                    int64           `json:"time"`
+	UpdateTime              int64           `json:"updateTime"`
+	IsWorking               bool            `json:"isWorking"`
+	WorkingTime             int64           `json:"workingTime"`
+	SelfTradePreventionMode string          `json:"selfTradePreventionMode"`
 }
 
 func (s *QueryOrder) Symbol(symbol string) *QueryOrder {
@@ -533,28 +535,29 @@ type CancelOpenOrder struct {
 }
 
 type CancelOpenOrderResponse struct {
-	Symbol                  string             `json:"symbol"`
-	OrigClientOrderId       string             `json:"origClientOrderId,omitempty"`
-	OrderId                 int                `json:"orderId,omitempty"`
-	OrderListId             int                `json:"orderListId"`
-	ClientOrderId           string             `json:"clientOrderId,omitempty"`
-	TransactTime            int64              `json:"transactTime,omitempty"`
-	Price                   string             `json:"price,omitempty"`
-	OrigQty                 string             `json:"origQty,omitempty"`
-	ExecutedQty             string             `json:"executedQty,omitempty"`
-	CummulativeQuoteQty     string             `json:"cummulativeQuoteQty,omitempty"`
-	Status                  string             `json:"status,omitempty"`
-	TimeInForce             string             `json:"timeInForce,omitempty"`
-	Type                    string             `json:"type,omitempty"`
-	Side                    string             `json:"side,omitempty"`
-	SelfTradePreventionMode string             `json:"selfTradePreventionMode,omitempty"`
-	ContingencyType         string             `json:"contingencyType,omitempty"`
-	ListStatusType          string             `json:"listStatusType,omitempty"`
-	ListOrderStatus         string             `json:"listOrderStatus,omitempty"`
-	ListClientOrderId       string             `json:"listClientOrderId,omitempty"`
-	TransactionTime         int64              `json:"transactionTime,omitempty"`
-	Orders                  []*SpotOrder       `json:"orders,omitempty"`
-	OrderReports            []*SpotOrderReport `json:"orderReports,omitempty"`
+	Symbol                  string          `json:"symbol"`
+	OrigClientOrderId       string          `json:"origClientOrderId,omitempty"`
+	OrderId                 int             `json:"orderId,omitempty"`
+	OrderListId             int             `json:"orderListId"`
+	ClientOrderId           string          `json:"clientOrderId,omitempty"`
+	TransactTime            int64           `json:"transactTime,omitempty"`
+	Price                   decimal.Decimal `json:"price,omitempty"`
+	OrigQty                 decimal.Decimal `json:"origQty,omitempty"`
+	ExecutedQty             decimal.Decimal `json:"executedQty,omitempty"`
+	OrigQuoteOrderQty       decimal.Decimal `json:"origQuoteOrderQty"`
+	CummulativeQuoteQty     decimal.Decimal `json:"cummulativeQuoteQty,omitempty"`
+	Status                  string          `json:"status,omitempty"`
+	TimeInForce             string          `json:"timeInForce,omitempty"`
+	Type                    string          `json:"type,omitempty"`
+	Side                    string          `json:"side,omitempty"`
+	SelfTradePreventionMode string          `json:"selfTradePreventionMode,omitempty"`
+	ContingencyType         string          `json:"contingencyType,omitempty"`
+	ListStatusType          string          `json:"listStatusType,omitempty"`
+	ListOrderStatus         string          `json:"listOrderStatus,omitempty"`
+	ListClientOrderId       string          `json:"listClientOrderId,omitempty"`
+	TransactionTime         int64           `json:"transactionTime,omitempty"`
+	Orders                  []*SpotOrder    `json:"orders,omitempty"`
+	OrderReports            []*OrderReport  `json:"orderReports,omitempty"`
 }
 
 func (s *CancelOpenOrder) Symbol(symbol string) *CancelOpenOrder {
@@ -612,15 +615,15 @@ type CancelReplaceResponse struct {
 	Code int    `json:"code"`
 	Msg  string `json:"msg"`
 	Data struct {
-		NewOrderResponse *SpotOrderReport `json:"newOrderResponse"`
-		CancelResult     string           `json:"cancelResult"`
-		NewOrderResult   string           `json:"newOrderResult"`
-		CancelResponse   *SpotOrderReport `json:"cancelResponse"`
+		NewOrderResponse *OrderReport `json:"newOrderResponse"`
+		CancelResult     string       `json:"cancelResult"`
+		NewOrderResult   string       `json:"newOrderResult"`
+		CancelResponse   *OrderReport `json:"cancelResponse"`
 	} `json:"data"`
-	CancelResult     string           `json:"cancelResult"`
-	NewOrderResult   string           `json:"newOrderResult"`
-	CancelResponse   *SpotOrderReport `json:"cancelResponse"`
-	NewOrderResponse *SpotOrderReport `json:"newOrderResponse"`
+	CancelResult     string       `json:"cancelResult"`
+	NewOrderResult   string       `json:"newOrderResult"`
+	CancelResponse   *OrderReport `json:"cancelResponse"`
+	NewOrderResponse *OrderReport `json:"newOrderResponse"`
 }
 
 func (s *CancelReplace) Symbol(symbol string) *CancelReplace {
@@ -818,26 +821,26 @@ type OpenOrders struct {
 }
 
 type OrdersResponse struct {
-	Symbol                  string `json:"symbol"`
-	OrderId                 int    `json:"orderId"`
-	OrderListId             int    `json:"orderListId"`
-	ClientOrderId           string `json:"clientOrderId"`
-	Price                   string `json:"price"`
-	OrigQty                 string `json:"origQty"`
-	ExecutedQty             string `json:"executedQty"`
-	CummulativeQuoteQty     string `json:"cummulativeQuoteQty"`
-	Status                  string `json:"status"`
-	TimeInForce             string `json:"timeInForce"`
-	Type                    string `json:"type"`
-	Side                    string `json:"side"`
-	StopPrice               string `json:"stopPrice"`
-	IcebergQty              string `json:"icebergQty"`
-	Time                    int64  `json:"time"`
-	UpdateTime              int64  `json:"updateTime"`
-	IsWorking               bool   `json:"isWorking"`
-	OrigQuoteOrderQty       string `json:"origQuoteOrderQty"`
-	WorkingTime             int64  `json:"workingTime"`
-	SelfTradePreventionMode string `json:"selfTradePreventionMode"`
+	Symbol                  string          `json:"symbol"`
+	OrderId                 int             `json:"orderId"`
+	OrderListId             int             `json:"orderListId"`
+	ClientOrderId           string          `json:"clientOrderId"`
+	Price                   decimal.Decimal `json:"price"`
+	OrigQty                 decimal.Decimal `json:"origQty"`
+	ExecutedQty             decimal.Decimal `json:"executedQty"`
+	OrigQuoteOrderQty       decimal.Decimal `json:"origQuoteOrderQty"`
+	CummulativeQuoteQty     decimal.Decimal `json:"cummulativeQuoteQty"`
+	Status                  string          `json:"status"`
+	TimeInForce             string          `json:"timeInForce"`
+	Type                    string          `json:"type"`
+	Side                    string          `json:"side"`
+	StopPrice               decimal.Decimal `json:"stopPrice"`
+	IcebergQty              decimal.Decimal `json:"icebergQty"`
+	Time                    int64           `json:"time"`
+	UpdateTime              int64           `json:"updateTime"`
+	IsWorking               bool            `json:"isWorking"`
+	WorkingTime             int64           `json:"workingTime"`
+	SelfTradePreventionMode string          `json:"selfTradePreventionMode"`
 }
 
 func (s *OpenOrders) Symbol(symbol string) *OpenOrders {
@@ -941,15 +944,15 @@ type CancelOrderList struct {
 }
 
 type OrderListResponse struct {
-	OrderListId       int                `json:"orderListId"`
-	ContingencyType   string             `json:"contingencyType"`
-	ListStatusType    string             `json:"listStatusType"`
-	ListOrderStatus   string             `json:"listOrderStatus"`
-	ListClientOrderId string             `json:"listClientOrderId"`
-	TransactionTime   int64              `json:"transactionTime"`
-	Symbol            string             `json:"symbol"`
-	Orders            []*SpotOrder       `json:"orders"`
-	OrderReports      []*SpotOrderReport `json:"orderReports"`
+	OrderListId       int            `json:"orderListId"`
+	ContingencyType   string         `json:"contingencyType"`
+	ListStatusType    string         `json:"listStatusType"`
+	ListOrderStatus   string         `json:"listOrderStatus"`
+	ListClientOrderId string         `json:"listClientOrderId"`
+	TransactionTime   int64          `json:"transactionTime"`
+	Symbol            string         `json:"symbol"`
+	Orders            []*SpotOrder   `json:"orders"`
+	OrderReports      []*OrderReport `json:"orderReports"`
 }
 
 func (s *CancelOrderList) Symbol(symbol string) *CancelOrderList {
@@ -1179,25 +1182,25 @@ type CreateSOROrder struct {
 	recvWindow              *int64
 }
 type CreateSOROrderResponse struct {
-	Symbol                  string      `json:"symbol"`
-	OrderId                 int         `json:"orderId"`
-	OrderListId             int         `json:"orderListId"`
-	ClientOrderId           string      `json:"clientOrderId"`
-	TransactTime            int64       `json:"transactTime"`
-	Price                   string      `json:"price"`
-	OrigQty                 string      `json:"origQty"`
-	ExecutedQty             string      `json:"executedQty"`
-	OrigQuoteOrderQty       string      `json:"origQuoteOrderQty"`
-	CummulativeQuoteQty     string      `json:"cummulativeQuoteQty"`
-	Status                  string      `json:"status"`
-	TimeInForce             string      `json:"timeInForce"`
-	Type                    string      `json:"type"`
-	Side                    string      `json:"side"`
-	WorkingTime             int64       `json:"workingTime"`
-	Fills                   []*SpotFill `json:"fills"`
-	WorkingFloor            string      `json:"workingFloor"`
-	SelfTradePreventionMode string      `json:"selfTradePreventionMode"`
-	UsedSor                 bool        `json:"usedSor"`
+	Symbol                  string          `json:"symbol"`
+	OrderId                 int             `json:"orderId"`
+	OrderListId             int             `json:"orderListId"`
+	ClientOrderId           string          `json:"clientOrderId"`
+	TransactTime            int64           `json:"transactTime"`
+	Price                   decimal.Decimal `json:"price"`
+	OrigQty                 decimal.Decimal `json:"origQty"`
+	ExecutedQty             decimal.Decimal `json:"executedQty"`
+	OrigQuoteOrderQty       decimal.Decimal `json:"origQuoteOrderQty"`
+	CummulativeQuoteQty     decimal.Decimal `json:"cummulativeQuoteQty"`
+	Status                  string          `json:"status"`
+	TimeInForce             string          `json:"timeInForce"`
+	Type                    string          `json:"type"`
+	Side                    string          `json:"side"`
+	WorkingTime             int64           `json:"workingTime"`
+	Fills                   []*SpotFill     `json:"fills"`
+	WorkingFloor            string          `json:"workingFloor"`
+	SelfTradePreventionMode string          `json:"selfTradePreventionMode"`
+	UsedSor                 bool            `json:"usedSor"`
 }
 
 func (s *CreateSOROrder) Symbol(symbol string) *CreateSOROrder {
@@ -1320,23 +1323,6 @@ type CreateTestSOROrder struct {
 	computeCommissionRates  *bool
 }
 
-type CreateTestSOROrderResponse struct {
-	StandardCommissionForOrder struct {
-		Maker string `json:"maker"`
-		Taker string `json:"taker"`
-	} `json:"standardCommissionForOrder"`
-	TaxCommissionForOrder struct {
-		Maker string `json:"maker"`
-		Taker string `json:"taker"`
-	} `json:"taxCommissionForOrder"`
-	Discount struct {
-		EnabledForAccount bool   `json:"enabledForAccount"`
-		EnabledForSymbol  bool   `json:"enabledForSymbol"`
-		DiscountAsset     string `json:"discountAsset"`
-		Discount          string `json:"discount"`
-	} `json:"discount"`
-}
-
 func (s *CreateTestSOROrder) Symbol(symbol string) *CreateTestSOROrder {
 	s.symbol = symbol
 	return s
@@ -1393,7 +1379,7 @@ func (s *CreateTestSOROrder) ComputeCommissionRates(computeCommissionRates bool)
 	s.computeCommissionRates = &computeCommissionRates
 	return s
 }
-func (s *CreateTestSOROrder) Do(ctx context.Context) (*CreateTestSOROrderResponse, error) {
+func (s *CreateTestSOROrder) Do(ctx context.Context) (*TestCreateOrderResponse, error) {
 	s.c.req.set("symbol", s.symbol)
 	s.c.req.set("side", s.side)
 	s.c.req.set("type", s.orderType)
@@ -1432,7 +1418,7 @@ func (s *CreateTestSOROrder) Do(ctx context.Context) (*CreateTestSOROrderRespons
 		return nil, err
 	}
 	if s.computeCommissionRates != nil && *s.computeCommissionRates {
-		var resp *CreateTestSOROrderResponse
+		var resp *TestCreateOrderResponse
 		return resp, json.Unmarshal(s.c.resp.rawBody, &resp)
 	}
 	return nil, nil

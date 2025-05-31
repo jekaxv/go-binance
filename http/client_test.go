@@ -79,7 +79,7 @@ func (s *baseTestSuite) assertApiOrder(r1, r2 *SpotOrder) {
 	r.Equal(r1.ClientOrderId, r2.ClientOrderId, "clientOrderId")
 }
 
-func (s *baseTestSuite) assertApiOrderReport(r1, r2 *SpotOrderReport) {
+func (s *baseTestSuite) assertApiOrderReport(r1, r2 *OrderReport) {
 	r := s.r()
 	r.Equal(r1.Symbol, r2.Symbol, "symbol")
 	r.Equal(r1.OrderId, r2.OrderId, "orderId")

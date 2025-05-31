@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/jekaxv/go-binance/types"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/suite"
 	"testing"
 )
@@ -109,14 +110,14 @@ func (s *apiMarketTestSuite) TestNewHistoricalTrades() {
 	resp, err := s.client.NewHistoricalTrades().Symbol("BTCUSDT").Do(context.Background())
 	r := s.r()
 	r.Empty(err)
-	var testResp []*HistoricalTradesResponse
+	var testResp []*TradesResponse
 	r.Empty(json.Unmarshal(msg, &testResp))
 	for i := range resp {
 		s.assertTestHistoricalTradesResponse(resp[i], testResp[i])
 	}
 }
 
-func (s *apiMarketTestSuite) assertTestHistoricalTradesResponse(r1, r2 *HistoricalTradesResponse) {
+func (s *apiMarketTestSuite) assertTestHistoricalTradesResponse(r1, r2 *TradesResponse) {
 	r := s.r()
 	r.Equal(r1.Id, r2.Id, "Id")
 	r.Equal(r1.Price, r2.Price, "Price")
@@ -142,17 +143,17 @@ func (s *apiMarketTestSuite) TestNewAggregateTrades() {
 ]`)
 	server := s.setup(msg)
 	defer server.Close()
-	resp, err := s.client.NewAggregateTrades().Symbol("BTCUSDT").Do(context.Background())
+	resp, err := s.client.NewAggTrades().Symbol("BTCUSDT").Do(context.Background())
 	r := s.r()
 	r.Empty(err)
-	var testResp []*AggregateTradesResponse
+	var testResp []*AggTradesResponse
 	r.Empty(json.Unmarshal(msg, &testResp))
 	for i := range resp {
 		s.assertTestAggregateTradesResponse(resp[i], testResp[i])
 	}
 }
 
-func (s *apiMarketTestSuite) assertTestAggregateTradesResponse(r1, r2 *AggregateTradesResponse) {
+func (s *apiMarketTestSuite) assertTestAggregateTradesResponse(r1, r2 *AggTradesResponse) {
 	r := s.r()
 	r.Equal(r1.TradeId, r2.TradeId, "TradeId")
 	r.Equal(r1.Price, r2.Price, "Price")
@@ -162,6 +163,11 @@ func (s *apiMarketTestSuite) assertTestAggregateTradesResponse(r1, r2 *Aggregate
 	r.Equal(r1.Timestamp, r2.Timestamp, "Timestamp")
 	r.Equal(r1.IsMaker, r2.IsMaker, "IsMaker")
 	r.Equal(r1.IsBestPrice, r2.IsBestPrice, "IsBestPrice")
+}
+
+func toDecimal(v string) decimal.Decimal {
+	float, _ := decimal.NewFromString(v)
+	return float
 }
 
 func (s *apiMarketTestSuite) TestNewKlineData() {
@@ -197,33 +203,33 @@ func (s *apiMarketTestSuite) TestNewKlineData() {
   ]`)
 	server := s.setup(msg)
 	defer server.Close()
-	resp, err := s.client.NewKlineData().Symbol("BTCUSDT").Interval(types.Interval1m).Do(context.Background())
+	resp, err := s.client.NewKlines().Symbol("BTCUSDT").Interval(types.Interval1m).Do(context.Background())
 	r := s.r()
 	r.Empty(err)
 	testResp := []*KlineDataResponse{{
 		OpenTime:                 1737556140000,
-		OpenPrice:                "104552.00000000",
-		HighPrice:                "104650.25000000",
-		LowPrice:                 "104551.87000000",
-		ClosePrice:               "104650.25000000",
-		Volume:                   "0.34488000",
+		OpenPrice:                toDecimal("104552.00000000"),
+		HighPrice:                toDecimal("104650.25000000"),
+		LowPrice:                 toDecimal("104551.87000000"),
+		ClosePrice:               toDecimal("104650.25000000"),
+		Volume:                   toDecimal("0.34488000"),
 		CloseTime:                1737556199999,
-		QuoteAssetVolume:         "36077.69853200",
+		QuoteAssetVolume:         toDecimal("36077.69853200"),
 		NumberOfTrades:           122,
-		TakerBuyBaseAssetVolume:  "0.22480000",
-		TakerBuyQuoteAssetVolume: "23513.66461330",
+		TakerBuyBaseAssetVolume:  toDecimal("0.22480000"),
+		TakerBuyQuoteAssetVolume: toDecimal("23513.66461330"),
 	}, {
 		OpenTime:                 1737556200000,
-		OpenPrice:                "104634.38000000",
-		HighPrice:                "104644.84000000",
-		LowPrice:                 "104596.68000000",
-		ClosePrice:               "104605.60000000",
-		Volume:                   "0.20685000",
+		OpenPrice:                toDecimal("104634.38000000"),
+		HighPrice:                toDecimal("104644.84000000"),
+		LowPrice:                 toDecimal("104596.68000000"),
+		ClosePrice:               toDecimal("104605.60000000"),
+		Volume:                   toDecimal("0.20685000"),
 		CloseTime:                1737556259999,
-		QuoteAssetVolume:         "21637.65114840",
+		QuoteAssetVolume:         toDecimal("21637.65114840"),
 		NumberOfTrades:           96,
-		TakerBuyBaseAssetVolume:  "0.10046000",
-		TakerBuyQuoteAssetVolume: "10508.39407400",
+		TakerBuyBaseAssetVolume:  toDecimal("0.10046000"),
+		TakerBuyQuoteAssetVolume: toDecimal("10508.39407400"),
 	}}
 	for i := range resp {
 		s.assertTestKlineDataResponse(resp[i], testResp[i])
@@ -283,28 +289,28 @@ func (s *apiMarketTestSuite) TestNewUIKlines() {
 	r.Empty(err)
 	testResp := []*KlineDataResponse{{
 		OpenTime:                 1737556140000,
-		OpenPrice:                "104552.00000000",
-		HighPrice:                "104650.25000000",
-		LowPrice:                 "104551.87000000",
-		ClosePrice:               "104650.25000000",
-		Volume:                   "0.34488000",
+		OpenPrice:                toDecimal("104552.00000000"),
+		HighPrice:                toDecimal("104650.25000000"),
+		LowPrice:                 toDecimal("104551.87000000"),
+		ClosePrice:               toDecimal("104650.25000000"),
+		Volume:                   toDecimal("0.34488000"),
 		CloseTime:                1737556199999,
-		QuoteAssetVolume:         "36077.69853200",
+		QuoteAssetVolume:         toDecimal("36077.69853200"),
 		NumberOfTrades:           122,
-		TakerBuyBaseAssetVolume:  "0.22480000",
-		TakerBuyQuoteAssetVolume: "23513.66461330",
+		TakerBuyBaseAssetVolume:  toDecimal("0.22480000"),
+		TakerBuyQuoteAssetVolume: toDecimal("23513.66461330"),
 	}, {
 		OpenTime:                 1737556200000,
-		OpenPrice:                "104634.38000000",
-		HighPrice:                "104644.84000000",
-		LowPrice:                 "104596.68000000",
-		ClosePrice:               "104605.60000000",
-		Volume:                   "0.20685000",
+		OpenPrice:                toDecimal("104634.38000000"),
+		HighPrice:                toDecimal("104644.84000000"),
+		LowPrice:                 toDecimal("104596.68000000"),
+		ClosePrice:               toDecimal("104605.60000000"),
+		Volume:                   toDecimal("0.20685000"),
 		CloseTime:                1737556259999,
-		QuoteAssetVolume:         "21637.65114840",
+		QuoteAssetVolume:         toDecimal("21637.65114840"),
 		NumberOfTrades:           96,
-		TakerBuyBaseAssetVolume:  "0.10046000",
-		TakerBuyQuoteAssetVolume: "10508.39407400",
+		TakerBuyBaseAssetVolume:  toDecimal("0.10046000"),
+		TakerBuyQuoteAssetVolume: toDecimal("10508.39407400"),
 	}}
 	for i := range resp {
 		s.assertTestKlineDataResponse(resp[i], testResp[i])
@@ -319,7 +325,7 @@ func (s *apiMarketTestSuite) TestNewAveragePrice() {
 }`)
 	server := s.setup(msg)
 	defer server.Close()
-	resp, err := s.client.NewAveragePrice().Symbol("BTCUSDT").Do(context.Background())
+	resp, err := s.client.NewAvgPrice().Symbol("BTCUSDT").Do(context.Background())
 	r := s.r()
 	r.Empty(err)
 	var testResp *AveragePriceResponse
@@ -476,7 +482,7 @@ func (s *apiMarketTestSuite) TestNewPriceTicker() {
 ]`)
 	server := s.setup(msg)
 	defer server.Close()
-	resp, err := s.client.NewPriceTicker().Symbols([]string{"LTCBTC", "ETHBTC"}).Do(context.Background())
+	resp, err := s.client.NewTickerPrice().Symbols([]string{"LTCBTC", "ETHBTC"}).Do(context.Background())
 	r := s.r()
 	r.Empty(err)
 	var testResp []*PriceTickerResponse
@@ -510,7 +516,7 @@ func (s *apiMarketTestSuite) TestNewOrderBookTicker() {
 ]`)
 	server := s.setup(msg)
 	defer server.Close()
-	resp, err := s.client.NewOrderBookTicker().Symbols([]string{"LTCBTC", "ETHBTC"}).Do(context.Background())
+	resp, err := s.client.NewBookTicker().Symbols([]string{"LTCBTC", "ETHBTC"}).Do(context.Background())
 	r := s.r()
 	r.Empty(err)
 	var testResp []*OrderBookTickerResponse

@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 	"encoding/json"
+	"github.com/shopspring/decimal"
 )
 
 // AccountInfo Get current account information.
@@ -71,19 +72,19 @@ type AccountTrade struct {
 }
 
 type AccountTradeResponse struct {
-	Symbol          string `json:"symbol"`
-	Id              int    `json:"id"`
-	OrderId         int    `json:"orderId"`
-	OrderListId     int    `json:"orderListId"`
-	Price           string `json:"price"`
-	Qty             string `json:"qty"`
-	QuoteQty        string `json:"quoteQty"`
-	Commission      string `json:"commission"`
-	CommissionAsset string `json:"commissionAsset"`
-	Time            int64  `json:"time"`
-	IsBuyer         bool   `json:"isBuyer"`
-	IsMaker         bool   `json:"isMaker"`
-	IsBestMatch     bool   `json:"isBestMatch"`
+	Symbol          string          `json:"symbol"`
+	Id              int             `json:"id"`
+	OrderId         int             `json:"orderId"`
+	OrderListId     int             `json:"orderListId"`
+	Price           decimal.Decimal `json:"price"`
+	Qty             decimal.Decimal `json:"qty"`
+	QuoteQty        decimal.Decimal `json:"quoteQty"`
+	Commission      decimal.Decimal `json:"commission"`
+	CommissionAsset string          `json:"commissionAsset"`
+	Time            int64           `json:"time"`
+	IsBuyer         bool            `json:"isBuyer"`
+	IsMaker         bool            `json:"isMaker"`
+	IsBestMatch     bool            `json:"isBestMatch"`
 }
 
 func (s *AccountTrade) Symbol(symbol string) *AccountTrade {
@@ -186,16 +187,16 @@ type QueryPreventedMatches struct {
 	recvWindow           *int64
 }
 type QueryPreventedMatchesResponse struct {
-	Symbol                  string `json:"symbol"`
-	PreventedMatchId        int    `json:"preventedMatchId"`
-	TakerOrderId            int    `json:"takerOrderId"`
-	MakerSymbol             string `json:"makerSymbol"`
-	MakerOrderId            int    `json:"makerOrderId"`
-	TradeGroupId            int    `json:"tradeGroupId"`
-	SelfTradePreventionMode string `json:"selfTradePreventionMode"`
-	Price                   string `json:"price"`
-	MakerPreventedQuantity  string `json:"makerPreventedQuantity"`
-	TransactTime            int64  `json:"transactTime"`
+	Symbol                  string          `json:"symbol"`
+	PreventedMatchId        int             `json:"preventedMatchId"`
+	TakerOrderId            int             `json:"takerOrderId"`
+	MakerSymbol             string          `json:"makerSymbol"`
+	MakerOrderId            int             `json:"makerOrderId"`
+	TradeGroupId            int             `json:"tradeGroupId"`
+	SelfTradePreventionMode string          `json:"selfTradePreventionMode"`
+	Price                   decimal.Decimal `json:"price"`
+	MakerPreventedQuantity  decimal.Decimal `json:"makerPreventedQuantity"`
+	TransactTime            int64           `json:"transactTime"`
 }
 
 func (s *QueryPreventedMatches) Symbol(symbol string) *QueryPreventedMatches {
@@ -259,20 +260,20 @@ type QueryAllocations struct {
 }
 
 type QueryAllocationsResponse struct {
-	Symbol          string `json:"symbol"`
-	AllocationId    int    `json:"allocationId"`
-	AllocationType  string `json:"allocationType"`
-	OrderId         int    `json:"orderId"`
-	OrderListId     int    `json:"orderListId"`
-	Price           string `json:"price"`
-	Qty             string `json:"qty"`
-	QuoteQty        string `json:"quoteQty"`
-	Commission      string `json:"commission"`
-	CommissionAsset string `json:"commissionAsset"`
-	Time            int64  `json:"time"`
-	IsBuyer         bool   `json:"isBuyer"`
-	IsMaker         bool   `json:"isMaker"`
-	IsAllocator     bool   `json:"isAllocator"`
+	Symbol          string          `json:"symbol"`
+	AllocationId    int             `json:"allocationId"`
+	AllocationType  string          `json:"allocationType"`
+	OrderId         int             `json:"orderId"`
+	OrderListId     int             `json:"orderListId"`
+	Price           decimal.Decimal `json:"price"`
+	Qty             decimal.Decimal `json:"qty"`
+	QuoteQty        decimal.Decimal `json:"quoteQty"`
+	Commission      decimal.Decimal `json:"commission"`
+	CommissionAsset string          `json:"commissionAsset"`
+	Time            int64           `json:"time"`
+	IsBuyer         bool            `json:"isBuyer"`
+	IsMaker         bool            `json:"isMaker"`
+	IsAllocator     bool            `json:"isAllocator"`
 }
 
 func (s *QueryAllocations) Symbol(symbol string) *QueryAllocations {
@@ -340,12 +341,7 @@ type QueryCommissionResponse struct {
 	Symbol             string          `json:"symbol"`
 	StandardCommission *SpotCommission `json:"standardCommission"`
 	TaxCommission      *SpotCommission `json:"taxCommission"`
-	Discount           struct {
-		EnabledForAccount bool   `json:"enabledForAccount"`
-		EnabledForSymbol  bool   `json:"enabledForSymbol"`
-		DiscountAsset     string `json:"discountAsset"`
-		Discount          string `json:"discount"`
-	} `json:"discount"`
+	Discount           *Discount       `json:"discount"`
 }
 
 func (s *QueryCommission) Symbol(symbol string) *QueryCommission {

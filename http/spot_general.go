@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/jekaxv/go-binance/types"
+	"github.com/shopspring/decimal"
 )
 
 // RateLimit define rate limit
@@ -45,29 +46,29 @@ type SymbolInfo struct {
 
 // SymbolFilter define symbol filter
 type SymbolFilter struct {
-	ApplyMinToMarket      bool   `json:"applyMinToMarket"`
-	ApplyMaxToMarket      bool   `json:"applyMaxToMarket"`
-	AskMultiplierDown     string `json:"askMultiplierDown"`
-	AskMultiplierUp       string `json:"askMultiplierUp"`
-	AvgPriceMins          int64  `json:"avgPriceMins"`
-	BidMultiplierDown     string `json:"bidMultiplierDown"`
-	BidMultiplierUp       string `json:"bidMultiplierUp"`
-	FilterType            string `json:"filterType"`
-	Limit                 uint   `json:"limit"`
-	MaxNotional           string `json:"maxNotional"`
-	MaxNumAlgoOrders      int64  `json:"maxNumAlgoOrders"`
-	MaxNumOrders          int64  `json:"maxNumOrders"`
-	MaxPrice              string `json:"maxPrice"`
-	MaxQty                string `json:"maxQty"`
-	MaxTrailingAboveDelta int64  `json:"maxTrailingAboveDelta"`
-	MaxTrailingBelowDelta int64  `json:"maxTrailingBelowDelta"`
-	MinNotional           string `json:"minNotional"`
-	MinPrice              string `json:"minPrice"`
-	MinQty                string `json:"minQty"`
-	MinTrailingAboveDelta int64  `json:"minTrailingAboveDelta"`
-	MinTrailingBelowDelta int64  `json:"minTrailingBelowDelta"`
-	StepSize              string `json:"stepSize"`
-	TickSize              string `json:"tickSize"`
+	ApplyMinToMarket      bool             `json:"applyMinToMarket,omitempty"`
+	ApplyMaxToMarket      bool             `json:"applyMaxToMarket,omitempty"`
+	AskMultiplierDown     string           `json:"askMultiplierDown,omitempty"`
+	AskMultiplierUp       string           `json:"askMultiplierUp,omitempty"`
+	AvgPriceMins          int64            `json:"avgPriceMins,omitempty"`
+	BidMultiplierDown     string           `json:"bidMultiplierDown,omitempty"`
+	BidMultiplierUp       string           `json:"bidMultiplierUp,omitempty"`
+	FilterType            string           `json:"filterType,omitempty"`
+	Limit                 uint             `json:"limit,omitempty"`
+	MaxNotional           string           `json:"maxNotional,omitempty"`
+	MaxNumAlgoOrders      int64            `json:"maxNumAlgoOrders,omitempty"`
+	MaxNumOrders          int64            `json:"maxNumOrders,omitempty"`
+	MaxPrice              string           `json:"maxPrice,omitempty"`
+	MaxQty                string           `json:"maxQty,omitempty"`
+	MaxTrailingAboveDelta int64            `json:"maxTrailingAboveDelta,omitempty"`
+	MaxTrailingBelowDelta int64            `json:"maxTrailingBelowDelta,omitempty"`
+	MinNotional           string           `json:"minNotional,omitempty"`
+	MinPrice              *decimal.Decimal `json:"minPrice,omitempty"`
+	MinQty                *decimal.Decimal `json:"minQty,omitempty"`
+	MinTrailingAboveDelta int64            `json:"minTrailingAboveDelta,omitempty"`
+	MinTrailingBelowDelta int64            `json:"minTrailingBelowDelta,omitempty"`
+	StepSize              string           `json:"stepSize,omitempty"`
+	TickSize              *decimal.Decimal `json:"tickSize,omitempty"`
 }
 
 // Ping Test connectivity to the Rest API.

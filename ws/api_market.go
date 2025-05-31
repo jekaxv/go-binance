@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/jekaxv/go-binance/types"
+	"github.com/shopspring/decimal"
 )
 
 // Depth Get current order book.
@@ -12,9 +13,9 @@ type Depth struct {
 }
 
 type DepthResult struct {
-	LastUpdateId int64      `json:"lastUpdateId"`
-	Bids         [][]string `json:"bids"` // [0]Price [1] Quantity
-	Asks         [][]string `json:"asks"` // [0]Price [1] Quantity
+	LastUpdateId int64               `json:"lastUpdateId"`
+	Bids         [][]decimal.Decimal `json:"bids"` // [0]Price [1] Quantity
+	Asks         [][]decimal.Decimal `json:"asks"` // [0]Price [1] Quantity
 }
 
 type DepthResponse struct {
@@ -58,13 +59,13 @@ type TradesRecent struct {
 }
 
 type TradesResult struct {
-	Id           int    `json:"id"`
-	Price        string `json:"price"`
-	Qty          string `json:"qty"`
-	QuoteQty     string `json:"quoteQty"`
-	Time         int64  `json:"time"`
-	IsBuyerMaker bool   `json:"isBuyerMaker"`
-	IsBestMatch  bool   `json:"isBestMatch"`
+	Id           int             `json:"id"`
+	Price        decimal.Decimal `json:"price"`
+	Qty          decimal.Decimal `json:"qty"`
+	QuoteQty     decimal.Decimal `json:"quoteQty"`
+	Time         int64           `json:"time"`
+	IsBuyerMaker bool            `json:"isBuyerMaker"`
+	IsBestMatch  bool            `json:"isBestMatch"`
 }
 
 type TradesRecentResponse struct {
@@ -153,14 +154,14 @@ type TradesAggregate struct {
 }
 
 type TradesAggregateResult struct {
-	TradeId     int    `json:"a"`
-	Price       string `json:"p"`
-	Quantity    string `json:"q"`
-	FirstId     int    `json:"f"`
-	LastId      int    `json:"l"`
-	Timestamp   int64  `json:"T"`
-	IsMaker     bool   `json:"m"`
-	IsBestPrice bool   `json:"M"`
+	TradeId     int             `json:"a"`
+	Price       decimal.Decimal `json:"p"`
+	Quantity    decimal.Decimal `json:"q"`
+	FirstId     int             `json:"f"`
+	LastId      int             `json:"l"`
+	Timestamp   int64           `json:"T"`
+	IsMaker     bool            `json:"m"`
+	IsBestPrice bool            `json:"M"`
 }
 
 type TradesAggregateResponse struct {
@@ -216,17 +217,17 @@ type Kline struct {
 	c *Client
 }
 type KlineResult struct {
-	OpenTime                 uint64 `json:"openTime"`
-	OpenPrice                string `json:"openPrice"`
-	HighPrice                string `json:"highPrice"`
-	LowPrice                 string `json:"lowPrice"`
-	ClosePrice               string `json:"closePrice"`
-	Volume                   string `json:"volume"`
-	CloseTime                uint64 `json:"closeTime"`
-	QuoteAssetVolume         string `json:"quoteAssetVolume"`
-	NumberOfTrades           int    `json:"numberOfTrades"`
-	TakerBuyBaseAssetVolume  string `json:"takerBuyBaseAssetVolume"`
-	TakerBuyQuoteAssetVolume string `json:"takerBuyQuoteAssetVolume"`
+	OpenTime                 uint64          `json:"openTime"`
+	OpenPrice                decimal.Decimal `json:"openPrice"`
+	HighPrice                decimal.Decimal `json:"highPrice"`
+	LowPrice                 decimal.Decimal `json:"lowPrice"`
+	ClosePrice               decimal.Decimal `json:"closePrice"`
+	Volume                   decimal.Decimal `json:"volume"`
+	CloseTime                uint64          `json:"closeTime"`
+	QuoteAssetVolume         decimal.Decimal `json:"quoteAssetVolume"`
+	NumberOfTrades           int             `json:"numberOfTrades"`
+	TakerBuyBaseAssetVolume  decimal.Decimal `json:"takerBuyBaseAssetVolume"`
+	TakerBuyQuoteAssetVolume decimal.Decimal `json:"takerBuyQuoteAssetVolume"`
 }
 
 type KlineRawResult struct {
@@ -264,6 +265,34 @@ func (s *Kline) Limit(limit uint) *Kline {
 	return s
 }
 
+func parseKlineData(raw *KlineRawResult) []*KlineResult {
+	var resp []*KlineResult
+	for _, v := range raw.Result {
+		openPrice, _ := decimal.NewFromString(v[1].(string))
+		highPrice, _ := decimal.NewFromString(v[2].(string))
+		lowPrice, _ := decimal.NewFromString(v[3].(string))
+		closePrice, _ := decimal.NewFromString(v[4].(string))
+		volumePrice, _ := decimal.NewFromString(v[5].(string))
+		quoteAssetVolume, _ := decimal.NewFromString(v[7].(string))
+		takerBuyBaseAssetVolume, _ := decimal.NewFromString(v[9].(string))
+		takerBuyQuoteAssetVolume, _ := decimal.NewFromString(v[10].(string))
+		resp = append(resp, &KlineResult{
+			OpenTime:                 uint64(v[0].(float64)),
+			OpenPrice:                openPrice,
+			HighPrice:                highPrice,
+			LowPrice:                 lowPrice,
+			ClosePrice:               closePrice,
+			Volume:                   volumePrice,
+			CloseTime:                uint64(v[6].(float64)),
+			QuoteAssetVolume:         quoteAssetVolume,
+			NumberOfTrades:           int(v[8].(float64)),
+			TakerBuyBaseAssetVolume:  takerBuyBaseAssetVolume,
+			TakerBuyQuoteAssetVolume: takerBuyQuoteAssetVolume,
+		})
+	}
+	return resp
+}
+
 func (s *Kline) Do(ctx context.Context) (*KlineResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
 	if err := s.c.send(); err != nil {
@@ -281,21 +310,7 @@ func (s *Kline) Do(ctx context.Context) (*KlineResponse, error) {
 			}
 			resp := new(KlineResponse)
 			resp.ApiResponse = raw.ApiResponse
-			for _, v := range raw.Result {
-				resp.Result = append(resp.Result, &KlineResult{
-					OpenTime:                 uint64(v[0].(float64)),
-					OpenPrice:                v[1].(string),
-					HighPrice:                v[2].(string),
-					LowPrice:                 v[3].(string),
-					ClosePrice:               v[4].(string),
-					Volume:                   v[5].(string),
-					CloseTime:                uint64(v[6].(float64)),
-					QuoteAssetVolume:         v[7].(string),
-					NumberOfTrades:           int(v[8].(float64)),
-					TakerBuyBaseAssetVolume:  v[9].(string),
-					TakerBuyQuoteAssetVolume: v[10].(string),
-				})
-			}
+			resp.Result = parseKlineData(raw)
 			return resp, nil
 		case err := <-onError:
 			return nil, err
@@ -350,21 +365,7 @@ func (s *UiKlines) Do(ctx context.Context) (*KlineResponse, error) {
 			}
 			resp := new(KlineResponse)
 			resp.ApiResponse = raw.ApiResponse
-			for _, v := range raw.Result {
-				resp.Result = append(resp.Result, &KlineResult{
-					OpenTime:                 uint64(v[0].(float64)),
-					OpenPrice:                v[1].(string),
-					HighPrice:                v[2].(string),
-					LowPrice:                 v[3].(string),
-					ClosePrice:               v[4].(string),
-					Volume:                   v[5].(string),
-					CloseTime:                uint64(v[6].(float64)),
-					QuoteAssetVolume:         v[7].(string),
-					NumberOfTrades:           int(v[8].(float64)),
-					TakerBuyBaseAssetVolume:  v[9].(string),
-					TakerBuyQuoteAssetVolume: v[10].(string),
-				})
-			}
+			resp.Result = parseKlineData(raw)
 			return resp, nil
 		case err := <-onError:
 			return nil, err
@@ -378,9 +379,9 @@ type AveragePrice struct {
 }
 
 type AveragePriceResult struct {
-	Mins      int    `json:"mins"`
-	Price     string `json:"price"`
-	CloseTime int64  `json:"closeTime"`
+	Mins      int             `json:"mins"`
+	Price     decimal.Decimal `json:"price"`
+	CloseTime int64           `json:"closeTime"`
 }
 
 type AveragePriceResponse struct {
@@ -418,27 +419,27 @@ type Ticker24h struct {
 }
 
 type Ticker24hResult struct {
-	Symbol             string `json:"symbol"`
-	PriceChange        string `json:"priceChange"`
-	PriceChangePercent string `json:"priceChangePercent"`
-	WeightedAvgPrice   string `json:"weightedAvgPrice"`
-	PrevClosePrice     string `json:"prevClosePrice"`
-	LastPrice          string `json:"lastPrice"`
-	LastQty            string `json:"lastQty"`
-	BidPrice           string `json:"bidPrice"`
-	BidQty             string `json:"bidQty"`
-	AskPrice           string `json:"askPrice"`
-	AskQty             string `json:"askQty"`
-	OpenPrice          string `json:"openPrice"`
-	HighPrice          string `json:"highPrice"`
-	LowPrice           string `json:"lowPrice"`
-	Volume             string `json:"volume"`
-	QuoteVolume        string `json:"quoteVolume"`
-	OpenTime           int64  `json:"openTime"`
-	CloseTime          int64  `json:"closeTime"`
-	FirstId            int    `json:"firstId"`
-	LastId             int    `json:"lastId"`
-	Count              int    `json:"count"`
+	Symbol             string          `json:"symbol"`
+	PriceChange        decimal.Decimal `json:"priceChange"`
+	PriceChangePercent decimal.Decimal `json:"priceChangePercent"`
+	WeightedAvgPrice   decimal.Decimal `json:"weightedAvgPrice"`
+	PrevClosePrice     decimal.Decimal `json:"prevClosePrice"`
+	LastPrice          decimal.Decimal `json:"lastPrice"`
+	LastQty            decimal.Decimal `json:"lastQty"`
+	BidPrice           decimal.Decimal `json:"bidPrice"`
+	BidQty             decimal.Decimal `json:"bidQty"`
+	AskPrice           decimal.Decimal `json:"askPrice"`
+	AskQty             decimal.Decimal `json:"askQty"`
+	OpenPrice          decimal.Decimal `json:"openPrice"`
+	HighPrice          decimal.Decimal `json:"highPrice"`
+	LowPrice           decimal.Decimal `json:"lowPrice"`
+	Volume             decimal.Decimal `json:"volume"`
+	QuoteVolume        decimal.Decimal `json:"quoteVolume"`
+	OpenTime           int64           `json:"openTime"`
+	CloseTime          int64           `json:"closeTime"`
+	FirstId            int             `json:"firstId"`
+	LastId             int             `json:"lastId"`
+	Count              int             `json:"count"`
 }
 
 type Ticker24hSingleResponse struct {
@@ -569,21 +570,21 @@ type Ticker struct {
 	c *Client
 }
 type TickerResult struct {
-	Symbol             string `json:"symbol"`
-	PriceChange        string `json:"priceChange"`
-	PriceChangePercent string `json:"priceChangePercent"`
-	WeightedAvgPrice   string `json:"weightedAvgPrice"`
-	OpenPrice          string `json:"openPrice"`
-	HighPrice          string `json:"highPrice"`
-	LowPrice           string `json:"lowPrice"`
-	LastPrice          string `json:"lastPrice"`
-	Volume             string `json:"volume"`
-	QuoteVolume        string `json:"quoteVolume"`
-	OpenTime           int64  `json:"openTime"`
-	CloseTime          int64  `json:"closeTime"`
-	FirstId            int64  `json:"firstId"`
-	LastId             int64  `json:"lastId"`
-	Count              int    `json:"count"`
+	Symbol             string          `json:"symbol"`
+	PriceChange        decimal.Decimal `json:"priceChange"`
+	PriceChangePercent decimal.Decimal `json:"priceChangePercent"`
+	WeightedAvgPrice   decimal.Decimal `json:"weightedAvgPrice"`
+	OpenPrice          decimal.Decimal `json:"openPrice"`
+	HighPrice          decimal.Decimal `json:"highPrice"`
+	LowPrice           decimal.Decimal `json:"lowPrice"`
+	LastPrice          decimal.Decimal `json:"lastPrice"`
+	Volume             decimal.Decimal `json:"volume"`
+	QuoteVolume        decimal.Decimal `json:"quoteVolume"`
+	OpenTime           int64           `json:"openTime"`
+	CloseTime          int64           `json:"closeTime"`
+	FirstId            int64           `json:"firstId"`
+	LastId             int64           `json:"lastId"`
+	Count              int             `json:"count"`
 }
 
 type TickerSingleResponse struct {
@@ -654,8 +655,8 @@ type TickerPrice struct {
 }
 
 type TickerPriceResult struct {
-	Symbol string `json:"symbol"`
-	Price  string `json:"price"`
+	Symbol string          `json:"symbol"`
+	Price  decimal.Decimal `json:"price"`
 }
 
 type TickerPriceSingleResponse struct {
@@ -712,11 +713,11 @@ type TickerBook struct {
 }
 
 type TickerBookResult struct {
-	Symbol   string `json:"symbol"`
-	BidPrice string `json:"bidPrice"`
-	BidQty   string `json:"bidQty"`
-	AskPrice string `json:"askPrice"`
-	AskQty   string `json:"askQty"`
+	Symbol   string          `json:"symbol"`
+	BidPrice decimal.Decimal `json:"bidPrice"`
+	BidQty   decimal.Decimal `json:"bidQty"`
+	AskPrice decimal.Decimal `json:"askPrice"`
+	AskQty   decimal.Decimal `json:"askQty"`
 }
 
 type TickerBookSingleResponse struct {

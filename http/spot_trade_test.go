@@ -883,12 +883,12 @@ func (s *apiTradeTestSuite) TestNewCreateTestSOROrder() {
 		Do(context.Background())
 	r := s.r()
 	r.Empty(err)
-	var testResp *CreateTestSOROrderResponse
+	var testResp *TestCreateOrderResponse
 	r.Empty(json.Unmarshal(msg, &testResp))
 	s.assertTestCreateTestSOROrderResponse(resp, testResp)
 }
 
-func (s *apiTradeTestSuite) assertTestCreateTestSOROrderResponse(r1, r2 *CreateTestSOROrderResponse) {
+func (s *apiTradeTestSuite) assertTestCreateTestSOROrderResponse(r1, r2 *TestCreateOrderResponse) {
 	r := s.r()
 	r.Equal(r1.StandardCommissionForOrder.Maker, r2.StandardCommissionForOrder.Maker, "StandardCommissionForOrder.maker")
 	r.Equal(r1.StandardCommissionForOrder.Taker, r2.StandardCommissionForOrder.Taker, "StandardCommissionForOrder.taker")

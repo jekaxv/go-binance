@@ -2,6 +2,7 @@ package http
 
 import (
 	"fmt"
+	"github.com/shopspring/decimal"
 	"io"
 	"net/http"
 	"net/url"
@@ -51,33 +52,34 @@ func (r *request) set(key string, value any) *request {
 }
 
 type SpotFill struct {
-	Price           string `json:"price"`
-	Qty             string `json:"qty"`
-	Commission      string `json:"commission"`
-	CommissionAsset string `json:"commissionAsset"`
-	TradeId         int    `json:"tradeId"`
-	MatchType       string `json:"matchType"`
-	AllocId         int    `json:"allocId"`
+	Price           decimal.Decimal `json:"price"`
+	Qty             decimal.Decimal `json:"qty"`
+	Commission      decimal.Decimal `json:"commission"`
+	CommissionAsset string          `json:"commissionAsset"`
+	TradeId         int             `json:"tradeId"`
+	MatchType       string          `json:"matchType"`
+	AllocId         int             `json:"allocId"`
 }
 
-type SpotOrderReport struct {
-	Symbol                  string `json:"symbol"`
-	OrderId                 int64  `json:"orderId"`
-	OrderListId             int    `json:"orderListId"`
-	ClientOrderId           string `json:"clientOrderId"`
-	OrigClientOrderId       string `json:"origClientOrderId"`
-	TransactTime            int64  `json:"transactTime"`
-	Price                   string `json:"price"`
-	OrigQty                 string `json:"origQty"`
-	ExecutedQty             string `json:"executedQty"`
-	OrigQuoteOrderQty       string `json:"origQuoteOrderQty"`
-	CummulativeQuoteQty     string `json:"cummulativeQuoteQty"`
-	Status                  string `json:"status"`
-	TimeInForce             string `json:"timeInForce"`
-	Type                    string `json:"type"`
-	Side                    string `json:"side"`
-	StopPrice               string `json:"stopPrice,omitempty"`
-	SelfTradePreventionMode string `json:"selfTradePreventionMode"`
+type OrderReport struct {
+	Symbol                  string          `json:"symbol"`
+	OrderId                 int64           `json:"orderId"`
+	OrderListId             int             `json:"orderListId"`
+	ClientOrderId           string          `json:"clientOrderId"`
+	OrigClientOrderId       string          `json:"origClientOrderId"`
+	TransactTime            int64           `json:"transactTime"`
+	Price                   decimal.Decimal `json:"price"`
+	OrigQty                 decimal.Decimal `json:"origQty"`
+	ExecutedQty             decimal.Decimal `json:"executedQty"`
+	OrigQuoteOrderQty       decimal.Decimal `json:"origQuoteOrderQty"`
+	CummulativeQuoteQty     decimal.Decimal `json:"cummulativeQuoteQty"`
+	Status                  string          `json:"status"`
+	TimeInForce             string          `json:"timeInForce"`
+	Type                    string          `json:"type"`
+	Side                    string          `json:"side"`
+	StopPrice               decimal.Decimal `json:"stopPrice,omitempty"`
+	IcebergQty              decimal.Decimal `json:"icebergQty,omitempty"`
+	SelfTradePreventionMode string          `json:"selfTradePreventionMode"`
 }
 
 type SpotOrder struct {
@@ -87,14 +89,14 @@ type SpotOrder struct {
 }
 
 type SpotCommission struct {
-	Maker  string `json:"maker"`
-	Taker  string `json:"taker"`
-	Buyer  string `json:"buyer"`
-	Seller string `json:"seller"`
+	Maker  decimal.Decimal `json:"maker"`
+	Taker  decimal.Decimal `json:"taker"`
+	Buyer  decimal.Decimal `json:"buyer"`
+	Seller decimal.Decimal `json:"seller"`
 }
 
 type ApiBalance struct {
-	Asset  string `json:"asset"`
-	Free   string `json:"free"`
-	Locked string `json:"locked"`
+	Asset  string          `json:"asset"`
+	Free   decimal.Decimal `json:"free"`
+	Locked decimal.Decimal `json:"locked"`
 }

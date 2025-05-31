@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/jekaxv/go-binance/types"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/suite"
 	"testing"
 )
@@ -259,7 +260,10 @@ func (s *apiMarketTestSuite) assertTestMarketTradesAggregateResult(r1, r2 *Trade
 	r.Equal(r1.IsMaker, r2.IsMaker, "IsMaker")
 	r.Equal(r1.IsBestPrice, r2.IsBestPrice, "IsBestPrice")
 }
-
+func toDecimal(v string) decimal.Decimal {
+	float, _ := decimal.NewFromString(v)
+	return float
+}
 func (s *apiMarketTestSuite) TestMarketKline() {
 	msg := []byte(`{
   "id": "1b668cdc-72d7-43e4-952b-00bd50702f6b",
@@ -323,28 +327,28 @@ func (s *apiMarketTestSuite) TestMarketKline() {
 		},
 		Result: []*KlineResult{{
 			OpenTime:                 1737556140000,
-			OpenPrice:                "104552.00000000",
-			HighPrice:                "104650.25000000",
-			LowPrice:                 "104551.87000000",
-			ClosePrice:               "104650.25000000",
-			Volume:                   "0.34488000",
+			OpenPrice:                toDecimal("104552.00000000"),
+			HighPrice:                toDecimal("104650.25000000"),
+			LowPrice:                 toDecimal("104551.87000000"),
+			ClosePrice:               toDecimal("104650.25000000"),
+			Volume:                   toDecimal("0.34488000"),
 			CloseTime:                1737556199999,
-			QuoteAssetVolume:         "36077.69853200",
+			QuoteAssetVolume:         toDecimal("36077.69853200"),
 			NumberOfTrades:           122,
-			TakerBuyBaseAssetVolume:  "0.22480000",
-			TakerBuyQuoteAssetVolume: "23513.66461330",
+			TakerBuyBaseAssetVolume:  toDecimal("0.22480000"),
+			TakerBuyQuoteAssetVolume: toDecimal("23513.66461330"),
 		}, {
 			OpenTime:                 1737556200000,
-			OpenPrice:                "104634.38000000",
-			HighPrice:                "104644.84000000",
-			LowPrice:                 "104596.68000000",
-			ClosePrice:               "104605.60000000",
-			Volume:                   "0.20685000",
+			OpenPrice:                toDecimal("104634.38000000"),
+			HighPrice:                toDecimal("104644.84000000"),
+			LowPrice:                 toDecimal("104596.68000000"),
+			ClosePrice:               toDecimal("104605.60000000"),
+			Volume:                   toDecimal("0.20685000"),
 			CloseTime:                1737556259999,
-			QuoteAssetVolume:         "21637.65114840",
+			QuoteAssetVolume:         toDecimal("21637.65114840"),
 			NumberOfTrades:           96,
-			TakerBuyBaseAssetVolume:  "0.10046000",
-			TakerBuyQuoteAssetVolume: "10508.39407400",
+			TakerBuyBaseAssetVolume:  toDecimal("0.10046000"),
+			TakerBuyQuoteAssetVolume: toDecimal("10508.39407400"),
 		}},
 	}
 	s.assertTestMarketKline(resp, &testResp)
@@ -435,28 +439,28 @@ func (s *apiMarketTestSuite) TestMarketUIKline() {
 		},
 		Result: []*KlineResult{{
 			OpenTime:                 1737556140000,
-			OpenPrice:                "104552.00000000",
-			HighPrice:                "104650.25000000",
-			LowPrice:                 "104551.87000000",
-			ClosePrice:               "104650.25000000",
-			Volume:                   "0.34488000",
+			OpenPrice:                toDecimal("104552.00000000"),
+			HighPrice:                toDecimal("104650.25000000"),
+			LowPrice:                 toDecimal("104551.87000000"),
+			ClosePrice:               toDecimal("104650.25000000"),
+			Volume:                   toDecimal("0.34488000"),
 			CloseTime:                1737556199999,
-			QuoteAssetVolume:         "36077.69853200",
+			QuoteAssetVolume:         toDecimal("36077.69853200"),
 			NumberOfTrades:           122,
-			TakerBuyBaseAssetVolume:  "0.22480000",
-			TakerBuyQuoteAssetVolume: "23513.66461330",
+			TakerBuyBaseAssetVolume:  toDecimal("0.22480000"),
+			TakerBuyQuoteAssetVolume: toDecimal("23513.66461330"),
 		}, {
 			OpenTime:                 1737556200000,
-			OpenPrice:                "104634.38000000",
-			HighPrice:                "104644.84000000",
-			LowPrice:                 "104596.68000000",
-			ClosePrice:               "104605.60000000",
-			Volume:                   "0.20685000",
+			OpenPrice:                toDecimal("104634.38000000"),
+			HighPrice:                toDecimal("104644.84000000"),
+			LowPrice:                 toDecimal("104596.68000000"),
+			ClosePrice:               toDecimal("104605.60000000"),
+			Volume:                   toDecimal("0.20685000"),
 			CloseTime:                1737556259999,
-			QuoteAssetVolume:         "21637.65114840",
+			QuoteAssetVolume:         toDecimal("21637.65114840"),
 			NumberOfTrades:           96,
-			TakerBuyBaseAssetVolume:  "0.10046000",
-			TakerBuyQuoteAssetVolume: "10508.39407400",
+			TakerBuyBaseAssetVolume:  toDecimal("0.10046000"),
+			TakerBuyQuoteAssetVolume: toDecimal("10508.39407400"),
 		}},
 	}
 	s.assertTestMarketKline(resp, &testResp)

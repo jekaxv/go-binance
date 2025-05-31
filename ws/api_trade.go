@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/jekaxv/go-binance/types"
+	"github.com/shopspring/decimal"
 )
 
 type ApiOrderError struct {
@@ -25,22 +26,22 @@ type CreateOrder struct {
 }
 
 type CreateOrderResult struct {
-	Symbol              string     `json:"symbol"`
-	OrderId             int64      `json:"orderId"`
-	OrderListId         int        `json:"orderListId"`
-	ClientOrderId       string     `json:"clientOrderId"`
-	TransactTime        int64      `json:"transactTime"`
-	Price               string     `json:"price"`
-	OrigQty             string     `json:"origQty"`
-	ExecutedQty         string     `json:"executedQty"`
-	OrigQuoteOrderQty   string     `json:"origQuoteOrderQty"`
-	CummulativeQuoteQty string     `json:"cummulativeQuoteQty"`
-	Status              string     `json:"status"`
-	TimeInForce         string     `json:"timeInForce"`
-	Type                string     `json:"type"`
-	Side                string     `json:"side"`
-	WorkingTime         int64      `json:"workingTime"`
-	Fills               []*ApiFill `json:"fills"`
+	Symbol              string          `json:"symbol"`
+	OrderId             int64           `json:"orderId"`
+	OrderListId         int             `json:"orderListId"`
+	ClientOrderId       string          `json:"clientOrderId"`
+	TransactTime        int64           `json:"transactTime"`
+	Price               decimal.Decimal `json:"price"`
+	OrigQty             decimal.Decimal `json:"origQty"`
+	ExecutedQty         decimal.Decimal `json:"executedQty"`
+	OrigQuoteOrderQty   decimal.Decimal `json:"origQuoteOrderQty"`
+	CummulativeQuoteQty decimal.Decimal `json:"cummulativeQuoteQty"`
+	Status              string          `json:"status"`
+	TimeInForce         string          `json:"timeInForce"`
+	Type                string          `json:"type"`
+	Side                string          `json:"side"`
+	WorkingTime         int64           `json:"workingTime"`
+	Fills               []*ApiFill      `json:"fills"`
 }
 
 type CreateOrderResponse struct {
@@ -137,21 +138,22 @@ type CreateTestOrder struct {
 	c *Client
 }
 
+type OrderCommission struct {
+	Maker decimal.Decimal `json:"maker"`
+	Taker decimal.Decimal `json:"taker"`
+}
+
+type Discount struct {
+	EnabledForAccount bool            `json:"enabledForAccount"`
+	EnabledForSymbol  bool            `json:"enabledForSymbol"`
+	DiscountAsset     string          `json:"discountAsset"`
+	Discount          decimal.Decimal `json:"discount"`
+}
+
 type CreateTestOrderResult struct {
-	StandardCommissionForOrder *struct {
-		Maker string `json:"maker"`
-		Taker string `json:"taker"`
-	} `json:"standardCommissionForOrder"`
-	TaxCommissionForOrder *struct {
-		Maker string `json:"maker"`
-		Taker string `json:"taker"`
-	} `json:"taxCommissionForOrder"`
-	Discount *struct {
-		EnabledForAccount bool   `json:"enabledForAccount"`
-		EnabledForSymbol  bool   `json:"enabledForSymbol"`
-		DiscountAsset     string `json:"discountAsset"`
-		Discount          string `json:"discount"`
-	} `json:"discount"`
+	StandardCommissionForOrder *OrderCommission `json:"standardCommissionForOrder"`
+	TaxCommissionForOrder      *OrderCommission `json:"taxCommissionForOrder"`
+	Discount                   *Discount        `json:"discount"`
 }
 
 type CreateOrderTestResponse struct {
@@ -255,32 +257,32 @@ type QueryOrder struct {
 }
 
 type QueryOrderResult struct {
-	Symbol                  string `json:"symbol"`
-	OrderId                 int64  `json:"orderId"`
-	OrderListId             int    `json:"orderListId"`
-	ClientOrderId           string `json:"clientOrderId"`
-	Price                   string `json:"price"`
-	OrigQty                 string `json:"origQty"`
-	ExecutedQty             string `json:"executedQty"`
-	CummulativeQuoteQty     string `json:"cummulativeQuoteQty"`
-	Status                  string `json:"status"`
-	TimeInForce             string `json:"timeInForce"`
-	Type                    string `json:"type"`
-	Side                    string `json:"side"`
-	StopPrice               string `json:"stopPrice"`
-	TrailingDelta           int    `json:"trailingDelta"`
-	TrailingTime            int    `json:"trailingTime"`
-	IcebergQty              string `json:"icebergQty"`
-	Time                    int64  `json:"time"`
-	UpdateTime              int64  `json:"updateTime"`
-	IsWorking               bool   `json:"isWorking"`
-	WorkingTime             int64  `json:"workingTime"`
-	OrigQuoteOrderQty       string `json:"origQuoteOrderQty"`
-	StrategyId              int    `json:"strategyId"`
-	StrategyType            int    `json:"strategyType"`
-	SelfTradePreventionMode string `json:"selfTradePreventionMode"`
-	PreventedMatchId        int    `json:"preventedMatchId"`
-	PreventedQuantity       string `json:"preventedQuantity"`
+	Symbol                  string          `json:"symbol"`
+	OrderId                 int64           `json:"orderId"`
+	OrderListId             int             `json:"orderListId"`
+	ClientOrderId           string          `json:"clientOrderId"`
+	Price                   decimal.Decimal `json:"price"`
+	OrigQty                 decimal.Decimal `json:"origQty"`
+	ExecutedQty             decimal.Decimal `json:"executedQty"`
+	CummulativeQuoteQty     decimal.Decimal `json:"cummulativeQuoteQty"`
+	Status                  string          `json:"status"`
+	TimeInForce             string          `json:"timeInForce"`
+	Type                    string          `json:"type"`
+	Side                    string          `json:"side"`
+	StopPrice               decimal.Decimal `json:"stopPrice"`
+	TrailingDelta           int             `json:"trailingDelta"`
+	TrailingTime            int             `json:"trailingTime"`
+	IcebergQty              decimal.Decimal `json:"icebergQty"`
+	Time                    int64           `json:"time"`
+	UpdateTime              int64           `json:"updateTime"`
+	IsWorking               bool            `json:"isWorking"`
+	WorkingTime             int64           `json:"workingTime"`
+	OrigQuoteOrderQty       decimal.Decimal `json:"origQuoteOrderQty"`
+	StrategyId              int             `json:"strategyId"`
+	StrategyType            int             `json:"strategyType"`
+	SelfTradePreventionMode string          `json:"selfTradePreventionMode"`
+	PreventedMatchId        int             `json:"preventedMatchId"`
+	PreventedQuantity       decimal.Decimal `json:"preventedQuantity"`
 }
 
 type QueryOrderResponse struct {
@@ -337,18 +339,18 @@ type CancelOrderResult struct {
 	OrderListId             int               `json:"orderListId"`
 	ClientOrderId           string            `json:"clientOrderId"`
 	TransactTime            int64             `json:"transactTime"`
-	Price                   string            `json:"price"`
-	OrigQty                 string            `json:"origQty"`
-	ExecutedQty             string            `json:"executedQty"`
-	OrigQuoteOrderQty       string            `json:"origQuoteOrderQty"`
-	CummulativeQuoteQty     string            `json:"cummulativeQuoteQty"`
+	Price                   decimal.Decimal   `json:"price"`
+	OrigQty                 decimal.Decimal   `json:"origQty"`
+	ExecutedQty             decimal.Decimal   `json:"executedQty"`
+	OrigQuoteOrderQty       decimal.Decimal   `json:"origQuoteOrderQty"`
+	CummulativeQuoteQty     decimal.Decimal   `json:"cummulativeQuoteQty"`
 	Status                  string            `json:"status"`
 	TimeInForce             string            `json:"timeInForce"`
 	Type                    string            `json:"type"`
 	Side                    string            `json:"side"`
-	StopPrice               string            `json:"stopPrice"`
+	StopPrice               decimal.Decimal   `json:"stopPrice"`
 	TrailingDelta           int               `json:"trailingDelta"`
-	IcebergQty              string            `json:"icebergQty"`
+	IcebergQty              decimal.Decimal   `json:"icebergQty"`
 	StrategyId              int               `json:"strategyId"`
 	StrategyType            int               `json:"strategyType"`
 	SelfTradePreventionMode string            `json:"selfTradePreventionMode"`
@@ -578,26 +580,26 @@ type OpenOrdersStatus struct {
 }
 
 type OpenOrdersStatusResult struct {
-	Symbol                  string `json:"symbol"`
-	OrderId                 int64  `json:"orderId"`
-	OrderListId             int    `json:"orderListId"`
-	ClientOrderId           string `json:"clientOrderId"`
-	Price                   string `json:"price"`
-	OrigQty                 string `json:"origQty"`
-	ExecutedQty             string `json:"executedQty"`
-	OrigQuoteOrderQty       string `json:"origQuoteOrderQty"`
-	CummulativeQuoteQty     string `json:"cummulativeQuoteQty"`
-	Status                  string `json:"status"`
-	TimeInForce             string `json:"timeInForce"`
-	Type                    string `json:"type"`
-	Side                    string `json:"side"`
-	StopPrice               string `json:"stopPrice"`
-	IcebergQty              string `json:"icebergQty"`
-	Time                    int64  `json:"time"`
-	UpdateTime              int64  `json:"updateTime"`
-	IsWorking               bool   `json:"isWorking"`
-	WorkingTime             int64  `json:"workingTime"`
-	SelfTradePreventionMode string `json:"selfTradePreventionMode"`
+	Symbol                  string          `json:"symbol"`
+	OrderId                 int64           `json:"orderId"`
+	OrderListId             int             `json:"orderListId"`
+	ClientOrderId           string          `json:"clientOrderId"`
+	Price                   decimal.Decimal `json:"price"`
+	OrigQty                 decimal.Decimal `json:"origQty"`
+	ExecutedQty             decimal.Decimal `json:"executedQty"`
+	OrigQuoteOrderQty       decimal.Decimal `json:"origQuoteOrderQty"`
+	CummulativeQuoteQty     decimal.Decimal `json:"cummulativeQuoteQty"`
+	Status                  string          `json:"status"`
+	TimeInForce             string          `json:"timeInForce"`
+	Type                    string          `json:"type"`
+	Side                    string          `json:"side"`
+	StopPrice               decimal.Decimal `json:"stopPrice"`
+	IcebergQty              decimal.Decimal `json:"icebergQty"`
+	Time                    int64           `json:"time"`
+	UpdateTime              int64           `json:"updateTime"`
+	IsWorking               bool            `json:"isWorking"`
+	WorkingTime             int64           `json:"workingTime"`
+	SelfTradePreventionMode string          `json:"selfTradePreventionMode"`
 }
 type OpenOrdersStatusResponse struct {
 	ApiResponse
@@ -643,19 +645,19 @@ type OrderResult struct {
 	OrderListId             int               `json:"orderListId"`
 	ClientOrderId           string            `json:"clientOrderId"`
 	TransactTime            int64             `json:"transactTime"`
-	Price                   string            `json:"price"`
-	OrigQty                 string            `json:"origQty"`
-	ExecutedQty             string            `json:"executedQty"`
-	OrigQuoteOrderQty       string            `json:"origQuoteOrderQty"`
-	CummulativeQuoteQty     string            `json:"cummulativeQuoteQty"`
+	Price                   decimal.Decimal   `json:"price"`
+	OrigQty                 decimal.Decimal   `json:"origQty"`
+	ExecutedQty             decimal.Decimal   `json:"executedQty"`
+	OrigQuoteOrderQty       decimal.Decimal   `json:"origQuoteOrderQty"`
+	CummulativeQuoteQty     decimal.Decimal   `json:"cummulativeQuoteQty"`
 	Status                  string            `json:"status"`
 	TimeInForce             string            `json:"timeInForce"`
 	Type                    string            `json:"type"`
 	Side                    string            `json:"side"`
-	StopPrice               string            `json:"stopPrice"`
+	StopPrice               decimal.Decimal   `json:"stopPrice"`
 	TrailingDelta           int               `json:"trailingDelta"`
 	TrailingTime            int               `json:"trailingTime"`
-	IcebergQty              string            `json:"icebergQty"`
+	IcebergQty              decimal.Decimal   `json:"icebergQty"`
 	StrategyId              int               `json:"strategyId"`
 	StrategyType            int               `json:"strategyType"`
 	SelfTradePreventionMode string            `json:"selfTradePreventionMode"`
@@ -1351,25 +1353,25 @@ type CreateSOROrder struct {
 }
 
 type CreateSOROrderResult struct {
-	Symbol                  string     `json:"symbol"`
-	OrderId                 int        `json:"orderId"`
-	OrderListId             int        `json:"orderListId"`
-	ClientOrderId           string     `json:"clientOrderId"`
-	TransactTime            int64      `json:"transactTime"`
-	Price                   string     `json:"price"`
-	OrigQty                 string     `json:"origQty"`
-	ExecutedQty             string     `json:"executedQty"`
-	OrigQuoteOrderQty       string     `json:"origQuoteOrderQty"`
-	CummulativeQuoteQty     string     `json:"cummulativeQuoteQty"`
-	Status                  string     `json:"status"`
-	TimeInForce             string     `json:"timeInForce"`
-	Type                    string     `json:"type"`
-	Side                    string     `json:"side"`
-	WorkingTime             int64      `json:"workingTime"`
-	Fills                   []*ApiFill `json:"fills"`
-	WorkingFloor            string     `json:"workingFloor"`
-	SelfTradePreventionMode string     `json:"selfTradePreventionMode"`
-	UsedSor                 bool       `json:"usedSor"`
+	Symbol                  string          `json:"symbol"`
+	OrderId                 int             `json:"orderId"`
+	OrderListId             int             `json:"orderListId"`
+	ClientOrderId           string          `json:"clientOrderId"`
+	TransactTime            int64           `json:"transactTime"`
+	Price                   decimal.Decimal `json:"price"`
+	OrigQty                 decimal.Decimal `json:"origQty"`
+	ExecutedQty             decimal.Decimal `json:"executedQty"`
+	OrigQuoteOrderQty       decimal.Decimal `json:"origQuoteOrderQty"`
+	CummulativeQuoteQty     decimal.Decimal `json:"cummulativeQuoteQty"`
+	Status                  string          `json:"status"`
+	TimeInForce             string          `json:"timeInForce"`
+	Type                    string          `json:"type"`
+	Side                    string          `json:"side"`
+	WorkingTime             int64           `json:"workingTime"`
+	Fills                   []*ApiFill      `json:"fills"`
+	WorkingFloor            string          `json:"workingFloor"`
+	SelfTradePreventionMode string          `json:"selfTradePreventionMode"`
+	UsedSor                 bool            `json:"usedSor"`
 }
 
 type CreateSOROrderResponse struct {
@@ -1464,25 +1466,9 @@ type CreateTestSOROrder struct {
 	c *Client
 }
 
-type CreateTestSOROrderResult struct {
-	StandardCommissionForOrder struct {
-		Maker string `json:"maker"`
-		Taker string `json:"taker"`
-	} `json:"standardCommissionForOrder"`
-	TaxCommissionForOrder struct {
-		Maker string `json:"maker"`
-		Taker string `json:"taker"`
-	} `json:"taxCommissionForOrder"`
-	Discount struct {
-		EnabledForAccount bool   `json:"enabledForAccount"`
-		EnabledForSymbol  bool   `json:"enabledForSymbol"`
-		DiscountAsset     string `json:"discountAsset"`
-		Discount          string `json:"discount"`
-	} `json:"discount"`
-}
 type CreateTestSOROrderResponse struct {
 	ApiResponse
-	Result *CreateTestSOROrderResult `json:"result"`
+	Result *CreateTestOrderResult `json:"result"`
 }
 
 func (s *CreateTestSOROrder) Symbol(symbol string) *CreateTestSOROrder {

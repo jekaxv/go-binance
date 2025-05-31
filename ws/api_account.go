@@ -3,6 +3,7 @@ package ws
 import (
 	"context"
 	"encoding/json"
+	"github.com/shopspring/decimal"
 )
 
 // AccountInformation Query information about your account.
@@ -113,28 +114,28 @@ type AccountOrderHistory struct {
 }
 
 type AccountOrderHistoryResult struct {
-	Symbol                  string `json:"symbol"`
-	OrderId                 int64  `json:"orderId"`
-	OrderListId             int    `json:"orderListId"`
-	ClientOrderId           string `json:"clientOrderId"`
-	Price                   string `json:"price"`
-	OrigQty                 string `json:"origQty"`
-	ExecutedQty             string `json:"executedQty"`
-	CummulativeQuoteQty     string `json:"cummulativeQuoteQty"`
-	Status                  string `json:"status"`
-	TimeInForce             string `json:"timeInForce"`
-	Type                    string `json:"type"`
-	Side                    string `json:"side"`
-	StopPrice               string `json:"stopPrice"`
-	IcebergQty              string `json:"icebergQty"`
-	Time                    int64  `json:"time"`
-	UpdateTime              int64  `json:"updateTime"`
-	IsWorking               bool   `json:"isWorking"`
-	WorkingTime             int64  `json:"workingTime"`
-	OrigQuoteOrderQty       string `json:"origQuoteOrderQty"`
-	SelfTradePreventionMode string `json:"selfTradePreventionMode"`
-	PreventedMatchId        int    `json:"preventedMatchId"`
-	PreventedQuantity       string `json:"preventedQuantity"`
+	Symbol                  string          `json:"symbol"`
+	OrderId                 int64           `json:"orderId"`
+	OrderListId             int             `json:"orderListId"`
+	ClientOrderId           string          `json:"clientOrderId"`
+	Price                   decimal.Decimal `json:"price"`
+	OrigQty                 decimal.Decimal `json:"origQty"`
+	ExecutedQty             decimal.Decimal `json:"executedQty"`
+	CummulativeQuoteQty     decimal.Decimal `json:"cummulativeQuoteQty"`
+	Status                  string          `json:"status"`
+	TimeInForce             string          `json:"timeInForce"`
+	Type                    string          `json:"type"`
+	Side                    string          `json:"side"`
+	StopPrice               decimal.Decimal `json:"stopPrice"`
+	IcebergQty              decimal.Decimal `json:"icebergQty"`
+	Time                    int64           `json:"time"`
+	UpdateTime              int64           `json:"updateTime"`
+	IsWorking               bool            `json:"isWorking"`
+	WorkingTime             int64           `json:"workingTime"`
+	OrigQuoteOrderQty       decimal.Decimal `json:"origQuoteOrderQty"`
+	SelfTradePreventionMode string          `json:"selfTradePreventionMode"`
+	PreventedMatchId        int             `json:"preventedMatchId"`
+	PreventedQuantity       string          `json:"preventedQuantity"`
 }
 
 type AccountOrderHistoryResponse struct {
@@ -253,19 +254,19 @@ type AccountTradeHistory struct {
 	c *Client
 }
 type AccountTradeHistoryResult struct {
-	Symbol          string `json:"symbol"`
-	Id              int    `json:"id"`
-	OrderId         int64  `json:"orderId"`
-	OrderListId     int    `json:"orderListId"`
-	Price           string `json:"price"`
-	Qty             string `json:"qty"`
-	QuoteQty        string `json:"quoteQty"`
-	Commission      string `json:"commission"`
-	CommissionAsset string `json:"commissionAsset"`
-	Time            int64  `json:"time"`
-	IsBuyer         bool   `json:"isBuyer"`
-	IsMaker         bool   `json:"isMaker"`
-	IsBestMatch     bool   `json:"isBestMatch"`
+	Symbol          string          `json:"symbol"`
+	Id              int             `json:"id"`
+	OrderId         int64           `json:"orderId"`
+	OrderListId     int             `json:"orderListId"`
+	Price           decimal.Decimal `json:"price"`
+	Qty             decimal.Decimal `json:"qty"`
+	QuoteQty        decimal.Decimal `json:"quoteQty"`
+	Commission      decimal.Decimal `json:"commission"`
+	CommissionAsset string          `json:"commissionAsset"`
+	Time            int64           `json:"time"`
+	IsBuyer         bool            `json:"isBuyer"`
+	IsMaker         bool            `json:"isMaker"`
+	IsBestMatch     bool            `json:"isBestMatch"`
 }
 type AccountTradeHistoryResponse struct {
 	ApiResponse
@@ -324,16 +325,16 @@ type AccountPreventedMatches struct {
 	c *Client
 }
 type AccountPreventedMatchesResult struct {
-	Symbol                  string `json:"symbol"`
-	PreventedMatchId        int    `json:"preventedMatchId"`
-	TakerOrderId            int    `json:"takerOrderId"`
-	MakerSymbol             string `json:"makerSymbol"`
-	MakerOrderId            int    `json:"makerOrderId"`
-	TradeGroupId            int    `json:"tradeGroupId"`
-	SelfTradePreventionMode string `json:"selfTradePreventionMode"`
-	Price                   string `json:"price"`
-	MakerPreventedQuantity  string `json:"makerPreventedQuantity"`
-	TransactTime            int64  `json:"transactTime"`
+	Symbol                  string          `json:"symbol"`
+	PreventedMatchId        int             `json:"preventedMatchId"`
+	TakerOrderId            int             `json:"takerOrderId"`
+	MakerSymbol             string          `json:"makerSymbol"`
+	MakerOrderId            int             `json:"makerOrderId"`
+	TradeGroupId            int             `json:"tradeGroupId"`
+	SelfTradePreventionMode string          `json:"selfTradePreventionMode"`
+	Price                   decimal.Decimal `json:"price"`
+	MakerPreventedQuantity  decimal.Decimal `json:"makerPreventedQuantity"`
+	TransactTime            int64           `json:"transactTime"`
 }
 type AccountPreventedMatchesResponse struct {
 	ApiResponse
@@ -389,20 +390,20 @@ type AccountAllocations struct {
 	c *Client
 }
 type AccountAllocationsResult struct {
-	Symbol          string `json:"symbol"`
-	AllocationId    int    `json:"allocationId"`
-	AllocationType  string `json:"allocationType"`
-	OrderId         int    `json:"orderId"`
-	OrderListId     int    `json:"orderListId"`
-	Price           string `json:"price"`
-	Qty             string `json:"qty"`
-	QuoteQty        string `json:"quoteQty"`
-	Commission      string `json:"commission"`
-	CommissionAsset string `json:"commissionAsset"`
-	Time            int64  `json:"time"`
-	IsBuyer         bool   `json:"isBuyer"`
-	IsMaker         bool   `json:"isMaker"`
-	IsAllocator     bool   `json:"isAllocator"`
+	Symbol          string          `json:"symbol"`
+	AllocationId    int             `json:"allocationId"`
+	AllocationType  string          `json:"allocationType"`
+	OrderId         int             `json:"orderId"`
+	OrderListId     int             `json:"orderListId"`
+	Price           decimal.Decimal `json:"price"`
+	Qty             decimal.Decimal `json:"qty"`
+	QuoteQty        decimal.Decimal `json:"quoteQty"`
+	Commission      decimal.Decimal `json:"commission"`
+	CommissionAsset string          `json:"commissionAsset"`
+	Time            int64           `json:"time"`
+	IsBuyer         bool            `json:"isBuyer"`
+	IsMaker         bool            `json:"isMaker"`
+	IsAllocator     bool            `json:"isAllocator"`
 }
 type AccountAllocationsResponse struct {
 	ApiResponse
@@ -463,12 +464,7 @@ type AccountCommissionResult struct {
 	Symbol             string             `json:"symbol"`
 	StandardCommission *ApiCommissionRate `json:"standardCommission"`
 	TaxCommission      *ApiCommissionRate `json:"taxCommission"`
-	Discount           struct {
-		EnabledForAccount bool   `json:"enabledForAccount"`
-		EnabledForSymbol  bool   `json:"enabledForSymbol"`
-		DiscountAsset     string `json:"discountAsset"`
-		Discount          string `json:"discount"`
-	} `json:"discount"`
+	Discount           *Discount          `json:"discount"`
 }
 
 type AccountCommissionResponse struct {
