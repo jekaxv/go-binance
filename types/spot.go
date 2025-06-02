@@ -119,3 +119,26 @@ const (
 	OrderExceededModeDO_NOTHING  OrderExceededModeEnum = "DO_NOTHING"
 	OrderExceededModeCANCEL_ONLY                       = "CANCEL_ONLY"
 )
+
+type ContractType string
+
+const (
+	ContractTypePERPETUAL       ContractType = "PERPETUAL"
+	ContractTypeCURRENT_QUARTER              = "CURRENT_QUARTER"
+	ContractTypeNEXT_QUARTER                 = "NEXT_QUARTER"
+)
+
+type PositionSideEnum string
+
+const (
+	PositionSideBOTH  PositionSideEnum = "BOTH"
+	PositionSideLONG                   = "LONG"
+	PositionSideSHORT                  = "SHORT"
+)
+
+type WorkingType string
+
+const (
+	WorkingTypeCONTRACT_PRICE WorkingType = "CONTRACT_PRICE"
+	WorkingTypeMARK_PRICE     WorkingType = "MARK_PRICE"
+)

@@ -37,13 +37,13 @@ import (
 	"context"
 	"fmt"
 	"github.com/jekaxv/go-binance"
-	"github.com/jekaxv/go-binance/http"
+	"github.com/jekaxv/go-binance/https"
 	"github.com/jekaxv/go-binance/types"
 )
 
 func main() {
-	client := binance.NewClient(http.Options{
-		Endpoint:  http.TestnetURL,
+	client := binance.NewClient(https.Options{
+		Endpoint:  https.TestnetURL,
 		ApiKey:    "YourApiKey",
 		ApiSecret: "YourApiSecret",
 	})
@@ -61,6 +61,7 @@ func main() {
 ## Websocket
 ### New Client
 Initialize the client with your API key and secret. The endpoint is optional, default is "wss://stream.binance.com:9443".
+
 ```go
 package main
 
@@ -68,15 +69,15 @@ import (
 	"context"
 	"fmt"
 	"github.com/jekaxv/go-binance"
-	"github.com/jekaxv/go-binance/ws"
+	"github.com/jekaxv/go-binance/wss"
 )
 
 func main() {
-	client := binance.NewWsApiClient(ws.Options{
+	client := binance.NewWsApiClient(wss.Options{
 		ApiKey:    "YourApiKey",
 		ApiSecret: "YourApiSecret",
 	})
-	resp, err := client.NewDepth().Symbol("BTCUSDT").Limit(1).Do(context.Background())
+	resp, err := client.NewDepth().Symbol("BTCUSDT").Do(context.Background())
 	if err != nil {
 		fmt.Println(err)
 		return

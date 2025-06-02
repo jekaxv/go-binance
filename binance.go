@@ -2,44 +2,45 @@ package binance
 
 import (
 	"encoding/json"
-	"github.com/jekaxv/go-binance/http"
-	"github.com/jekaxv/go-binance/ws"
+	"github.com/jekaxv/go-binance/https"
+	"github.com/jekaxv/go-binance/https/hfutures"
+	"github.com/jekaxv/go-binance/wss"
+	"github.com/jekaxv/go-binance/wss/wfutures"
 )
 
-type Client struct {
-	*http.Client
+func NewClient(opt ...https.Options) *https.Client {
+	return &https.Client{
+		Opt:        https.NewOptions(opt...),
+		HttpClient: https.DefaultClient,
+	}
 }
 
-type WebsocketClient struct {
-	*ws.Client
+func NewWsClient(opt ...wss.Options) *wss.Client {
+	return &wss.Client{
+		Opt: wss.NewOptions(opt...),
+	}
 }
 
-func NewClient(opt ...http.Options) *Client {
-	c := Client{
-		Client: &http.Client{
-			Opt:        http.NewOptions(opt...),
-			HttpClient: http.DefaultClient,
+func NewWsApiClient(opt ...wss.Options) *wss.Client {
+	return &wss.Client{
+		Opt: wss.NewApiOptions(opt...),
+	}
+}
+
+func NewFuturesClient(opt ...https.Options) *hfutures.Client {
+	return &hfutures.Client{
+		C: &https.Client{
+			Opt:        https.NewFuturesOptions(opt...),
+			HttpClient: https.DefaultClient,
 		},
 	}
-	return &c
 }
-
-func NewWsClient(opt ...ws.Options) *WebsocketClient {
-	c := WebsocketClient{
-		Client: &ws.Client{
-			Opt: ws.NewOptions(opt...),
+func NewWsFuturesClient(opt ...wss.Options) *wfutures.Client {
+	return &wfutures.Client{
+		C: &wss.Client{
+			Opt: wss.NewFuturesOptions(opt...),
 		},
 	}
-	return &c
-}
-
-func NewWsApiClient(opt ...ws.Options) *WebsocketClient {
-	c := WebsocketClient{
-		Client: &ws.Client{
-			Opt: ws.NewApiOptions(opt...),
-		},
-	}
-	return &c
 }
 
 func PrettyPrint(i interface{}) string {
