@@ -32,6 +32,7 @@ type OrderReq struct {
 // CreateOrder Send in a new order.
 // https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api
 type CreateOrder struct {
+	c                       *Client
 	symbol                  string
 	side                    types.OrderSideEnum
 	positionSide            *types.PositionSideEnum
@@ -51,7 +52,6 @@ type CreateOrder struct {
 	priceMatch              *string
 	selfTradePreventionMode *types.STPModeEnum
 	goodTillDate            *int64
-	c                       *Client
 	recvWindow              *int64
 }
 
@@ -294,5 +294,257 @@ func (s *PlaceBatchOrder) Do(ctx context.Context) ([]*PlaceBatchOrderResponse, e
 		return nil, err
 	}
 	var resp []*PlaceBatchOrderResponse
+	return resp, json.Unmarshal(s.c.rawBody(), &resp)
+}
+
+type ModifyOrderReq struct {
+	OrderId           int64               `json:"orderId"`
+	OrigClientOrderId string              `json:"origClientOrderId"`
+	Symbol            string              `json:"symbol"`
+	Side              types.OrderSideEnum `json:"side"`
+	Quantity          string              `json:"quantity"`
+	Price             string              `json:"price"`
+	PriceMatch        string              `json:"priceMatch"`
+}
+
+// ModifyOrder Order modify function, currently only LIMIT order modification is supported, modified orders will be reordered in the match queue
+type ModifyOrder struct {
+	c                 *Client
+	orderId           *int64
+	origClientOrderId *string
+	symbol            string
+	side              types.OrderSideEnum
+	quantity          *string
+	price             *string
+	priceMatch        *string
+	recvWindow        *int64
+}
+
+type ModifyOrderResponse struct {
+	OrderId                 int64           `json:"orderId"`
+	Symbol                  string          `json:"symbol"`
+	Pair                    string          `json:"pair"`
+	Status                  string          `json:"status"`
+	ClientOrderId           string          `json:"clientOrderId"`
+	Price                   decimal.Decimal `json:"price"`
+	AvgPrice                decimal.Decimal `json:"avgPrice"`
+	OrigQty                 decimal.Decimal `json:"origQty"`
+	ExecutedQty             decimal.Decimal `json:"executedQty"`
+	CumQty                  decimal.Decimal `json:"cumQty"`
+	CumBase                 decimal.Decimal `json:"cumBase"`
+	TimeInForce             string          `json:"timeInForce"`
+	Type                    string          `json:"type"`
+	ReduceOnly              bool            `json:"reduceOnly"`
+	ClosePosition           bool            `json:"closePosition"`
+	Side                    string          `json:"side"`
+	PositionSide            string          `json:"positionSide"`
+	StopPrice               decimal.Decimal `json:"stopPrice"`
+	WorkingType             string          `json:"workingType"`
+	PriceProtect            bool            `json:"priceProtect"`
+	OrigType                string          `json:"origType"`
+	PriceMatch              string          `json:"priceMatch"`
+	SelfTradePreventionMode string          `json:"selfTradePreventionMode"`
+	GoodTillDate            int             `json:"goodTillDate"`
+	UpdateTime              int64           `json:"updateTime"`
+}
+
+func (s *ModifyOrder) OrderId(orderId int64) *ModifyOrder {
+	s.orderId = &orderId
+	return s
+}
+
+func (s *ModifyOrder) OrigClientOrderId(origClientOrderId string) *ModifyOrder {
+	s.origClientOrderId = &origClientOrderId
+	return s
+}
+
+func (s *ModifyOrder) Symbol(symbol string) *ModifyOrder {
+	s.symbol = symbol
+	return s
+}
+
+// Side BUY or SELL
+func (s *ModifyOrder) Side(side types.OrderSideEnum) *ModifyOrder {
+	s.side = side
+	return s
+}
+
+func (s *ModifyOrder) Quantity(quantity string) *ModifyOrder {
+	s.quantity = &quantity
+	return s
+}
+
+func (s *ModifyOrder) Price(price string) *ModifyOrder {
+	s.price = &price
+	return s
+}
+
+func (s *ModifyOrder) PriceMatch(priceMatch string) *ModifyOrder {
+	s.priceMatch = &priceMatch
+	return s
+}
+
+// RecvWindow The value cannot be greater than 60000
+func (s *ModifyOrder) RecvWindow(recvWindow int64) *ModifyOrder {
+	s.recvWindow = &recvWindow
+	return s
+}
+
+func (s *ModifyOrder) Do(ctx context.Context) (*ModifyOrderResponse, error) {
+	s.c.set("symbol", s.symbol)
+	s.c.set("side", s.side)
+	if s.orderId != nil {
+		s.c.set("orderId", *s.orderId)
+	}
+	if s.origClientOrderId != nil {
+		s.c.set("origClientOrderId", *s.origClientOrderId)
+	}
+	if s.quantity != nil {
+		s.c.set("quantity", *s.quantity)
+	}
+	if s.price != nil {
+		s.c.set("price", *s.price)
+	}
+	if s.priceMatch != nil {
+		s.c.set("priceMatch", *s.priceMatch)
+	}
+	if s.recvWindow != nil {
+		s.c.set("recvWindow", *s.recvWindow)
+	}
+	if err := s.c.invoke(ctx); err != nil {
+		return nil, err
+	}
+	var resp *ModifyOrderResponse
+	return resp, json.Unmarshal(s.c.rawBody(), &resp)
+}
+
+// ModifyMultipleOrder Modify Multiple Orders (TRADE)
+type ModifyMultipleOrder struct {
+	c           *Client
+	batchOrders []ModifyOrderReq
+	recvWindow  *int64
+}
+
+type ModifyMultipleOrderResponse struct {
+	ModifyOrderResponse
+	Code int    `json:"code"`
+	Msg  string `json:"msg"`
+}
+
+func (s *ModifyMultipleOrder) BatchOrders(batchOrders []ModifyOrderReq) *ModifyMultipleOrder {
+	s.batchOrders = batchOrders
+	return s
+}
+
+// RecvWindow The value cannot be greater than 60000
+func (s *ModifyMultipleOrder) RecvWindow(recvWindow int64) *ModifyMultipleOrder {
+	s.recvWindow = &recvWindow
+	return s
+}
+
+func (s *ModifyMultipleOrder) Do(ctx context.Context) ([]*ModifyMultipleOrderResponse, error) {
+	orderJson, err := json.Marshal(s.batchOrders)
+	if err != nil {
+		return nil, err
+	}
+	s.c.set("batchOrders", string(orderJson))
+	if s.recvWindow != nil {
+		s.c.set("recvWindow", *s.recvWindow)
+	}
+	if err := s.c.invoke(ctx); err != nil {
+		return nil, err
+	}
+	var resp []*ModifyMultipleOrderResponse
+	return resp, json.Unmarshal(s.c.rawBody(), &resp)
+}
+
+// OrderAmendment Get order modification history
+type OrderAmendment struct {
+	c                 *Client
+	symbol            string
+	orderId           *int64
+	origClientOrderId *string
+	startTime         *int64
+	endTime           *int64
+	limit             *int64
+	recvWindow        *int64
+}
+
+type AmendmentQuantity struct {
+	Before decimal.Decimal `json:"before"`
+	After  decimal.Decimal `json:"after"`
+}
+
+type Amendment struct {
+	Price   *AmendmentQuantity `json:"price"`
+	OrigQty *AmendmentQuantity `json:"origQty"`
+	Count   int                `json:"count"`
+}
+
+type OrderAmendmentResponse struct {
+	AmendmentId   int        `json:"amendmentId"`
+	Symbol        string     `json:"symbol"`
+	Pair          string     `json:"pair"`
+	OrderId       int64      `json:"orderId"`
+	ClientOrderId string     `json:"clientOrderId"`
+	Time          int64      `json:"time"`
+	Amendment     *Amendment `json:"amendment"`
+}
+
+func (s *OrderAmendment) Symbol(symbol string) *OrderAmendment {
+	s.symbol = symbol
+	return s
+}
+func (s *OrderAmendment) OrderId(orderId int64) *OrderAmendment {
+	s.orderId = &orderId
+	return s
+}
+func (s *OrderAmendment) OrigClientOrderId(origClientOrderId string) *OrderAmendment {
+	s.origClientOrderId = &origClientOrderId
+	return s
+}
+func (s *OrderAmendment) StartTime(startTime int64) *OrderAmendment {
+	s.startTime = &startTime
+	return s
+}
+func (s *OrderAmendment) EndTime(endTime int64) *OrderAmendment {
+	s.endTime = &endTime
+	return s
+}
+
+// Limit Default 50; max 100
+func (s *OrderAmendment) Limit(limit int64) *OrderAmendment {
+	s.limit = &limit
+	return s
+}
+func (s *OrderAmendment) RecvWindow(recvWindow int64) *OrderAmendment {
+	s.recvWindow = &recvWindow
+	return s
+}
+
+func (s *OrderAmendment) Do(ctx context.Context) ([]*OrderAmendmentResponse, error) {
+	s.c.set("symbol", s.symbol)
+	if s.orderId != nil {
+		s.c.set("orderId", *s.orderId)
+	}
+	if s.origClientOrderId != nil {
+		s.c.set("origClientOrderId", *s.origClientOrderId)
+	}
+	if s.startTime != nil {
+		s.c.set("startTime", *s.startTime)
+	}
+	if s.endTime != nil {
+		s.c.set("endTime", *s.endTime)
+	}
+	if s.limit != nil {
+		s.c.set("limit", *s.limit)
+	}
+	if s.recvWindow != nil {
+		s.c.set("recvWindow", *s.recvWindow)
+	}
+	if err := s.c.invoke(ctx); err != nil {
+		return nil, err
+	}
+	var resp []*OrderAmendmentResponse
 	return resp, json.Unmarshal(s.c.rawBody(), &resp)
 }

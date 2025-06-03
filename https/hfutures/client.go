@@ -213,3 +213,21 @@ func (c *Client) NewPlaceBatchOrder() *PlaceBatchOrder {
 	c.C.SetReq("/fapi/v1/batchOrders", http.MethodPost, https.AuthSigned)
 	return &PlaceBatchOrder{c: c}
 }
+
+// NewModifyOrder Modify Order (TRADE)
+func (c *Client) NewModifyOrder() *ModifyOrder {
+	c.C.SetReq("/fapi/v1/order", http.MethodPut, https.AuthSigned)
+	return &ModifyOrder{c: c}
+}
+
+// NewModifyMultipleOrder Modify Multiple Orders(TRADE)
+func (c *Client) NewModifyMultipleOrder() *ModifyMultipleOrder {
+	c.C.SetReq("/fapi/v1/batchOrders", http.MethodPut, https.AuthSigned)
+	return &ModifyMultipleOrder{c: c}
+}
+
+// NewOrderAmendment Get Order Modify History (USER_DATA)
+func (c *Client) NewOrderAmendment() *OrderAmendment {
+	c.C.SetReq("/fapi/v1/orderAmendment", http.MethodGet, https.AuthSigned)
+	return &OrderAmendment{c: c}
+}
