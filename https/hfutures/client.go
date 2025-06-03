@@ -231,3 +231,87 @@ func (c *Client) NewOrderAmendment() *OrderAmendment {
 	c.C.SetReq("/fapi/v1/orderAmendment", http.MethodGet, https.AuthSigned)
 	return &OrderAmendment{c: c}
 }
+
+// NewCancelOrder Cancel Order (TRADE)
+func (c *Client) NewCancelOrder() *CancelOrder {
+	c.C.SetReq("/fapi/v1/order", http.MethodDelete, https.AuthSigned)
+	return &CancelOrder{c: c}
+}
+
+// NewCancelMultipleOrder Cancel Multiple Orders (TRADE)
+func (c *Client) NewCancelMultipleOrder() *CancelMultipleOrder {
+	c.C.SetReq("/fapi/v1/batchOrders", http.MethodDelete, https.AuthSigned)
+	return &CancelMultipleOrder{c: c}
+}
+
+// NewCancelOpenOrder Cancel All Open Orders (TRADE)
+func (c *Client) NewCancelOpenOrder() *CancelOpenOrder {
+	c.C.SetReq("/fapi/v1/allOpenOrders", http.MethodDelete, https.AuthSigned)
+	return &CancelOpenOrder{c: c}
+}
+
+// NewCountdownCancelAll Auto-Cancel All Open Orders (TRADE)
+func (c *Client) NewCountdownCancelAll() *CountdownCancelAll {
+	c.C.SetReq("/fapi/v1/countdownCancelAll", http.MethodPost, https.AuthSigned)
+	return &CountdownCancelAll{c: c}
+}
+
+// NewQueryOrder Query Order (USER_DATA)
+func (c *Client) NewQueryOrder() *QueryOrder {
+	c.C.SetReq("/fapi/v1/order", http.MethodGet, https.AuthSigned)
+	return &QueryOrder{c: c}
+}
+
+// NewQueryAllOrder All Orders (USER_DATA)
+func (c *Client) NewQueryAllOrder() *QueryAllOrder {
+	c.C.SetReq("/fapi/v1/allOrders", http.MethodGet, https.AuthSigned)
+	return &QueryAllOrder{c: c}
+}
+
+// NewAllOpenOrder Current All Open Orders (USER_DATA)
+func (c *Client) NewAllOpenOrder() *AllOpenOrder {
+	c.C.SetReq("/fapi/v1/openOrders", http.MethodGet, https.AuthSigned)
+	return &AllOpenOrder{c: c}
+}
+
+// NewQueryOpenOrder Query Current Open Order (USER_DATA)
+func (c *Client) NewQueryOpenOrder() *QueryOpenOrder {
+	c.C.SetReq("/fapi/v1/openOrder", http.MethodGet, https.AuthSigned)
+	return &QueryOpenOrder{c: c}
+}
+
+// NewForceOrder User's Force Orders (USER_DATA)
+func (c *Client) NewForceOrder() *ForceOrder {
+	c.C.SetReq("/fapi/v1/forceOrders", http.MethodGet, https.AuthSigned)
+	return &ForceOrder{c: c}
+}
+
+// NewUserTrades Account Trade List (USER_DATA)
+func (c *Client) NewUserTrades() *UserTrades {
+	c.C.SetReq("/fapi/v1/userTrades", http.MethodGet, https.AuthSigned)
+	return &UserTrades{c: c}
+}
+
+// NewChangeMarginType Change Margin Type(TRADE)
+func (c *Client) NewChangeMarginType() *ChangeMarginType {
+	c.C.SetReq("/fapi/v1/marginType", http.MethodPost, https.AuthSigned)
+	return &ChangeMarginType{c: c}
+}
+
+// NewChangePositionSide Change Position Mode(TRADE)
+func (c *Client) NewChangePositionSide() *ChangePositionSide {
+	c.C.SetReq("/fapi/v1/positionSide/dual", http.MethodPost, https.AuthSigned)
+	return &ChangePositionSide{c: c}
+}
+
+// NewChangeLeverage Change Initial Leverage(TRADE)
+func (c *Client) NewChangeLeverage() *ChangeLeverage {
+	c.C.SetReq("/fapi/v1/leverage", http.MethodPost, https.AuthSigned)
+	return &ChangeLeverage{c: c}
+}
+
+// NewChangeMultiAssetsMargin Change Multi-Assets Mode (TRADE)
+func (c *Client) NewChangeMultiAssetsMargin() *ChangeMultiAssetsMargin {
+	c.C.SetReq("/fapi/v1/leverage", http.MethodPost, https.AuthSigned)
+	return &ChangeMultiAssetsMargin{c: c}
+}

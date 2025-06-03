@@ -142,3 +142,17 @@ const (
 	WorkingTypeCONTRACT_PRICE WorkingType = "CONTRACT_PRICE"
 	WorkingTypeMARK_PRICE     WorkingType = "MARK_PRICE"
 )
+
+type AutoCloseType string
+
+const (
+	AutoCloaseTypeLIQUIDATION AutoCloseType = "LIQUIDATION"
+	AutoCloaseTypeADL                       = "ADL"
+)
+
+type MarginType string
+
+const (
+	MarginTypeISOLATED MarginType = "SOLATED"
+	MarginTypeICROSSED            = "CROSSED"
+)

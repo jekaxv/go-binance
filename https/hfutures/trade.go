@@ -3,8 +3,11 @@ package hfutures
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/jekaxv/go-binance/types"
 	"github.com/shopspring/decimal"
+	"strconv"
+	"strings"
 )
 
 type OrderReq struct {
@@ -55,7 +58,7 @@ type CreateOrder struct {
 	recvWindow              *int64
 }
 
-type CreateOrderResponse struct {
+type OrderResponse struct {
 	ClientOrderId           string          `json:"clientOrderId"`
 	CumQty                  decimal.Decimal `json:"cumQty"`
 	CumQuote                decimal.Decimal `json:"cumQuote"`
@@ -191,7 +194,7 @@ func (s *CreateOrder) RecvWindow(recvWindow int64) *CreateOrder {
 	return s
 }
 
-func (s *CreateOrder) Do(ctx context.Context) (*CreateOrderResponse, error) {
+func (s *CreateOrder) Do(ctx context.Context) (*OrderResponse, error) {
 	s.c.set("symbol", s.symbol)
 	s.c.set("side", s.side)
 	if s.positionSide != nil {
@@ -252,7 +255,7 @@ func (s *CreateOrder) Do(ctx context.Context) (*CreateOrderResponse, error) {
 	if err := s.c.invoke(ctx); err != nil {
 		return nil, err
 	}
-	var resp *CreateOrderResponse
+	var resp *OrderResponse
 	return resp, json.Unmarshal(s.c.rawBody(), &resp)
 }
 
@@ -265,7 +268,7 @@ type PlaceBatchOrder struct {
 }
 
 type PlaceBatchOrderResponse struct {
-	CreateOrderResponse
+	OrderResponse
 	Code int    `json:"code"`
 	Msg  string `json:"msg"`
 }
@@ -546,5 +549,637 @@ func (s *OrderAmendment) Do(ctx context.Context) ([]*OrderAmendmentResponse, err
 		return nil, err
 	}
 	var resp []*OrderAmendmentResponse
+	return resp, json.Unmarshal(s.c.rawBody(), &resp)
+}
+
+// CancelOrder Cancel an active order.
+type CancelOrder struct {
+	c                 *Client
+	symbol            string
+	orderId           *int64
+	origClientOrderId *string
+	recvWindow        *int64
+}
+
+func (s *CancelOrder) Symbol(symbol string) *CancelOrder {
+	s.symbol = symbol
+	return s
+}
+func (s *CancelOrder) OrderId(orderId int64) *CancelOrder {
+	s.orderId = &orderId
+	return s
+}
+func (s *CancelOrder) OrigClientOrderId(origClientOrderId string) *CancelOrder {
+	s.origClientOrderId = &origClientOrderId
+	return s
+}
+func (s *CancelOrder) RecvWindow(recvWindow int64) *CancelOrder {
+	s.recvWindow = &recvWindow
+	return s
+}
+
+func (s *CancelOrder) Do(ctx context.Context) (*OrderResponse, error) {
+	s.c.set("symbol", s.symbol)
+	if s.orderId != nil {
+		s.c.set("orderId", *s.orderId)
+	}
+	if s.origClientOrderId != nil {
+		s.c.set("origClientOrderId", *s.origClientOrderId)
+	}
+	if s.recvWindow != nil {
+		s.c.set("recvWindow", *s.recvWindow)
+	}
+	if err := s.c.invoke(ctx); err != nil {
+		return nil, err
+	}
+	var resp *OrderResponse
+	return resp, json.Unmarshal(s.c.rawBody(), &resp)
+}
+
+// CancelMultipleOrder Cancel Multiple Orders
+type CancelMultipleOrder struct {
+	c                     *Client
+	symbol                string
+	orderIdList           []int64
+	origClientOrderIdList []string
+	recvWindow            *int64
+}
+
+func (s *CancelMultipleOrder) Symbol(symbol string) *CancelMultipleOrder {
+	s.symbol = symbol
+	return s
+}
+func (s *CancelMultipleOrder) OrderIdList(orderIdList []int64) *CancelMultipleOrder {
+	s.orderIdList = orderIdList
+	return s
+}
+func (s *CancelMultipleOrder) OrigClientOrderIdList(origClientOrderIdList []string) *CancelMultipleOrder {
+	s.origClientOrderIdList = origClientOrderIdList
+	return s
+}
+func (s *CancelMultipleOrder) RecvWindow(recvWindow int64) *CancelMultipleOrder {
+	s.recvWindow = &recvWindow
+	return s
+}
+
+func (s *CancelMultipleOrder) Do(ctx context.Context) ([]*OrderResponse, error) {
+	s.c.set("symbol", s.symbol)
+	if s.orderIdList != nil {
+		orderList := "["
+		for _, orderId := range s.orderIdList {
+			orderList += strconv.FormatInt(orderId, 10) + ","
+		}
+		orderList = strings.TrimRight(orderList, ",")
+		orderList += "]"
+		s.c.set("orderIdList", orderList)
+	}
+	if s.origClientOrderIdList != nil {
+		clientOrderIdList := "["
+		for _, clientOrderId := range s.origClientOrderIdList {
+			clientOrderIdList += fmt.Sprintf(`"%s",`, clientOrderId)
+		}
+		clientOrderIdList = strings.TrimRight(clientOrderIdList, ",")
+		clientOrderIdList += "]"
+		s.c.set("origClientOrderIdList", clientOrderIdList)
+	}
+	if s.recvWindow != nil {
+		s.c.set("recvWindow", *s.recvWindow)
+	}
+	if err := s.c.invoke(ctx); err != nil {
+		return nil, err
+	}
+	var resp []*OrderResponse
+	return resp, json.Unmarshal(s.c.rawBody(), &resp)
+}
+
+// CancelOpenOrder Cancel All Open Orders
+type CancelOpenOrder struct {
+	c          *Client
+	symbol     string
+	recvWindow *int64
+}
+
+type CancelOpenOrderResponse struct {
+	Code int    `json:"code"`
+	Msg  string `json:"msg"`
+}
+
+func (s *CancelOpenOrder) Symbol(symbol string) *CancelOpenOrder {
+	s.symbol = symbol
+	return s
+}
+func (s *CancelOpenOrder) RecvWindow(recvWindow int64) *CancelOpenOrder {
+	s.recvWindow = &recvWindow
+	return s
+}
+func (s *CancelOpenOrder) Do(ctx context.Context) (*CancelOpenOrderResponse, error) {
+	s.c.set("symbol", s.symbol)
+	if s.recvWindow != nil {
+		s.c.set("recvWindow", *s.recvWindow)
+	}
+	if err := s.c.invoke(ctx); err != nil {
+		return nil, err
+	}
+	var resp *CancelOpenOrderResponse
+	return resp, json.Unmarshal(s.c.rawBody(), &resp)
+}
+
+// CountdownCancelAll Cancel all open orders of the specified symbol at the end of the specified countdown. The endpoint should be called repeatedly as heartbeats so that the existing countdown time can be canceled and replaced by a new one.
+type CountdownCancelAll struct {
+	c             *Client
+	symbol        string
+	countdownTime *int64
+	recvWindow    *int64
+}
+
+type CountdownCancelAllResponse struct {
+	Symbol        string `json:"symbol"`
+	CountdownTime string `json:"countdownTime"`
+}
+
+func (s *CountdownCancelAll) Symbol(symbol string) *CountdownCancelAll {
+	s.symbol = symbol
+	return s
+}
+func (s *CountdownCancelAll) CountdownTime(countdownTime int64) *CountdownCancelAll {
+	s.countdownTime = &countdownTime
+	return s
+}
+func (s *CountdownCancelAll) RecvWindow(recvWindow int64) *CountdownCancelAll {
+	s.recvWindow = &recvWindow
+	return s
+}
+func (s *CountdownCancelAll) Do(ctx context.Context) (*CountdownCancelAllResponse, error) {
+	s.c.set("symbol", s.symbol)
+	if s.countdownTime != nil {
+		s.c.set("countdownTime", *s.countdownTime)
+	}
+	if s.recvWindow != nil {
+		s.c.set("recvWindow", *s.recvWindow)
+	}
+	if err := s.c.invoke(ctx); err != nil {
+		return nil, err
+	}
+	var resp *CountdownCancelAllResponse
+	return resp, json.Unmarshal(s.c.rawBody(), &resp)
+}
+
+// QueryOrder Check an order's status.
+type QueryOrder struct {
+	c                 *Client
+	symbol            string
+	orderId           *int64
+	origClientOrderId *string
+	recvWindow        *int64
+}
+
+func (s *QueryOrder) Symbol(symbol string) *QueryOrder {
+	s.symbol = symbol
+	return s
+}
+func (s *QueryOrder) OrderId(orderId int64) *QueryOrder {
+	s.orderId = &orderId
+	return s
+}
+func (s *QueryOrder) OrigClientOrderId(origClientOrderId string) *QueryOrder {
+	s.origClientOrderId = &origClientOrderId
+	return s
+}
+func (s *QueryOrder) RecvWindow(recvWindow int64) *QueryOrder {
+	s.recvWindow = &recvWindow
+	return s
+}
+
+func (s *QueryOrder) Do(ctx context.Context) (*OrderResponse, error) {
+	s.c.set("symbol", s.symbol)
+	if s.orderId != nil {
+		s.c.set("orderId", *s.orderId)
+	}
+	if s.origClientOrderId != nil {
+		s.c.set("origClientOrderId", *s.origClientOrderId)
+	}
+	if s.recvWindow != nil {
+		s.c.set("recvWindow", *s.recvWindow)
+	}
+	if err := s.c.invoke(ctx); err != nil {
+		return nil, err
+	}
+	var resp *OrderResponse
+	return resp, json.Unmarshal(s.c.rawBody(), &resp)
+}
+
+// QueryAllOrder Get all account orders; active, canceled, or filled.
+type QueryAllOrder struct {
+	c          *Client
+	symbol     string
+	orderId    *int64
+	startTime  *int64
+	endTime    *int64
+	limit      *int64
+	recvWindow *int64
+}
+
+func (s *QueryAllOrder) Symbol(symbol string) *QueryAllOrder {
+	s.symbol = symbol
+	return s
+}
+func (s *QueryAllOrder) OrderId(orderId int64) *QueryAllOrder {
+	s.orderId = &orderId
+	return s
+}
+func (s *QueryAllOrder) StartTime(startTime int64) *QueryAllOrder {
+	s.startTime = &startTime
+	return s
+}
+func (s *QueryAllOrder) EndTime(endTime int64) *QueryAllOrder {
+	s.endTime = &endTime
+	return s
+}
+func (s *QueryAllOrder) Limit(limit int64) *QueryAllOrder {
+	s.limit = &limit
+	return s
+}
+func (s *QueryAllOrder) RecvWindow(recvWindow int64) *QueryAllOrder {
+	s.recvWindow = &recvWindow
+	return s
+}
+
+func (s *QueryAllOrder) Do(ctx context.Context) ([]*OrderResponse, error) {
+	s.c.set("symbol", s.symbol)
+	if s.orderId != nil {
+		s.c.set("orderId", *s.orderId)
+	}
+	if s.startTime != nil {
+		s.c.set("startTime", *s.startTime)
+	}
+	if s.endTime != nil {
+		s.c.set("endTime", *s.endTime)
+	}
+	if s.limit != nil {
+		s.c.set("limit", *s.limit)
+	}
+	if s.recvWindow != nil {
+		s.c.set("recvWindow", *s.recvWindow)
+	}
+	if err := s.c.invoke(ctx); err != nil {
+		return nil, err
+	}
+	var resp []*OrderResponse
+	return resp, json.Unmarshal(s.c.rawBody(), &resp)
+}
+
+// AllOpenOrder Get all open orders on a symbol.
+type AllOpenOrder struct {
+	c          *Client
+	symbol     *string
+	recvWindow *int64
+}
+
+func (s *AllOpenOrder) Symbol(symbol string) *AllOpenOrder {
+	s.symbol = &symbol
+	return s
+}
+func (s *AllOpenOrder) RecvWindow(recvWindow int64) *AllOpenOrder {
+	s.recvWindow = &recvWindow
+	return s
+}
+func (s *AllOpenOrder) Do(ctx context.Context) ([]*OrderResponse, error) {
+	if s.symbol != nil {
+		s.c.set("symbol", *s.symbol)
+	}
+	if s.recvWindow != nil {
+		s.c.set("recvWindow", *s.recvWindow)
+	}
+	if err := s.c.invoke(ctx); err != nil {
+		return nil, err
+	}
+	var resp []*OrderResponse
+	return resp, json.Unmarshal(s.c.rawBody(), &resp)
+}
+
+// QueryOpenOrder Query open order
+type QueryOpenOrder struct {
+	c                 *Client
+	symbol            string
+	orderId           *int64
+	origClientOrderId *string
+	recvWindow        *int64
+}
+
+func (s *QueryOpenOrder) Symbol(symbol string) *QueryOpenOrder {
+	s.symbol = symbol
+	return s
+}
+func (s *QueryOpenOrder) OrderId(orderId int64) *QueryOpenOrder {
+	s.orderId = &orderId
+	return s
+}
+func (s *QueryOpenOrder) OrigClientOrderId(origClientOrderId string) *QueryOpenOrder {
+	s.origClientOrderId = &origClientOrderId
+	return s
+}
+func (s *QueryOpenOrder) RecvWindow(recvWindow int64) *QueryOpenOrder {
+	s.recvWindow = &recvWindow
+	return s
+}
+func (s *QueryOpenOrder) Do(ctx context.Context) (*OrderResponse, error) {
+	s.c.set("symbol", s.symbol)
+	if s.orderId != nil {
+		s.c.set("orderId", *s.orderId)
+	}
+	if s.origClientOrderId != nil {
+		s.c.set("origClientOrderId", *s.origClientOrderId)
+	}
+	if s.recvWindow != nil {
+		s.c.set("recvWindow", *s.recvWindow)
+	}
+	if err := s.c.invoke(ctx); err != nil {
+		return nil, err
+	}
+	var resp *OrderResponse
+	return resp, json.Unmarshal(s.c.rawBody(), &resp)
+}
+
+// ForceOrder Query user's Force Orders
+type ForceOrder struct {
+	c             *Client
+	symbol        *string
+	autoCloseType *types.AutoCloseType
+	startTime     *int64
+	endTime       *int64
+	limit         *int64
+	recvWindow    *int64
+}
+
+func (s *ForceOrder) Symbol(symbol string) *ForceOrder {
+	s.symbol = &symbol
+	return s
+}
+func (s *ForceOrder) AutoCloseType(autoCloseType types.AutoCloseType) *ForceOrder {
+	s.autoCloseType = &autoCloseType
+	return s
+}
+func (s *ForceOrder) StartTime(startTime int64) *ForceOrder {
+	s.startTime = &startTime
+	return s
+}
+func (s *ForceOrder) EndTime(endTime int64) *ForceOrder {
+	s.endTime = &endTime
+	return s
+}
+
+// Limit Default 50; max 100
+func (s *ForceOrder) Limit(limit int64) *ForceOrder {
+	s.limit = &limit
+	return s
+}
+func (s *ForceOrder) RecvWindow(recvWindow int64) *ForceOrder {
+	s.recvWindow = &recvWindow
+	return s
+}
+
+func (s *ForceOrder) Do(ctx context.Context) ([]*ModifyOrderResponse, error) {
+	if s.symbol != nil {
+		s.c.set("symbol", *s.symbol)
+	}
+	if s.autoCloseType != nil {
+		s.c.set("autoCloseType", *s.autoCloseType)
+	}
+	if s.startTime != nil {
+		s.c.set("startTime", *s.startTime)
+	}
+	if s.endTime != nil {
+		s.c.set("endTime", *s.endTime)
+	}
+	if s.limit != nil {
+		s.c.set("limit", *s.limit)
+	}
+	if s.recvWindow != nil {
+		s.c.set("recvWindow", *s.recvWindow)
+	}
+	if err := s.c.invoke(ctx); err != nil {
+		return nil, err
+	}
+	var resp []*ModifyOrderResponse
+	return resp, json.Unmarshal(s.c.rawBody(), &resp)
+}
+
+// UserTrades Get trades for a specific account and symbol.
+type UserTrades struct {
+	c          *Client
+	symbol     string
+	orderId    *int64
+	startTime  *int64
+	endTime    *int64
+	fromId     *int64
+	limit      *int64
+	recvWindow *int64
+}
+
+type UserTradesResponse struct {
+	Buyer           bool            `json:"buyer"`
+	Commission      decimal.Decimal `json:"commission"`
+	CommissionAsset string          `json:"commissionAsset"`
+	Id              int             `json:"id"`
+	Maker           bool            `json:"maker"`
+	OrderId         int             `json:"orderId"`
+	Price           decimal.Decimal `json:"price"`
+	Qty             decimal.Decimal `json:"qty"`
+	QuoteQty        decimal.Decimal `json:"quoteQty"`
+	RealizedPnl     decimal.Decimal `json:"realizedPnl"`
+	Side            string          `json:"side"`
+	PositionSide    string          `json:"positionSide"`
+	Symbol          string          `json:"symbol"`
+	Time            int64           `json:"time"`
+}
+
+func (s *UserTrades) Symbol(symbol string) *UserTrades {
+	s.symbol = symbol
+	return s
+}
+func (s *UserTrades) OrderId(orderId int64) *UserTrades {
+	s.orderId = &orderId
+	return s
+}
+func (s *UserTrades) StartTime(startTime int64) *UserTrades {
+	s.startTime = &startTime
+	return s
+}
+func (s *UserTrades) EndTime(endTime int64) *UserTrades {
+	s.endTime = &endTime
+	return s
+}
+func (s *UserTrades) FromId(fromId int64) *UserTrades {
+	s.fromId = &fromId
+	return s
+}
+
+// Limit Default 50; max 100
+func (s *UserTrades) Limit(limit int64) *UserTrades {
+	s.limit = &limit
+	return s
+}
+func (s *UserTrades) RecvWindow(recvWindow int64) *UserTrades {
+	s.recvWindow = &recvWindow
+	return s
+}
+
+func (s *UserTrades) Do(ctx context.Context) ([]*UserTradesResponse, error) {
+	s.c.set("symbol", s.symbol)
+	if s.orderId != nil {
+		s.c.set("orderId", *s.orderId)
+	}
+	if s.startTime != nil {
+		s.c.set("startTime", *s.startTime)
+	}
+	if s.endTime != nil {
+		s.c.set("endTime", *s.endTime)
+	}
+	if s.fromId != nil {
+		s.c.set("fromId", *s.fromId)
+	}
+	if s.limit != nil {
+		s.c.set("limit", *s.limit)
+	}
+	if s.recvWindow != nil {
+		s.c.set("recvWindow", *s.recvWindow)
+	}
+	if err := s.c.invoke(ctx); err != nil {
+		return nil, err
+	}
+	var resp []*UserTradesResponse
+	return resp, json.Unmarshal(s.c.rawBody(), &resp)
+}
+
+// ChangeMarginType Change symbol level margin type
+type ChangeMarginType struct {
+	c          *Client
+	symbol     string
+	marginType types.MarginType
+	recvWindow *int64
+}
+type ChangeMarginTypeResponse struct {
+	Code int    `json:"code"`
+	Msg  string `json:"msg"`
+}
+
+func (s *ChangeMarginType) Symbol(symbol string) *ChangeMarginType {
+	s.symbol = symbol
+	return s
+}
+func (s *ChangeMarginType) MarginType(marginType types.MarginType) *ChangeMarginType {
+	s.marginType = marginType
+	return s
+}
+func (s *ChangeMarginType) RecvWindow(recvWindow int64) *ChangeMarginType {
+	s.recvWindow = &recvWindow
+	return s
+}
+func (s *ChangeMarginType) Do(ctx context.Context) (*ChangeMarginTypeResponse, error) {
+	s.c.set("symbol", s.symbol)
+	s.c.set("marginType", s.marginType)
+	if s.recvWindow != nil {
+		s.c.set("recvWindow", *s.recvWindow)
+	}
+	if err := s.c.invoke(ctx); err != nil {
+		return nil, err
+	}
+	var resp *ChangeMarginTypeResponse
+	return resp, json.Unmarshal(s.c.rawBody(), &resp)
+}
+
+// ChangePositionSide Change user's position mode (Hedge Mode or One-way Mode ) on EVERY symbol
+type ChangePositionSide struct {
+	c                *Client
+	dualSidePosition string
+	recvWindow       *int64
+}
+
+// DualSidePosition "true": Hedge Mode; "false": One-way Mode
+func (s *ChangePositionSide) DualSidePosition(dualSidePosition string) *ChangePositionSide {
+	s.dualSidePosition = dualSidePosition
+	return s
+}
+func (s *ChangePositionSide) RecvWindow(recvWindow int64) *ChangePositionSide {
+	s.recvWindow = &recvWindow
+	return s
+}
+func (s *ChangePositionSide) Do(ctx context.Context) (*ChangeMarginTypeResponse, error) {
+	s.c.set("dualSidePosition", s.dualSidePosition)
+	if s.recvWindow != nil {
+		s.c.set("recvWindow", *s.recvWindow)
+	}
+	if err := s.c.invoke(ctx); err != nil {
+		return nil, err
+	}
+	var resp *ChangeMarginTypeResponse
+	return resp, json.Unmarshal(s.c.rawBody(), &resp)
+}
+
+// ChangeLeverage Change user's initial leverage of specific symbol market.
+type ChangeLeverage struct {
+	c          *Client
+	symbol     string
+	leverage   int
+	recvWindow *int64
+}
+type ChangeLeverageResponse struct {
+	Leverage         int             `json:"leverage"`
+	MaxNotionalValue decimal.Decimal `json:"maxNotionalValue"`
+	Symbol           string          `json:"symbol"`
+}
+
+func (s *ChangeLeverage) Symbol(symbol string) *ChangeLeverage {
+	s.symbol = symbol
+	return s
+}
+
+// Leverage target initial leverage: int from 1 to 125
+func (s *ChangeLeverage) Leverage(leverage int) *ChangeLeverage {
+	s.leverage = leverage
+	return s
+}
+func (s *ChangeLeverage) RecvWindow(recvWindow int64) *ChangeLeverage {
+	s.recvWindow = &recvWindow
+	return s
+}
+func (s *ChangeLeverage) Do(ctx context.Context) (*ChangeLeverageResponse, error) {
+	s.c.set("symbol", s.symbol)
+	s.c.set("leverage", s.leverage)
+	if s.recvWindow != nil {
+		s.c.set("recvWindow", *s.recvWindow)
+	}
+	if err := s.c.invoke(ctx); err != nil {
+		return nil, err
+	}
+	var resp *ChangeLeverageResponse
+	return resp, json.Unmarshal(s.c.rawBody(), &resp)
+}
+
+// ChangeMultiAssetsMargin Change user's Multi-Assets mode (Multi-Assets Mode or Single-Asset Mode) on Every symbol
+type ChangeMultiAssetsMargin struct {
+	c                 *Client
+	multiAssetsMargin string
+	recvWindow        *int64
+}
+
+// MultiAssetsMargin "true": Multi-Assets Mode; "false": Single-Asset Mode
+func (s *ChangeMultiAssetsMargin) MultiAssetsMargin(multiAssetsMargin string) *ChangeMultiAssetsMargin {
+	s.multiAssetsMargin = multiAssetsMargin
+	return s
+}
+func (s *ChangeMultiAssetsMargin) RecvWindow(recvWindow int64) *ChangeMultiAssetsMargin {
+	s.recvWindow = &recvWindow
+	return s
+}
+func (s *ChangeMultiAssetsMargin) Do(ctx context.Context) (*ChangeMarginTypeResponse, error) {
+	s.c.set("multiAssetsMargin", s.multiAssetsMargin)
+	if s.recvWindow != nil {
+		s.c.set("recvWindow", *s.recvWindow)
+	}
+	if err := s.c.invoke(ctx); err != nil {
+		return nil, err
+	}
+	var resp *ChangeMarginTypeResponse
 	return resp, json.Unmarshal(s.c.rawBody(), &resp)
 }
