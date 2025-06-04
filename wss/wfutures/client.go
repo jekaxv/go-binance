@@ -41,3 +41,33 @@ func (c *Client) NewTickerBook() *TickerBook {
 	c.C.SetReq("ticker.book")
 	return &TickerBook{c: c}
 }
+
+// NewCreateOrder New Order(TRADE)
+func (c *Client) NewCreateOrder() *CreateOrder {
+	c.C.SetReq("order.place")
+	return &CreateOrder{c: c}
+}
+
+// NewModifyOrder Modify Order (TRADE)
+func (c *Client) NewModifyOrder() *ModifyOrder {
+	c.C.SetReq("order.modify")
+	return &ModifyOrder{c: c}
+}
+
+// NewCancelOrder Cancel Order (TRADE)
+func (c *Client) NewCancelOrder() *CancelOrder {
+	c.C.SetReq("order.cancel")
+	return &CancelOrder{c: c}
+}
+
+// NewQueryOrder Query Order (USER_DATA)
+func (c *Client) NewQueryOrder() *QueryOrder {
+	c.C.SetReq("order.status")
+	return &QueryOrder{c: c}
+}
+
+// NewPositionInfo Position Information V2 (USER_DATA)
+func (c *Client) NewPositionInfo() *PositionInfo {
+	c.C.SetReq("v2/account.position")
+	return &PositionInfo{c: c}
+}

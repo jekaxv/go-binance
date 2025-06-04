@@ -57,7 +57,8 @@ func (s *Depth) Do(ctx context.Context) (*DepthResponse, error) {
 
 // TickerPrice Latest price for a symbol or symbols.
 type TickerPrice struct {
-	c *Client
+	c      *Client
+	symbol *string
 }
 
 type TickerPriceResult struct {
@@ -68,11 +69,12 @@ type TickerPriceResult struct {
 
 type TickerPriceResponse struct {
 	wss.ApiResponse
-	Result *TickerPriceResult `json:"result"`
+	Result []*TickerPriceResult `json:"result"`
 }
 
 func (s *TickerPrice) Symbol(symbol string) *TickerPrice {
 	s.c.setParams("symbol", symbol)
+	s.symbol = &symbol
 	return s
 }
 
@@ -87,8 +89,21 @@ func (s *TickerPrice) Do(ctx context.Context) (*TickerPriceResponse, error) {
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		case message := <-onMessage:
-			var resp *TickerPriceResponse
-			return resp, json.Unmarshal(message, &resp)
+			resp := new(TickerPriceResponse)
+			if s.symbol == nil {
+				return resp, json.Unmarshal(message, &resp)
+			}
+			var apiResp wss.ApiResponse
+			if err := json.Unmarshal(message, &apiResp); err != nil {
+				return nil, err
+			}
+			resp.ApiResponse = apiResp
+			var single *TickerPriceResult
+			if err := json.Unmarshal(message, &single); err != nil {
+				return nil, err
+			}
+			resp.Result = append(resp.Result, single)
+			return resp, nil
 		case err := <-onError:
 			return nil, err
 		}
@@ -97,7 +112,8 @@ func (s *TickerPrice) Do(ctx context.Context) (*TickerPriceResponse, error) {
 
 // TickerBook Best price/qty on the order book for a symbol or symbols.
 type TickerBook struct {
-	c *Client
+	c      *Client
+	symbol *string
 }
 
 type TickerBookResult struct {
@@ -112,11 +128,12 @@ type TickerBookResult struct {
 
 type TickerBookResponse struct {
 	wss.ApiResponse
-	Result *TickerBookResult `json:"result"`
+	Result []*TickerBookResult `json:"result"`
 }
 
 func (s *TickerBook) Symbol(symbol string) *TickerBook {
 	s.c.setParams("symbol", symbol)
+	s.symbol = &symbol
 	return s
 }
 
@@ -131,8 +148,22 @@ func (s *TickerBook) Do(ctx context.Context) (*TickerBookResponse, error) {
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		case message := <-onMessage:
-			var resp *TickerBookResponse
-			return resp, json.Unmarshal(message, &resp)
+			resp := new(TickerBookResponse)
+			if s.symbol == nil {
+				return resp, json.Unmarshal(message, &resp)
+			}
+			var apiResp wss.ApiResponse
+			if err := json.Unmarshal(message, &apiResp); err != nil {
+				return nil, err
+			}
+			resp.ApiResponse = apiResp
+			var single *TickerBookResult
+			if err := json.Unmarshal(message, &single); err != nil {
+				return nil, err
+			}
+			resp.Result = append(resp.Result, single)
+			return resp, nil
+
 		case err := <-onError:
 			return nil, err
 		}

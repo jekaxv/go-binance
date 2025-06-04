@@ -131,9 +131,9 @@ const (
 type PositionSideEnum string
 
 const (
-	PositionSideBOTH  PositionSideEnum = "BOTH"
-	PositionSideLONG                   = "LONG"
-	PositionSideSHORT                  = "SHORT"
+	PositionSide_BOTH  PositionSideEnum = "BOTH"
+	PositionSide_LONG                   = "LONG"
+	PositionSide_SHORT                  = "SHORT"
 )
 
 type WorkingType string

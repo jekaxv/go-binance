@@ -1238,3 +1238,363 @@ func (s *ChangePositionMargin) Do(ctx context.Context) (*ChangePositionMarginRes
 	var resp *ChangePositionMarginResponse
 	return resp, json.Unmarshal(s.c.rawBody(), &resp)
 }
+
+// PositionRisk Get current position information.
+type PositionRisk struct {
+	c          *Client
+	symbol     *string
+	recvWindow *int64
+}
+
+type PositionRiskResponse struct {
+	Symbol                 string          `json:"symbol"`
+	PositionSide           string          `json:"positionSide"`
+	PositionAmt            decimal.Decimal `json:"positionAmt"`
+	EntryPrice             decimal.Decimal `json:"entryPrice"`
+	BreakEvenPrice         decimal.Decimal `json:"breakEvenPrice"`
+	MarkPrice              decimal.Decimal `json:"markPrice"`
+	UnRealizedProfit       decimal.Decimal `json:"unRealizedProfit"`
+	LiquidationPrice       decimal.Decimal `json:"liquidationPrice"`
+	IsolatedMargin         decimal.Decimal `json:"isolatedMargin"`
+	Notional               decimal.Decimal `json:"notional"`
+	MarginAsset            string          `json:"marginAsset"`
+	IsolatedWallet         decimal.Decimal `json:"isolatedWallet"`
+	InitialMargin          decimal.Decimal `json:"initialMargin"`
+	MaintMargin            decimal.Decimal `json:"maintMargin"`
+	PositionInitialMargin  decimal.Decimal `json:"positionInitialMargin"`
+	OpenOrderInitialMargin decimal.Decimal `json:"openOrderInitialMargin"`
+	Adl                    int             `json:"adl"`
+	BidNotional            string          `json:"bidNotional"`
+	AskNotional            string          `json:"askNotional"`
+	UpdateTime             int64           `json:"updateTime"`
+}
+
+func (s *PositionRisk) Symbol(symbol string) *PositionRisk {
+	s.symbol = &symbol
+	return s
+}
+func (s *PositionRisk) RecvWindow(recvWindow int64) *PositionRisk {
+	s.recvWindow = &recvWindow
+	return s
+}
+func (s *PositionRisk) Do(ctx context.Context) ([]*PositionRiskResponse, error) {
+	if s.symbol != nil {
+		s.c.set("symbol", *s.symbol)
+	}
+	if s.recvWindow != nil {
+		s.c.set("recvWindow", *s.recvWindow)
+	}
+	if err := s.c.invoke(ctx); err != nil {
+		return nil, err
+	}
+	var resp []*PositionRiskResponse
+	return resp, json.Unmarshal(s.c.rawBody(), &resp)
+}
+
+// AdlQuantile Position ADL Quantile Estimation
+type AdlQuantile struct {
+	c          *Client
+	symbol     *string
+	recvWindow *int64
+}
+
+type AdlQuantileResponse struct {
+	Symbol      string `json:"symbol"`
+	AdlQuantile struct {
+		LONG  int `json:"LONG"`
+		SHORT int `json:"SHORT"`
+		HEDGE int `json:"HEDGE"`
+		BOTH  int `json:"BOTH"`
+	} `json:"adlQuantile"`
+}
+
+func (s *AdlQuantile) Symbol(symbol string) *AdlQuantile {
+	s.symbol = &symbol
+	return s
+}
+func (s *AdlQuantile) RecvWindow(recvWindow int64) *AdlQuantile {
+	s.recvWindow = &recvWindow
+	return s
+}
+func (s *AdlQuantile) Do(ctx context.Context) ([]*AdlQuantileResponse, error) {
+	if s.symbol != nil {
+		s.c.set("symbol", *s.symbol)
+	}
+	if s.recvWindow != nil {
+		s.c.set("recvWindow", *s.recvWindow)
+	}
+	if err := s.c.invoke(ctx); err != nil {
+		return nil, err
+	}
+	var resp []*AdlQuantileResponse
+	return resp, json.Unmarshal(s.c.rawBody(), &resp)
+}
+
+// PositionMarginHistory Get Position Margin Change History
+type PositionMarginHistory struct {
+	c          *Client
+	symbol     string
+	type_      *int
+	startTime  *int64
+	endTime    *int64
+	limit      *int64
+	recvWindow *int64
+}
+
+type PositionMarginHistoryResponse struct {
+	Symbol       string          `json:"symbol"`
+	Type         int             `json:"type"`
+	DeltaType    string          `json:"deltaType"`
+	Amount       decimal.Decimal `json:"amount"`
+	Asset        string          `json:"asset"`
+	Time         int64           `json:"time"`
+	PositionSide string          `json:"positionSide"`
+}
+
+func (s *PositionMarginHistory) Symbol(symbol string) *PositionMarginHistory {
+	s.symbol = symbol
+	return s
+}
+func (s *PositionMarginHistory) Type(type_ int) *PositionMarginHistory {
+	s.type_ = &type_
+	return s
+}
+func (s *PositionMarginHistory) StartTime(startTime int64) *PositionMarginHistory {
+	s.startTime = &startTime
+	return s
+}
+func (s *PositionMarginHistory) EndTime(endTime int64) *PositionMarginHistory {
+	s.endTime = &endTime
+	return s
+}
+
+// Limit Default 500
+func (s *PositionMarginHistory) Limit(limit int64) *PositionMarginHistory {
+	s.limit = &limit
+	return s
+}
+func (s *PositionMarginHistory) RecvWindow(recvWindow int64) *PositionMarginHistory {
+	s.recvWindow = &recvWindow
+	return s
+}
+
+func (s *PositionMarginHistory) Do(ctx context.Context) ([]*PositionMarginHistoryResponse, error) {
+	s.c.set("symbol", s.symbol)
+	if s.type_ != nil {
+		s.c.set("type", *s.type_)
+	}
+	if s.startTime != nil {
+		s.c.set("startTime", *s.startTime)
+	}
+	if s.endTime != nil {
+		s.c.set("endTime", *s.endTime)
+	}
+	if s.limit != nil {
+		s.c.set("limit", *s.limit)
+	}
+	if s.recvWindow != nil {
+		s.c.set("recvWindow", *s.recvWindow)
+	}
+	if err := s.c.invoke(ctx); err != nil {
+		return nil, err
+	}
+	var resp []*PositionMarginHistoryResponse
+	return resp, json.Unmarshal(s.c.rawBody(), &resp)
+}
+
+// CreateTestOrder Testing order request, this order will not be submitted to matching engine
+type CreateTestOrder struct {
+	c                       *Client
+	symbol                  string
+	side                    types.OrderSideEnum
+	positionSide            *types.PositionSideEnum
+	orderType               types.OrderTypeEnum
+	timeInForce             *types.TimeInForceEnum
+	quantity                *string
+	reduceOnly              *string
+	price                   *string
+	newClientOrderId        *string
+	stopPrice               *string
+	closePosition           *string // true, false；Close-All，used with STOP_MARKET or TAKE_PROFIT_MARKET.
+	activationPrice         *float64
+	callbackRate            *float64
+	workingType             *types.WorkingType
+	priceProtect            *string // "TRUE" or "FALSE", default "FALSE". Used with STOP/STOP_MARKET or TAKE_PROFIT/TAKE_PROFIT_MARKET orders.
+	newOrderRespType        *types.OrderResponseTypeEnum
+	priceMatch              *string
+	selfTradePreventionMode *types.STPModeEnum
+	goodTillDate            *int64
+	recvWindow              *int64
+}
+
+func (s *CreateTestOrder) Symbol(symbol string) *CreateTestOrder {
+	s.symbol = symbol
+	return s
+}
+
+// Side BUY or SELL
+func (s *CreateTestOrder) Side(side types.OrderSideEnum) *CreateTestOrder {
+	s.side = side
+	return s
+}
+
+func (s *CreateTestOrder) PositionSide(positionSide types.PositionSideEnum) *CreateTestOrder {
+	s.positionSide = &positionSide
+	return s
+}
+
+func (s *CreateTestOrder) Type(orderType types.OrderTypeEnum) *CreateTestOrder {
+	s.orderType = orderType
+	return s
+}
+
+func (s *CreateTestOrder) TimeInForce(timeInForce types.TimeInForceEnum) *CreateTestOrder {
+	s.timeInForce = &timeInForce
+	return s
+}
+
+func (s *CreateTestOrder) Quantity(quantity string) *CreateTestOrder {
+	s.quantity = &quantity
+	return s
+}
+
+// ReduceOnly "true" or "false". default "false". Cannot be sent in Hedge Mode; cannot be sent with closePosition=true
+func (s *CreateTestOrder) ReduceOnly(reduceOnly string) *CreateTestOrder {
+	s.reduceOnly = &reduceOnly
+	return s
+}
+func (s *CreateTestOrder) Price(price string) *CreateTestOrder {
+	s.price = &price
+	return s
+}
+
+// NewClientOrderId A unique id among open orders. Automatically generated if not sent.
+// Orders with the same newClientOrderID can be accepted only when the previous one is filled, otherwise the order will be rejected.
+func (s *CreateTestOrder) NewClientOrderId(newClientOrderId string) *CreateTestOrder {
+	s.newClientOrderId = &newClientOrderId
+	return s
+}
+
+// StopPrice Used with STOP_LOSS, STOP_LOSS_LIMIT, TAKE_PROFIT, and TAKE_PROFIT_LIMIT orders.
+func (s *CreateTestOrder) StopPrice(stopPrice string) *CreateTestOrder {
+	s.stopPrice = &stopPrice
+	return s
+}
+
+// ClosePosition true, false；Close-All，used with STOP_MARKET or TAKE_PROFIT_MARKET.
+func (s *CreateTestOrder) ClosePosition(closePosition string) *CreateTestOrder {
+	s.closePosition = &closePosition
+	return s
+}
+
+func (s *CreateTestOrder) ActivationPrice(activationPrice float64) *CreateTestOrder {
+	s.activationPrice = &activationPrice
+	return s
+}
+func (s *CreateTestOrder) CallbackRate(callbackRate float64) *CreateTestOrder {
+	s.callbackRate = &callbackRate
+	return s
+}
+
+// NewOrderRespType set the response JSON.
+// ACK, RESULT, or FULL; MARKET and LIMIT order types default to FULL, all other orders default to ACK.
+func (s *CreateTestOrder) NewOrderRespType(newOrderRespType types.OrderResponseTypeEnum) *CreateTestOrder {
+	s.newOrderRespType = &newOrderRespType
+	return s
+}
+func (s *CreateTestOrder) WorkingType(workingType types.WorkingType) *CreateTestOrder {
+	s.workingType = &workingType
+	return s
+}
+
+// PriceProtect "TRUE" or "FALSE", default "FALSE". Used with STOP/STOP_MARKET or TAKE_PROFIT/TAKE_PROFIT_MARKET orders.
+func (s *CreateTestOrder) PriceProtect(priceProtect string) *CreateTestOrder {
+	s.priceProtect = &priceProtect
+	return s
+}
+func (s *CreateTestOrder) PriceMatch(priceMatch string) *CreateTestOrder {
+	s.priceMatch = &priceMatch
+	return s
+}
+
+// SelfTradePreventionMode The allowed enums is dependent on what is configured on the symbol. The possible supported values are: STP Modes.
+func (s *CreateTestOrder) SelfTradePreventionMode(selfTradePreventionMode types.STPModeEnum) *CreateTestOrder {
+	s.selfTradePreventionMode = &selfTradePreventionMode
+	return s
+}
+
+func (s *CreateTestOrder) GoodTillDate(goodTillDate int64) *CreateTestOrder {
+	s.goodTillDate = &goodTillDate
+	return s
+}
+
+// RecvWindow The value cannot be greater than 60000
+func (s *CreateTestOrder) RecvWindow(recvWindow int64) *CreateTestOrder {
+	s.recvWindow = &recvWindow
+	return s
+}
+
+func (s *CreateTestOrder) Do(ctx context.Context) (*OrderResponse, error) {
+	s.c.set("symbol", s.symbol)
+	s.c.set("side", s.side)
+	if s.positionSide != nil {
+		s.c.set("positionSide", *s.positionSide)
+	}
+	s.c.set("type", s.orderType)
+	if s.timeInForce != nil {
+		s.c.set("timeInForce", *s.timeInForce)
+	}
+	if s.quantity != nil {
+		s.c.set("quantity", *s.quantity)
+	}
+	if s.reduceOnly != nil {
+		s.c.set("reduceOnly", *s.reduceOnly)
+	}
+	if s.price != nil {
+		s.c.set("price", *s.price)
+	}
+	if s.newClientOrderId != nil {
+		s.c.set("newClientOrderId", *s.newClientOrderId)
+	}
+	if s.stopPrice != nil {
+		s.c.set("stopPrice", *s.stopPrice)
+	}
+	if s.closePosition != nil {
+		s.c.set("closePosition", *s.closePosition)
+	}
+	if s.stopPrice != nil {
+		s.c.set("stopPrice", *s.stopPrice)
+	}
+	if s.activationPrice != nil {
+		s.c.set("activationPrice", *s.activationPrice)
+	}
+	if s.callbackRate != nil {
+		s.c.set("callbackRate", *s.callbackRate)
+	}
+	if s.workingType != nil {
+		s.c.set("workingType", *s.workingType)
+	}
+	if s.priceProtect != nil {
+		s.c.set("priceProtect", *s.priceProtect)
+	}
+	if s.newOrderRespType != nil {
+		s.c.set("newOrderRespType", *s.newOrderRespType)
+	}
+	if s.priceMatch != nil {
+		s.c.set("priceMatch", *s.priceMatch)
+	}
+	if s.selfTradePreventionMode != nil {
+		s.c.set("selfTradePreventionMode", *s.selfTradePreventionMode)
+	}
+	if s.goodTillDate != nil {
+		s.c.set("goodTillDate", *s.goodTillDate)
+	}
+	if s.recvWindow != nil {
+		s.c.set("recvWindow", *s.recvWindow)
+	}
+	if err := s.c.invoke(ctx); err != nil {
+		return nil, err
+	}
+	var resp *OrderResponse
+	return resp, json.Unmarshal(s.c.rawBody(), &resp)
+}

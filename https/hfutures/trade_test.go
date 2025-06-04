@@ -776,3 +776,187 @@ func (s *apiTradeTestSuite) TestNewChangePositionMargin() {
 	r.Equal(resp.Code, testResp.Code, "code")
 	r.Equal(resp.Msg, testResp.Msg, "msg")
 }
+func (s *apiTradeTestSuite) TestNewPositionRisk() {
+	msg := []byte(`[
+	  {
+			"symbol": "ADAUSDT",
+			"positionSide": "BOTH",               
+			"positionAmt": "30",
+			"entryPrice": "0.385",
+			"breakEvenPrice": "0.385077",
+			"markPrice": "0.41047590",
+			"unRealizedProfit": "0.76427700",      
+			"liquidationPrice": "0",
+			"isolatedMargin": "0",
+			"notional": "12.31427700",
+			"marginAsset": "USDT",
+			"isolatedWallet": "0",
+			"initialMargin": "0.61571385",         
+			"maintMargin": "0.08004280",          
+			"positionInitialMargin": "0.61571385",
+			"openOrderInitialMargin": "0",         
+			"adl": 2,
+			"bidNotional": "0",                   
+			"askNotional": "0",                   
+			"updateTime": 1720736417660
+	  }
+	]`)
+	server := s.setup(msg)
+	defer server.Close()
+	resp, err := s.client.NewPositionRisk().Symbol("BTCUSDT").
+		Do(context.Background())
+	r := s.r()
+	r.Empty(err)
+	var testResp []*PositionRiskResponse
+	r.Empty(json.Unmarshal(msg, &testResp))
+	for i := range resp {
+		s.assertPositionRiskResponse(resp[i], testResp[i])
+	}
+}
+func (s *baseTestSuite) assertPositionRiskResponse(r1, r2 *PositionRiskResponse) {
+	r := s.r()
+	r.Equal(r1.Symbol, r2.Symbol, "Symbol")
+	r.Equal(r1.PositionSide, r2.PositionSide, "PositionSide")
+	r.Equal(r1.PositionAmt, r2.PositionAmt, "PositionAmt")
+	r.Equal(r1.EntryPrice, r2.EntryPrice, "EntryPrice")
+	r.Equal(r1.BreakEvenPrice, r2.BreakEvenPrice, "BreakEvenPrice")
+	r.Equal(r1.MarkPrice, r2.MarkPrice, "MarkPrice")
+	r.Equal(r1.UnRealizedProfit, r2.UnRealizedProfit, "UnRealizedProfit")
+	r.Equal(r1.LiquidationPrice, r2.LiquidationPrice, "LiquidationPrice")
+	r.Equal(r1.IsolatedMargin, r2.IsolatedMargin, "IsolatedMargin")
+	r.Equal(r1.Notional, r2.Notional, "Notional")
+	r.Equal(r1.MarginAsset, r2.MarginAsset, "MarginAsset")
+	r.Equal(r1.IsolatedWallet, r2.IsolatedWallet, "IsolatedWallet")
+	r.Equal(r1.InitialMargin, r2.InitialMargin, "InitialMargin")
+	r.Equal(r1.MaintMargin, r2.MaintMargin, "MaintMargin")
+	r.Equal(r1.PositionInitialMargin, r2.PositionInitialMargin, "PositionInitialMargin")
+	r.Equal(r1.OpenOrderInitialMargin, r2.OpenOrderInitialMargin, "OpenOrderInitialMargin")
+	r.Equal(r1.Adl, r2.Adl, "Adl")
+	r.Equal(r1.BidNotional, r2.BidNotional, "BidNotional")
+	r.Equal(r1.AskNotional, r2.AskNotional, "AskNotional")
+	r.Equal(r1.UpdateTime, r2.UpdateTime, "UpdateTime")
+}
+
+func (s *apiTradeTestSuite) TestNewAdlQuantile() {
+	msg := []byte(`[
+	  {
+		"symbol": "ETHUSDT",
+		"adlQuantile": {
+		  "LONG": 3,
+		  "SHORT": 3,
+		  "HEDGE": 0
+		}
+	  },
+	  {
+		"symbol": "BTCUSDT",
+		"adlQuantile": {
+		  "LONG": 1,
+		  "SHORT": 2,
+		  "BOTH": 0
+		}
+	  }
+	]`)
+	server := s.setup(msg)
+	defer server.Close()
+	resp, err := s.client.NewAdlQuantile().Symbol("BTCUSDT").
+		Do(context.Background())
+	r := s.r()
+	r.Empty(err)
+	var testResp []*AdlQuantileResponse
+	r.Empty(json.Unmarshal(msg, &testResp))
+	for i := range resp {
+		r.Equal(resp[i].Symbol, testResp[i].Symbol, "Symbol")
+		r.Equal(resp[i].AdlQuantile.HEDGE, testResp[i].AdlQuantile.HEDGE, "AdlQuantile.HEDGE")
+		r.Equal(resp[i].AdlQuantile.LONG, testResp[i].AdlQuantile.LONG, "AdlQuantile.LONG")
+		r.Equal(resp[i].AdlQuantile.SHORT, testResp[i].AdlQuantile.SHORT, "AdlQuantile.SHORT")
+		r.Equal(resp[i].AdlQuantile.BOTH, testResp[i].AdlQuantile.BOTH, "AdlQuantile.BOTH")
+	}
+}
+
+func (s *apiTradeTestSuite) TestNewPositionMarginHistory() {
+	msg := []byte(`[
+		{
+			"symbol": "BTCUSDT",
+			"type": 1,
+			"deltaType": "USER_ADJUST",
+			"amount": "23.36332311",
+			"asset": "USDT",
+			"time": 1578047897183,
+			"positionSide": "BOTH"
+		},
+		{
+			"symbol": "BTCUSDT",
+			"type": 1, 
+			"deltaType": "USER_ADJUST",
+			"amount": "100",
+			"asset": "USDT",
+			"time": 1578047900425,
+			"positionSide": "LONG" 
+		}
+	]`)
+	server := s.setup(msg)
+	defer server.Close()
+	resp, err := s.client.NewPositionMarginHistory().Symbol("BTCUSDT").
+		Do(context.Background())
+	r := s.r()
+	r.Empty(err)
+	var testResp []*PositionMarginHistoryResponse
+	r.Empty(json.Unmarshal(msg, &testResp))
+	for i := range resp {
+		s.assertPositionMarginHistoryResponse(resp[i], testResp[i])
+	}
+}
+
+func (s *baseTestSuite) assertPositionMarginHistoryResponse(r1, r2 *PositionMarginHistoryResponse) {
+	r := s.r()
+	r.Equal(r1.Symbol, r2.Symbol, "Symbol")
+	r.Equal(r1.Type, r2.Type, "Type")
+	r.Equal(r1.DeltaType, r2.DeltaType, "DeltaType")
+	r.Equal(r1.Amount, r2.Amount, "Amount")
+	r.Equal(r1.Asset, r2.Asset, "Asset")
+	r.Equal(r1.Time, r2.Time, "Time")
+	r.Equal(r1.PositionSide, r2.PositionSide, "PositionSide")
+}
+
+func (s *apiTradeTestSuite) TestCreatTestOrder() {
+	msg := []byte(`{
+	  "clientOrderId": "testOrder",
+	  "cumQty": "0",
+	  "cumQuote": "0",
+	  "executedQty": "0",
+	  "orderId": 22542179,
+	  "avgPrice": "0.00000",
+	  "origQty": "10",
+	  "price": "0",
+	  "reduceOnly": false,
+	  "side": "BUY",
+	  "positionSide": "SHORT",
+	  "status": "NEW",
+	  "stopPrice": "9300",
+	  "closePosition": false,
+	  "symbol": "BTCUSDT",
+	  "timeInForce": "GTD",
+	  "type": "TRAILING_STOP_MARKET",
+	  "origType": "TRAILING_STOP_MARKET",
+	  "activatePrice": "9020",
+	  "priceRate": "0.3",
+	  "updateTime": 1566818724722,
+	  "workingType": "CONTRACT_PRICE",
+	  "priceProtect": false,
+	  "priceMatch": "NONE",
+	  "selfTradePreventionMode": "NONE",
+	  "goodTillDate": 1693207680000
+	}`)
+	server := s.setup(msg)
+	defer server.Close()
+	resp, err := s.client.NewCreateTestOrder().Symbol("BTCUSDT").
+		Side(types.OrderSideBUY).
+		Type(types.OrderTypeMARKET).
+		Quantity("10").
+		Do(context.Background())
+	r := s.r()
+	r.Empty(err)
+	var testResp *OrderResponse
+	r.Empty(json.Unmarshal(msg, &testResp))
+	s.assertCreateOrderResponse(resp, testResp)
+}

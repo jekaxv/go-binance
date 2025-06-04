@@ -321,3 +321,33 @@ func (c *Client) NewChangePositionMargin() *ChangePositionMargin {
 	c.C.SetReq("/fapi/v1/positionMargin", http.MethodPost, https.AuthSigned)
 	return &ChangePositionMargin{c: c}
 }
+
+// NewPositionRisk Position Information V3 (USER_DATA)
+func (c *Client) NewPositionRisk() *PositionRisk {
+	c.C.SetReq("/fapi/v3/positionRisk", http.MethodGet, https.AuthSigned)
+	return &PositionRisk{c: c}
+}
+
+// NewAdlQuantile Position ADL Quantile Estimation(USER_DATA)
+func (c *Client) NewAdlQuantile() *AdlQuantile {
+	c.C.SetReq("/fapi/v1/adlQuantile", http.MethodGet, https.AuthSigned)
+	return &AdlQuantile{c: c}
+}
+
+// NewPositionMarginHistory Get Position Margin Change History (TRADE)
+func (c *Client) NewPositionMarginHistory() *PositionMarginHistory {
+	c.C.SetReq("/fapi/v1/positionMargin/history", http.MethodGet, https.AuthSigned)
+	return &PositionMarginHistory{c: c}
+}
+
+// NewCreateTestOrder Test Order(TRADE)
+func (c *Client) NewCreateTestOrder() *CreateTestOrder {
+	c.C.SetReq("/fapi/v1/order/test", http.MethodPost, https.AuthSigned)
+	return &CreateTestOrder{c: c}
+}
+
+// NewConvertExchangeInfo List All Convert Pairs
+func (c *Client) NewConvertExchangeInfo() *ConvertExchangeInfo {
+	c.C.SetReq("/fapi/v1/convert/exchangeInfo", http.MethodGet, https.AuthSigned)
+	return &ConvertExchangeInfo{c: c}
+}
