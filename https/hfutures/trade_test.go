@@ -755,3 +755,24 @@ func (s *apiTradeTestSuite) TestNewChangeMultiAssetsMargin() {
 	r.Equal(resp.Code, testResp.Code, "code")
 	r.Equal(resp.Msg, testResp.Msg, "msg")
 }
+
+func (s *apiTradeTestSuite) TestNewChangePositionMargin() {
+	msg := []byte(`{
+		"amount": 100.0,
+		"code": 200,
+		"msg": "Successfully modify position margin.",
+		"type": 1
+	}`)
+	server := s.setup(msg)
+	defer server.Close()
+	resp, err := s.client.NewChangePositionMargin().Symbol("BTCUSDT").
+		Amount("100").
+		Type(1).
+		Do(context.Background())
+	r := s.r()
+	r.Empty(err)
+	var testResp *ChangeMarginTypeResponse
+	r.Empty(json.Unmarshal(msg, &testResp))
+	r.Equal(resp.Code, testResp.Code, "code")
+	r.Equal(resp.Msg, testResp.Msg, "msg")
+}

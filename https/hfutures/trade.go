@@ -1183,3 +1183,58 @@ func (s *ChangeMultiAssetsMargin) Do(ctx context.Context) (*ChangeMarginTypeResp
 	var resp *ChangeMarginTypeResponse
 	return resp, json.Unmarshal(s.c.rawBody(), &resp)
 }
+
+// ChangePositionMargin Modify Isolated Position Margin
+type ChangePositionMargin struct {
+	c            *Client
+	symbol       string
+	positionSide *types.PositionSideEnum
+	amount       string
+	type_        int
+	recvWindow   *int64
+}
+type ChangePositionMarginResponse struct {
+	Amount float64 `json:"amount"`
+	Code   int     `json:"code"`
+	Msg    string  `json:"msg"`
+	Type   int     `json:"type"`
+}
+
+func (s *ChangePositionMargin) Symbol(symbol string) *ChangePositionMargin {
+	s.symbol = symbol
+	return s
+}
+func (s *ChangePositionMargin) PositionSide(positionSide types.PositionSideEnum) *ChangePositionMargin {
+	s.positionSide = &positionSide
+	return s
+}
+func (s *ChangePositionMargin) Amount(amount string) *ChangePositionMargin {
+	s.amount = amount
+	return s
+}
+
+// Type 1: Add position margin，2: Reduce position margin
+func (s *ChangePositionMargin) Type(type_ int) *ChangePositionMargin {
+	s.type_ = type_
+	return s
+}
+func (s *ChangePositionMargin) RecvWindow(recvWindow int64) *ChangePositionMargin {
+	s.recvWindow = &recvWindow
+	return s
+}
+func (s *ChangePositionMargin) Do(ctx context.Context) (*ChangePositionMarginResponse, error) {
+	s.c.set("symbol", s.symbol)
+	if s.positionSide != nil {
+		s.c.set("positionSide", *s.positionSide)
+	}
+	s.c.set("amount", s.amount)
+	s.c.set("type", s.type_)
+	if s.recvWindow != nil {
+		s.c.set("recvWindow", *s.recvWindow)
+	}
+	if err := s.c.invoke(ctx); err != nil {
+		return nil, err
+	}
+	var resp *ChangePositionMarginResponse
+	return resp, json.Unmarshal(s.c.rawBody(), &resp)
+}

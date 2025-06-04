@@ -312,6 +312,12 @@ func (c *Client) NewChangeLeverage() *ChangeLeverage {
 
 // NewChangeMultiAssetsMargin Change Multi-Assets Mode (TRADE)
 func (c *Client) NewChangeMultiAssetsMargin() *ChangeMultiAssetsMargin {
-	c.C.SetReq("/fapi/v1/leverage", http.MethodPost, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/multiAssetsMargin", http.MethodPost, https.AuthSigned)
 	return &ChangeMultiAssetsMargin{c: c}
+}
+
+// NewChangePositionMargin Modify Isolated Position Margin(TRADE)
+func (c *Client) NewChangePositionMargin() *ChangePositionMargin {
+	c.C.SetReq("/fapi/v1/positionMargin", http.MethodPost, https.AuthSigned)
+	return &ChangePositionMargin{c: c}
 }
