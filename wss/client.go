@@ -52,6 +52,10 @@ func (c *Client) close() error {
 	return nil
 }
 
+func (c *Client) Combined(combine bool) {
+	c.combined(combine)
+}
+
 func (c *Client) combined(combine bool) {
 	if combine {
 		c.Opt.Endpoint = c.Opt.Endpoint + "/stream?streams="
@@ -83,6 +87,10 @@ func (c *Client) keepAlive() {
 			}
 		}
 	}()
+}
+
+func (c *Client) WsServe(ctx context.Context) (<-chan []byte, <-chan error) {
+	return c.wsServe(ctx)
 }
 
 func (c *Client) wsServe(ctx context.Context) (<-chan []byte, <-chan error) {

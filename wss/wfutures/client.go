@@ -13,6 +13,22 @@ func (c *Client) setParams(key string, value any) {
 	c.C.SetParams(key, value)
 }
 
+func (c *Client) wsServe(ctx context.Context) (<-chan []byte, <-chan error) {
+	return c.C.WsServe(ctx)
+}
+
+func (c *Client) combined(combine bool) {
+	c.C.Combined(combine)
+}
+
+func (c *Client) getEndpoint() string {
+	return c.C.Opt.Endpoint
+}
+
+func (c *Client) setEndpoint(endpoint string) {
+	c.C.Opt.Endpoint = endpoint
+}
+
 func (c *Client) close() error {
 	return c.C.Close()
 }
@@ -22,6 +38,10 @@ func (c *Client) send() error {
 
 func (c *Client) wsApiServe(ctx context.Context) (<-chan []byte, <-chan error) {
 	return c.C.WsApiServe(ctx)
+}
+
+func (c *Client) NewWebsocketStreams() *WebsocketStreams {
+	return &WebsocketStreams{c: c}
 }
 
 // NewDepth Order Book

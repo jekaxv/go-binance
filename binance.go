@@ -42,6 +42,13 @@ func NewWsFuturesClient(opt ...wss.Options) *wfutures.Client {
 		},
 	}
 }
+func NewWsFutures(opt ...wss.Options) *wfutures.Client {
+	return &wfutures.Client{
+		C: &wss.Client{
+			Opt: wss.NewFuturesStreamOptions(opt...),
+		},
+	}
+}
 
 func PrettyPrint(i interface{}) string {
 	s, _ := json.MarshalIndent(i, "", "\t")

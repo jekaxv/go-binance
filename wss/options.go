@@ -11,6 +11,8 @@ const (
 
 	FuturesBaseURL        = "wss://ws-fapi.binance.com/ws-fapi/v1"
 	FuturesTestnetBaseURL = "wss://testnet.binancefuture.com/ws-fapi/v1"
+
+	FuturesStreamUrl = "wss://fstream.binance.com"
 )
 
 var WebsocketStreamsTimeout = time.Second * 60
@@ -37,6 +39,11 @@ func (o *Options) initFuturesApi() {
 		o.Endpoint = FuturesBaseURL
 	}
 }
+func (o *Options) initFutureStream() {
+	if o.Endpoint == "" {
+		o.Endpoint = FuturesStreamUrl
+	}
+}
 
 func NewOptions(opt ...Options) *Options {
 	if len(opt) == 0 {
@@ -59,5 +66,13 @@ func NewFuturesOptions(opt ...Options) *Options {
 		opt = append(opt, Options{})
 	}
 	opt[0].initFuturesApi()
+	return &opt[0]
+}
+
+func NewFuturesStreamOptions(opt ...Options) *Options {
+	if len(opt) == 0 {
+		opt = append(opt, Options{})
+	}
+	opt[0].initFutureStream()
 	return &opt[0]
 }
