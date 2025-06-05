@@ -156,3 +156,30 @@ const (
 	MarginTypeISOLATED MarginType = "SOLATED"
 	MarginTypeICROSSED            = "CROSSED"
 )
+
+type IncomeType string
+
+const (
+	IncomeType_TRANSFER                    IncomeType = "TRANSFER"
+	IncomeType_WELCOME_BONUS                          = "WELCOME_BONUS"
+	IncomeType_REALIZED_PNL                           = "REALIZED_PNL"
+	IncomeType_FUNDING_FEE                            = "FUNDING_FEE"
+	IncomeType_COMMISSION                             = "COMMISSION"
+	IncomeType_INSURANCE_CLEAR                        = "INSURANCE_CLEAR"
+	IncomeType_REFERRAL_KICKBACK                      = "REFERRAL_KICKBACK"
+	IncomeType_COMMISSION_REBATE                      = "COMMISSION_REBATE"
+	IncomeType_API_REBATE                             = "API_REBATE"
+	IncomeType_CONTEST_REWARD                         = "CONTEST_REWARD"
+	IncomeType_CROSS_COLLATERAL_TRANSFER              = "CROSS_COLLATERAL_TRANSFER"
+	IncomeType_OPTIONS_PREMIUM_FEE                    = "OPTIONS_PREMIUM_FEE"
+	IncomeType_OPTIONS_SETTLE_PROFIT                  = "OPTIONS_SETTLE_PROFIT"
+	IncomeType_INTERNAL_TRANSFER                      = "INTERNAL_TRANSFER"
+	IncomeType_AUTO_EXCHANGE                          = "AUTO_EXCHANGE"
+	IncomeType_DELIVERED_SETTELMENT                   = "DELIVERED_SETTELMENT"
+	IncomeType_COIN_SWAP_DEPOSIT                      = "COIN_SWAP_DEPOSIT"
+	IncomeType_COIN_SWAP_WITHDRAW                     = "COIN_SWAP_WITHDRAW"
+	IncomeType_POSITION_LIMIT_INCREASE_FEE            = "POSITION_LIMIT_INCREASE_FEE"
+	IncomeType_STRATEGY_UMFUTURES_TRANSFER            = "STRATEGY_UMFUTURES_TRANSFER"
+	IncomeType_FEE_RETURN                             = "FEE_RETURN"
+	IncomeType_BFUSD_REWARD                           = "BFUSD_REWARD"
+)

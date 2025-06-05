@@ -44,30 +44,42 @@ func (c *Client) NewTickerBook() *TickerBook {
 
 // NewCreateOrder New Order(TRADE)
 func (c *Client) NewCreateOrder() *CreateOrder {
-	c.C.SetReq("order.place")
+	c.C.SetReq("order.place", wss.AuthSigned)
 	return &CreateOrder{c: c}
 }
 
 // NewModifyOrder Modify Order (TRADE)
 func (c *Client) NewModifyOrder() *ModifyOrder {
-	c.C.SetReq("order.modify")
+	c.C.SetReq("order.modify", wss.AuthSigned)
 	return &ModifyOrder{c: c}
 }
 
 // NewCancelOrder Cancel Order (TRADE)
 func (c *Client) NewCancelOrder() *CancelOrder {
-	c.C.SetReq("order.cancel")
+	c.C.SetReq("order.cancel", wss.AuthSigned)
 	return &CancelOrder{c: c}
 }
 
 // NewQueryOrder Query Order (USER_DATA)
 func (c *Client) NewQueryOrder() *QueryOrder {
-	c.C.SetReq("order.status")
+	c.C.SetReq("order.status", wss.AuthSigned)
 	return &QueryOrder{c: c}
 }
 
 // NewPositionInfo Position Information V2 (USER_DATA)
 func (c *Client) NewPositionInfo() *PositionInfo {
-	c.C.SetReq("v2/account.position")
+	c.C.SetReq("v2/account.position", wss.AuthSigned)
 	return &PositionInfo{c: c}
+}
+
+// NewAccountBalance Futures Account Balance V2(USER_DATA)
+func (c *Client) NewAccountBalance() *AccountBalance {
+	c.C.SetReq("v2/account.balance", wss.AuthSigned)
+	return &AccountBalance{c: c}
+}
+
+// NewAccountInfo Account Information V2(USER_DATA)
+func (c *Client) NewAccountInfo() *AccountInfo {
+	c.C.SetReq("v2/account.status", wss.AuthSigned)
+	return &AccountInfo{c: c}
 }
