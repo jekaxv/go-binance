@@ -18,6 +18,7 @@ type StartUserDataStreamResponse struct {
 }
 
 func (s *StartUserDataStream) Do(ctx context.Context) (*StartUserDataStreamResponse, error) {
+	s.c.combined(false)
 	onMessage, onError := s.c.wsApiServe(ctx)
 	if err := s.c.send(); err != nil {
 		return nil, err
@@ -47,6 +48,7 @@ func (s *PingUserDataStream) ListenKey(listenKey string) *PingUserDataStream {
 }
 
 func (s *PingUserDataStream) Do(ctx context.Context) (*ApiResponse, error) {
+	s.c.combined(false)
 	onMessage, onError := s.c.wsApiServe(ctx)
 	if err := s.c.send(); err != nil {
 		return nil, err
@@ -76,6 +78,7 @@ func (s *StopUserDataStream) ListenKey(listenKey string) *StopUserDataStream {
 }
 
 func (s *StopUserDataStream) Do(ctx context.Context) (*ApiResponse, error) {
+	s.c.combined(false)
 	onMessage, onError := s.c.wsApiServe(ctx)
 	if err := s.c.send(); err != nil {
 		return nil, err

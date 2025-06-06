@@ -1,0 +1,30 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"github.com/jekaxv/go-binance"
+	"github.com/jekaxv/go-binance/wss"
+	"time"
+)
+
+func main() {
+	ctx, cancelFunc := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancelFunc()
+	client := binance.NewWsClient(wss.Options{
+		ApiKey: "YourApiKey",
+	})
+	onMessage, onError := client.NewWebsocketStreams().SubscribeUserData("ListenKey").Do(context.Background())
+	for {
+		select {
+		case event := <-onMessage:
+			fmt.Printf("Received event: %+v\n", event)
+		case err := <-onError:
+			fmt.Printf("Error: %v\n", err)
+			return
+		case <-ctx.Done():
+			fmt.Printf("Timeout")
+			return
+		}
+	}
+}

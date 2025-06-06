@@ -483,3 +483,21 @@ func (c *Client) NewQueryFeeBurn() *QueryFeeBurn {
 	c.C.SetReq("/fapi/v1/feeBurn", http.MethodGet, https.AuthSigned)
 	return &QueryFeeBurn{c: c}
 }
+
+// NewGetListenKey Start User Data Stream (USER_STREAM)
+func (c *Client) NewGetListenKey() *GetListenKey {
+	c.C.SetReq("/fapi/v1/listenKey", http.MethodPost, https.AuthApiKey)
+	return &GetListenKey{c: c}
+}
+
+// NewKeepaliveListenKey Keepalive User Data Stream (USER_STREAM)
+func (c *Client) NewKeepaliveListenKey() *KeepaliveListenKey {
+	c.C.SetReq("/fapi/v1/listenKey", http.MethodPut, https.AuthApiKey)
+	return &KeepaliveListenKey{c: c}
+}
+
+// NewCloseListenKey Close User Data Stream (USER_STREAM)
+func (c *Client) NewCloseListenKey() *CloseListenKey {
+	c.C.SetReq("/fapi/v1/listenKey", http.MethodDelete, https.AuthApiKey)
+	return &CloseListenKey{c: c}
+}

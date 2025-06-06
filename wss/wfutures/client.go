@@ -103,3 +103,21 @@ func (c *Client) NewAccountInfo() *AccountInfo {
 	c.C.SetReq("v2/account.status", wss.AuthSigned)
 	return &AccountInfo{c: c}
 }
+
+// NewStartUserDataStream Start user data stream (USER_STREAM)
+func (c *Client) NewStartUserDataStream() *StartUserDataStream {
+	c.C.SetReq("userDataStream.start", wss.AuthApiKey)
+	return &StartUserDataStream{c: c}
+}
+
+// NewPingUserDataStream Ping user data stream (USER_STREAM)
+func (c *Client) NewPingUserDataStream() *PingUserDataStream {
+	c.C.SetReq("userDataStream.ping", wss.AuthApiKey)
+	return &PingUserDataStream{c: c}
+}
+
+// NewStopUserDataStream Stop user data stream (USER_STREAM)
+func (c *Client) NewStopUserDataStream() *StopUserDataStream {
+	c.C.SetReq("userDataStream.stop", wss.AuthApiKey)
+	return &StopUserDataStream{c: c}
+}
