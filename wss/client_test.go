@@ -5,6 +5,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 )
@@ -27,9 +28,10 @@ func (s *baseTestSuite) SetupTest() {
 	s.client = new(mockedClient)
 	client := Client{
 		Opt: &Options{
-			ApiKey:    "Api Key",
-			ApiSecret: "Api Secret",
+			ApiKey:    "YOUR_API_KEY",
+			ApiSecret: "YOUR_API_SECRET",
 		},
+		Logger: slog.Default(),
 	}
 	s.client.Client = &client
 }

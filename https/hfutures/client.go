@@ -3,6 +3,7 @@ package hfutures
 import (
 	"context"
 	"github.com/jekaxv/go-binance/https"
+	"github.com/jekaxv/go-binance/types"
 	"net/http"
 )
 
@@ -54,7 +55,7 @@ func (c *Client) NewTrades() *Trades {
 
 // NewHistoricalTrades Old trade lookup
 func (c *Client) NewHistoricalTrades() *HistoricalTrades {
-	c.C.SetReq("/fapi/v1/historicalTrades", http.MethodGet, https.AuthApiKey)
+	c.C.SetReq("/fapi/v1/historicalTrades", http.MethodGet, types.AuthApiKey)
 	return &HistoricalTrades{c: c}
 }
 
@@ -204,300 +205,300 @@ func (c *Client) NewInsuranceBalance() *InsuranceBalance {
 
 // NewCreateOrder New Order(TRADE)
 func (c *Client) NewCreateOrder() *CreateOrder {
-	c.C.SetReq("/fapi/v1/order", http.MethodPost, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/order", http.MethodPost, types.AuthSigned)
 	return &CreateOrder{c: c}
 }
 
 // NewPlaceBatchOrder Place Multiple Orders(TRADE)
 func (c *Client) NewPlaceBatchOrder() *PlaceBatchOrder {
-	c.C.SetReq("/fapi/v1/batchOrders", http.MethodPost, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/batchOrders", http.MethodPost, types.AuthSigned)
 	return &PlaceBatchOrder{c: c}
 }
 
 // NewModifyOrder Modify Order (TRADE)
 func (c *Client) NewModifyOrder() *ModifyOrder {
-	c.C.SetReq("/fapi/v1/order", http.MethodPut, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/order", http.MethodPut, types.AuthSigned)
 	return &ModifyOrder{c: c}
 }
 
 // NewModifyMultipleOrder Modify Multiple Orders(TRADE)
 func (c *Client) NewModifyMultipleOrder() *ModifyMultipleOrder {
-	c.C.SetReq("/fapi/v1/batchOrders", http.MethodPut, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/batchOrders", http.MethodPut, types.AuthSigned)
 	return &ModifyMultipleOrder{c: c}
 }
 
 // NewOrderAmendment Get Order Modify History (USER_DATA)
 func (c *Client) NewOrderAmendment() *OrderAmendment {
-	c.C.SetReq("/fapi/v1/orderAmendment", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/orderAmendment", http.MethodGet, types.AuthSigned)
 	return &OrderAmendment{c: c}
 }
 
 // NewCancelOrder Cancel Order (TRADE)
 func (c *Client) NewCancelOrder() *CancelOrder {
-	c.C.SetReq("/fapi/v1/order", http.MethodDelete, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/order", http.MethodDelete, types.AuthSigned)
 	return &CancelOrder{c: c}
 }
 
 // NewCancelMultipleOrder Cancel Multiple Orders (TRADE)
 func (c *Client) NewCancelMultipleOrder() *CancelMultipleOrder {
-	c.C.SetReq("/fapi/v1/batchOrders", http.MethodDelete, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/batchOrders", http.MethodDelete, types.AuthSigned)
 	return &CancelMultipleOrder{c: c}
 }
 
 // NewCancelOpenOrder Cancel All Open Orders (TRADE)
 func (c *Client) NewCancelOpenOrder() *CancelOpenOrder {
-	c.C.SetReq("/fapi/v1/allOpenOrders", http.MethodDelete, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/allOpenOrders", http.MethodDelete, types.AuthSigned)
 	return &CancelOpenOrder{c: c}
 }
 
 // NewCountdownCancelAll Auto-Cancel All Open Orders (TRADE)
 func (c *Client) NewCountdownCancelAll() *CountdownCancelAll {
-	c.C.SetReq("/fapi/v1/countdownCancelAll", http.MethodPost, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/countdownCancelAll", http.MethodPost, types.AuthSigned)
 	return &CountdownCancelAll{c: c}
 }
 
 // NewQueryOrder Query Order (USER_DATA)
 func (c *Client) NewQueryOrder() *QueryOrder {
-	c.C.SetReq("/fapi/v1/order", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/order", http.MethodGet, types.AuthSigned)
 	return &QueryOrder{c: c}
 }
 
 // NewQueryAllOrder All Orders (USER_DATA)
 func (c *Client) NewQueryAllOrder() *QueryAllOrder {
-	c.C.SetReq("/fapi/v1/allOrders", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/allOrders", http.MethodGet, types.AuthSigned)
 	return &QueryAllOrder{c: c}
 }
 
 // NewAllOpenOrder Current All Open Orders (USER_DATA)
 func (c *Client) NewAllOpenOrder() *AllOpenOrder {
-	c.C.SetReq("/fapi/v1/openOrders", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/openOrders", http.MethodGet, types.AuthSigned)
 	return &AllOpenOrder{c: c}
 }
 
 // NewQueryOpenOrder Query Current Open Order (USER_DATA)
 func (c *Client) NewQueryOpenOrder() *QueryOpenOrder {
-	c.C.SetReq("/fapi/v1/openOrder", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/openOrder", http.MethodGet, types.AuthSigned)
 	return &QueryOpenOrder{c: c}
 }
 
 // NewForceOrder User's Force Orders (USER_DATA)
 func (c *Client) NewForceOrder() *ForceOrder {
-	c.C.SetReq("/fapi/v1/forceOrders", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/forceOrders", http.MethodGet, types.AuthSigned)
 	return &ForceOrder{c: c}
 }
 
 // NewUserTrades Account Trade List (USER_DATA)
 func (c *Client) NewUserTrades() *UserTrades {
-	c.C.SetReq("/fapi/v1/userTrades", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/userTrades", http.MethodGet, types.AuthSigned)
 	return &UserTrades{c: c}
 }
 
 // NewChangeMarginType Change Margin Type(TRADE)
 func (c *Client) NewChangeMarginType() *ChangeMarginType {
-	c.C.SetReq("/fapi/v1/marginType", http.MethodPost, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/marginType", http.MethodPost, types.AuthSigned)
 	return &ChangeMarginType{c: c}
 }
 
 // NewChangePositionSide Change Position Mode(TRADE)
 func (c *Client) NewChangePositionSide() *ChangePositionSide {
-	c.C.SetReq("/fapi/v1/positionSide/dual", http.MethodPost, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/positionSide/dual", http.MethodPost, types.AuthSigned)
 	return &ChangePositionSide{c: c}
 }
 
 // NewChangeLeverage Change Initial Leverage(TRADE)
 func (c *Client) NewChangeLeverage() *ChangeLeverage {
-	c.C.SetReq("/fapi/v1/leverage", http.MethodPost, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/leverage", http.MethodPost, types.AuthSigned)
 	return &ChangeLeverage{c: c}
 }
 
 // NewChangeMultiAssetsMargin Change Multi-Assets Mode (TRADE)
 func (c *Client) NewChangeMultiAssetsMargin() *ChangeMultiAssetsMargin {
-	c.C.SetReq("/fapi/v1/multiAssetsMargin", http.MethodPost, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/multiAssetsMargin", http.MethodPost, types.AuthSigned)
 	return &ChangeMultiAssetsMargin{c: c}
 }
 
 // NewChangePositionMargin Modify Isolated Position Margin(TRADE)
 func (c *Client) NewChangePositionMargin() *ChangePositionMargin {
-	c.C.SetReq("/fapi/v1/positionMargin", http.MethodPost, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/positionMargin", http.MethodPost, types.AuthSigned)
 	return &ChangePositionMargin{c: c}
 }
 
 // NewPositionRisk Position Information V3 (USER_DATA)
 func (c *Client) NewPositionRisk() *PositionRisk {
-	c.C.SetReq("/fapi/v3/positionRisk", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v3/positionRisk", http.MethodGet, types.AuthSigned)
 	return &PositionRisk{c: c}
 }
 
 // NewAdlQuantile Position ADL Quantile Estimation(USER_DATA)
 func (c *Client) NewAdlQuantile() *AdlQuantile {
-	c.C.SetReq("/fapi/v1/adlQuantile", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/adlQuantile", http.MethodGet, types.AuthSigned)
 	return &AdlQuantile{c: c}
 }
 
 // NewPositionMarginHistory Get Position Margin Change History (TRADE)
 func (c *Client) NewPositionMarginHistory() *PositionMarginHistory {
-	c.C.SetReq("/fapi/v1/positionMargin/history", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/positionMargin/history", http.MethodGet, types.AuthSigned)
 	return &PositionMarginHistory{c: c}
 }
 
 // NewCreateTestOrder Test Order(TRADE)
 func (c *Client) NewCreateTestOrder() *CreateTestOrder {
-	c.C.SetReq("/fapi/v1/order/test", http.MethodPost, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/order/test", http.MethodPost, types.AuthSigned)
 	return &CreateTestOrder{c: c}
 }
 
 // NewConvertExchangeInfo List All Convert Pairs
 func (c *Client) NewConvertExchangeInfo() *ConvertExchangeInfo {
-	c.C.SetReq("/fapi/v1/convert/exchangeInfo", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/convert/exchangeInfo", http.MethodGet, types.AuthSigned)
 	return &ConvertExchangeInfo{c: c}
 }
 
 // NewGetQuote Send Quote Request(USER_DATA)
 func (c *Client) NewGetQuote() *GetQuote {
-	c.C.SetReq("/fapi/v1/convert/getQuote", http.MethodPost, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/convert/getQuote", http.MethodPost, types.AuthSigned)
 	return &GetQuote{c: c}
 }
 
 // NewAcceptQuote Accept the offered quote (USER_DATA)
 func (c *Client) NewAcceptQuote() *AcceptQuote {
-	c.C.SetReq("/fapi/v1/convert/acceptQuote", http.MethodPost, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/convert/acceptQuote", http.MethodPost, types.AuthSigned)
 	return &AcceptQuote{c: c}
 }
 
 // NewConvertOrderStatus Order status(USER_DATA)
 func (c *Client) NewConvertOrderStatus() *ConvertOrderStatus {
-	c.C.SetReq("/fapi/v1/convert/orderStatus", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/convert/orderStatus", http.MethodGet, types.AuthSigned)
 	return &ConvertOrderStatus{c: c}
 }
 
 // NewQueryBalance Futures Account Balance V3 (USER_DATA)
 func (c *Client) NewQueryBalance() *QueryBalance {
-	c.C.SetReq("/fapi/v3/balance", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v3/balance", http.MethodGet, types.AuthSigned)
 	return &QueryBalance{c: c}
 }
 
 // NewAccountInfo Account Information V3(USER_DATA)
 func (c *Client) NewAccountInfo() *AccountInfo {
-	c.C.SetReq("/fapi/v3/account", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v3/account", http.MethodGet, types.AuthSigned)
 	return &AccountInfo{c: c}
 }
 
 // NewCommissionRate User Commission Rate (USER_DATA)
 func (c *Client) NewCommissionRate() *CommissionRate {
-	c.C.SetReq("/fapi/v1/commissionRate", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/commissionRate", http.MethodGet, types.AuthSigned)
 	return &CommissionRate{c: c}
 }
 
 // NewAccountConfig Futures Account Configuration(USER_DATA)
 func (c *Client) NewAccountConfig() *AccountConfig {
-	c.C.SetReq("/fapi/v1/accountConfig", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/accountConfig", http.MethodGet, types.AuthSigned)
 	return &AccountConfig{c: c}
 }
 
 // NewSymbolConfig Symbol Configuration(USER_DATA)
 func (c *Client) NewSymbolConfig() *SymbolConfig {
-	c.C.SetReq("/fapi/v1/symbolConfig", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/symbolConfig", http.MethodGet, types.AuthSigned)
 	return &SymbolConfig{c: c}
 }
 
 // NewQueryRateLimit Query User Rate Limit (USER_DATA)
 func (c *Client) NewQueryRateLimit() *QueryRateLimit {
-	c.C.SetReq("/fapi/v1/rateLimit/order", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/rateLimit/order", http.MethodGet, types.AuthSigned)
 	return &QueryRateLimit{c: c}
 }
 
 // NewLeverageBracket Notional and Leverage Brackets (USER_DATA)
 func (c *Client) NewLeverageBracket() *LeverageBracket {
-	c.C.SetReq("/fapi/v1/leverageBracket", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/leverageBracket", http.MethodGet, types.AuthSigned)
 	return &LeverageBracket{c: c}
 }
 
 // NewMultiAssetsMargin Get Current Multi-Assets Mode (USER_DATA)
 func (c *Client) NewMultiAssetsMargin() *MultiAssetsMargin {
-	c.C.SetReq("/fapi/v1/multiAssetsMargin", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/multiAssetsMargin", http.MethodGet, types.AuthSigned)
 	return &MultiAssetsMargin{c: c}
 }
 
 // NewGetPositionSide Get Current Position Mode(USER_DATA)
 func (c *Client) NewGetPositionSide() *GetPositionSide {
-	c.C.SetReq("/fapi/v1/positionSide/dual", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/positionSide/dual", http.MethodGet, types.AuthSigned)
 	return &GetPositionSide{c: c}
 }
 
 // NewQueryIncome Get Income History (USER_DATA)
 func (c *Client) NewQueryIncome() *QueryIncome {
-	c.C.SetReq("/fapi/v1/income", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/income", http.MethodGet, types.AuthSigned)
 	return &QueryIncome{c: c}
 }
 
 // NewTradingStatus Futures Trading Quantitative Rules Indicators (USER_DATA)
 func (c *Client) NewTradingStatus() *TradingStatus {
-	c.C.SetReq("/fapi/v1/apiTradingStatus", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/apiTradingStatus", http.MethodGet, types.AuthSigned)
 	return &TradingStatus{c: c}
 }
 
 // NewTransactionHistory Get Download Id For Futures Transaction History(USER_DATA)
 func (c *Client) NewTransactionHistory() *TransactionHistory {
-	c.C.SetReq("/fapi/v1/income/asyn", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/income/asyn", http.MethodGet, types.AuthSigned)
 	return &TransactionHistory{c: c}
 }
 
 // NewTransactionHistoryLink Get Futures Transaction History Download Link by Id (USER_DATA)
 func (c *Client) NewTransactionHistoryLink() *TransactionHistoryLink {
-	c.C.SetReq("/fapi/v1/income/asyn/id", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/income/asyn/id", http.MethodGet, types.AuthSigned)
 	return &TransactionHistoryLink{c: c}
 }
 
 // NewOrderHistory Get Download Id For Futures Order History (USER_DATA)
 func (c *Client) NewOrderHistory() *OrderHistory {
-	c.C.SetReq("/fapi/v1/order/asyn", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/order/asyn", http.MethodGet, types.AuthSigned)
 	return &OrderHistory{c: c}
 }
 
 // NewOrderHistoryLink Get Futures Order History Download Link by Id (USER_DATA)
 func (c *Client) NewOrderHistoryLink() *OrderHistoryLink {
-	c.C.SetReq("/fapi/v1/order/asyn/id", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/order/asyn/id", http.MethodGet, types.AuthSigned)
 	return &OrderHistoryLink{c: c}
 }
 
 // NewTradeHistory Get Download Id For Futures Trade History (USER_DATA)
 func (c *Client) NewTradeHistory() *TradeHistory {
-	c.C.SetReq("/fapi/v1/trade/asyn", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/trade/asyn", http.MethodGet, types.AuthSigned)
 	return &TradeHistory{c: c}
 }
 
 // NewTradeHistoryLink Get Futures Trade History Download Link by Id (USER_DATA)
 func (c *Client) NewTradeHistoryLink() *TradeHistoryLink {
-	c.C.SetReq("/fapi/v1/trade/asyn/id", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/trade/asyn/id", http.MethodGet, types.AuthSigned)
 	return &TradeHistoryLink{c: c}
 }
 
 // NewChangeFeeBurn Toggle BNB Burn On Futures Trade (TRADE)
 func (c *Client) NewChangeFeeBurn() *ChangeFeeBurn {
-	c.C.SetReq("/fapi/v1/feeBurn", http.MethodPost, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/feeBurn", http.MethodPost, types.AuthSigned)
 	return &ChangeFeeBurn{c: c}
 }
 
 // NewQueryFeeBurn Get BNB Burn Status (USER_DATA)
 func (c *Client) NewQueryFeeBurn() *QueryFeeBurn {
-	c.C.SetReq("/fapi/v1/feeBurn", http.MethodGet, https.AuthSigned)
+	c.C.SetReq("/fapi/v1/feeBurn", http.MethodGet, types.AuthSigned)
 	return &QueryFeeBurn{c: c}
 }
 
 // NewGetListenKey Start User Data Stream (USER_STREAM)
 func (c *Client) NewGetListenKey() *GetListenKey {
-	c.C.SetReq("/fapi/v1/listenKey", http.MethodPost, https.AuthApiKey)
+	c.C.SetReq("/fapi/v1/listenKey", http.MethodPost, types.AuthApiKey)
 	return &GetListenKey{c: c}
 }
 
 // NewKeepaliveListenKey Keepalive User Data Stream (USER_STREAM)
 func (c *Client) NewKeepaliveListenKey() *KeepaliveListenKey {
-	c.C.SetReq("/fapi/v1/listenKey", http.MethodPut, https.AuthApiKey)
+	c.C.SetReq("/fapi/v1/listenKey", http.MethodPut, types.AuthApiKey)
 	return &KeepaliveListenKey{c: c}
 }
 
 // NewCloseListenKey Close User Data Stream (USER_STREAM)
 func (c *Client) NewCloseListenKey() *CloseListenKey {
-	c.C.SetReq("/fapi/v1/listenKey", http.MethodDelete, https.AuthApiKey)
+	c.C.SetReq("/fapi/v1/listenKey", http.MethodDelete, types.AuthApiKey)
 	return &CloseListenKey{c: c}
 }

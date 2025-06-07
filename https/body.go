@@ -2,6 +2,8 @@ package https
 
 import (
 	"fmt"
+	"github.com/jekaxv/go-binance/types"
+	"github.com/jekaxv/go-binance/utils"
 	"github.com/shopspring/decimal"
 	"io"
 	"net/http"
@@ -10,18 +12,11 @@ import (
 	"strings"
 )
 
-type AuthType int
-
-const (
-	AuthNone AuthType = iota
-	AuthApiKey
-	AuthSigned
-)
-
 type request struct {
 	method   string
 	path     string
-	authType AuthType
+	authType types.AuthType
+	signFunc utils.SignFunc
 	query    url.Values
 	form     url.Values
 	header   http.Header

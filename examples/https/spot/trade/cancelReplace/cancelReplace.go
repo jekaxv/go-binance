@@ -11,8 +11,8 @@ import (
 func main() {
 	client := binance.NewClient(https.Options{
 		Endpoint:  https.TestnetURL,
-		ApiKey:    "YourApiKey",
-		ApiSecret: "YourApiSecret",
+		ApiKey:    "YOUR_API_KEY",
+		ApiSecret: "YOUR_API_SECRET",
 	})
 	resp, err := client.NewCancelReplace().Symbol("BTCUSDT").
 		CancelReplaceMode(types.ReplaceModeSTOP_ON_FAILURE).

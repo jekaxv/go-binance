@@ -1,6 +1,9 @@
 package https
 
-import "net/http"
+import (
+	"github.com/jekaxv/go-binance/types"
+	"net/http"
+)
 
 const (
 	BaseURL    = "https://api.binance.com"
@@ -16,6 +19,7 @@ type Options struct {
 	ApiKey    string
 	ApiSecret string
 	Endpoint  string
+	SignType  types.SignType
 }
 
 func (o *Options) init() {

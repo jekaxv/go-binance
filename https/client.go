@@ -3,11 +3,12 @@ package https
 import (
 	"bytes"
 	"context"
-	"crypto/hmac"
-	"crypto/sha256"
 	"errors"
 	"fmt"
+	"github.com/jekaxv/go-binance/types"
+	"github.com/jekaxv/go-binance/utils"
 	"io"
+	"log/slog"
 	"net/http"
 	"time"
 )
@@ -18,10 +19,11 @@ type Client struct {
 	fullUrl    string
 	req        *request
 	resp       *response
+	Logger     *slog.Logger
 }
 
-func (c *Client) SetReq(path, method string, aType ...AuthType) {
-	reqType := AuthNone
+func (c *Client) SetReq(path, method string, aType ...types.AuthType) {
+	reqType := types.AuthNone
 	if len(aType) > 0 {
 		reqType = aType[0]
 	}
@@ -29,7 +31,7 @@ func (c *Client) SetReq(path, method string, aType ...AuthType) {
 }
 
 func (c *Client) parseRequest() error {
-	if c.req.authType == AuthSigned {
+	if c.req.authType == types.AuthSigned {
 		c.req.set("timestamp", time.Now().UnixMilli())
 	}
 	fullUrl := fmt.Sprintf("%s%s", c.Opt.Endpoint, c.req.path)
@@ -39,19 +41,27 @@ func (c *Client) parseRequest() error {
 	if c.req.header != nil {
 		header = c.req.header.Clone()
 	}
-	if c.req.authType == AuthApiKey || c.req.authType == AuthSigned {
+	if c.req.authType == types.AuthApiKey || c.req.authType == types.AuthSigned {
 		header.Set("X-MBX-APIKEY", c.Opt.ApiKey)
 	}
 	if form != "" {
 		header.Set("Content-Type", "application/x-www-form-urlencoded")
 		c.req.body = bytes.NewBufferString(form)
 	}
-	if c.req.authType == AuthSigned {
-		mac := hmac.New(sha256.New, []byte(c.Opt.ApiSecret))
-		if _, err := mac.Write([]byte(fmt.Sprintf("%s%s", query, form))); err != nil {
+	if c.req.authType == types.AuthSigned {
+		params := fmt.Sprintf("%s%s", query, form)
+		if c.Opt.SignType == types.SignTypeRsa {
+			c.req.signFunc = utils.RsaSign
+		} else if c.Opt.SignType == types.SignTypeEd25519 {
+			c.req.signFunc = utils.Ed25519Sign
+		} else {
+			c.req.signFunc = utils.HmacSign
+		}
+		sign, err := c.req.signFunc(c.Opt.ApiSecret, params)
+		if err != nil {
 			return err
 		}
-		sign := fmt.Sprintf("signature=%x", mac.Sum(nil))
+		sign = fmt.Sprintf("signature=%s", sign)
 		if query == "" {
 			query = sign
 		} else {
@@ -61,6 +71,12 @@ func (c *Client) parseRequest() error {
 	if query != "" {
 		fullUrl = fmt.Sprintf("%s?%s", fullUrl, query)
 	}
+	c.Logger.Debug("parsed request",
+		"method", c.req.method,
+		"path", c.req.path,
+		"auth_type", c.req.authType,
+		"full_url", fullUrl,
+	)
 	c.fullUrl = fullUrl
 	c.req.header = header
 	return nil
@@ -88,6 +104,7 @@ func (c *Client) invoke(ctx context.Context) error {
 	}
 	req, err := http.NewRequest(c.req.method, c.fullUrl, c.req.body)
 	if err != nil {
+		c.Logger.Debug("failed to create new HTTP request", "error", err)
 		c.resp = &response{err: err}
 		return err
 	}
@@ -105,9 +122,11 @@ func (c *Client) invoke(ctx context.Context) error {
 		c.resp = &response{err: err}
 		return err
 	}
+	c.Logger.Debug("received HTTP response", "status", res.StatusCode)
 	defer res.Body.Close()
 	c.resp = &response{rawBody: data, status: res.StatusCode, rawHeader: res.Header}
 	if res.StatusCode != 200 {
+		c.Logger.Debug("HTTP response returned non-200", "status", res.StatusCode, "body", string(data))
 		c.resp.err = errors.New(string(data))
 		return c.resp.err
 	}
@@ -206,138 +225,138 @@ func (c *Client) NewTicker() *Ticker {
 
 // NewCreateOrder New order (TRADE)
 func (c *Client) NewCreateOrder() *CreateOrder {
-	c.req = &request{path: "/api/v3/order", method: http.MethodPost, authType: AuthSigned}
+	c.req = &request{path: "/api/v3/order", method: http.MethodPost, authType: types.AuthSigned}
 	return &CreateOrder{c: c}
 }
 
 // NewTestCreateOrder Test new order (TRADE)
 func (c *Client) NewTestCreateOrder() *TestCreateOrder {
-	c.req = &request{path: "/api/v3/order/test", method: http.MethodPost, authType: AuthSigned}
+	c.req = &request{path: "/api/v3/order/test", method: http.MethodPost, authType: types.AuthSigned}
 	return &TestCreateOrder{c: c}
 }
 
 // NewQueryOrder Query order (USER_DATA)
 func (c *Client) NewQueryOrder() *QueryOrder {
-	c.req = &request{path: "/api/v3/order", method: http.MethodGet, authType: AuthSigned}
+	c.req = &request{path: "/api/v3/order", method: http.MethodGet, authType: types.AuthSigned}
 	return &QueryOrder{c: c}
 }
 
 // NewCancelOrder Cancel order (TRADE)
 func (c *Client) NewCancelOrder() *CancelOrder {
-	c.req = &request{path: "/api/v3/order", method: http.MethodDelete, authType: AuthSigned}
+	c.req = &request{path: "/api/v3/order", method: http.MethodDelete, authType: types.AuthSigned}
 	return &CancelOrder{c: c}
 }
 
 // NewCancelOpenOrder Cancel All Open Orders on a Symbol (TRADE)
 func (c *Client) NewCancelOpenOrder() *CancelOpenOrder {
-	c.req = &request{path: "/api/v3/openOrders", method: http.MethodDelete, authType: AuthSigned}
+	c.req = &request{path: "/api/v3/openOrders", method: http.MethodDelete, authType: types.AuthSigned}
 	return &CancelOpenOrder{c: c}
 }
 
 // NewCancelReplace Cancel an Existing Order and Send a New Order (TRADE)
 func (c *Client) NewCancelReplace() *CancelReplace {
-	c.req = &request{path: "/api/v3/order/cancelReplace", method: http.MethodPost, authType: AuthSigned}
+	c.req = &request{path: "/api/v3/order/cancelReplace", method: http.MethodPost, authType: types.AuthSigned}
 	return &CancelReplace{c: c}
 }
 
 // NewOpenOrders Current open orders (USER_DATA)
 func (c *Client) NewOpenOrders() *OpenOrders {
-	c.req = &request{path: "/api/v3/openOrders", method: http.MethodGet, authType: AuthSigned}
+	c.req = &request{path: "/api/v3/openOrders", method: http.MethodGet, authType: types.AuthSigned}
 	return &OpenOrders{c: c}
 }
 
 // NewAllOrders All orders (USER_DATA)
 func (c *Client) NewAllOrders() *AllOrders {
-	c.req = &request{path: "/api/v3/allOrders", method: http.MethodGet, authType: AuthSigned}
+	c.req = &request{path: "/api/v3/allOrders", method: http.MethodGet, authType: types.AuthSigned}
 	return &AllOrders{c: c}
 }
 
 // NewCancelOrderList Cancel Order list (TRADE)
 func (c *Client) NewCancelOrderList() *CancelOrderList {
-	c.req = &request{path: "/api/v3/orderList", method: http.MethodDelete, authType: AuthSigned}
+	c.req = &request{path: "/api/v3/orderList", method: http.MethodDelete, authType: types.AuthSigned}
 	return &CancelOrderList{c: c}
 }
 
 // NewQueryOrderList Query Order List (USER_DATA)
 func (c *Client) NewQueryOrderList() *QueryOrderList {
-	c.req = &request{path: "/api/v3/orderList", method: http.MethodGet, authType: AuthSigned}
+	c.req = &request{path: "/api/v3/orderList", method: http.MethodGet, authType: types.AuthSigned}
 	return &QueryOrderList{c: c}
 }
 
 // NewQueryAllOrderLists Query All Order Lists (USER_DATA)
 func (c *Client) NewQueryAllOrderLists() *QueryAllOrderLists {
-	c.req = &request{path: "/api/v3/allOrderList", method: http.MethodGet, authType: AuthSigned}
+	c.req = &request{path: "/api/v3/allOrderList", method: http.MethodGet, authType: types.AuthSigned}
 	return &QueryAllOrderLists{c: c}
 }
 
 // NewQueryOpenOrderList Query Open Order Lists (USER_DATA)
 func (c *Client) NewQueryOpenOrderList() *QueryOpenOrderList {
-	c.req = &request{path: "/api/v3/openOrderList", method: http.MethodGet, authType: AuthSigned}
+	c.req = &request{path: "/api/v3/openOrderList", method: http.MethodGet, authType: types.AuthSigned}
 	return &QueryOpenOrderList{c: c}
 }
 
 // NewCreateSOROrder Create SOR Order (TRADE)
 func (c *Client) NewCreateSOROrder() *CreateSOROrder {
-	c.req = &request{path: "/api/v3/sor/order", method: http.MethodPost, authType: AuthSigned}
+	c.req = &request{path: "/api/v3/sor/order", method: http.MethodPost, authType: types.AuthSigned}
 	return &CreateSOROrder{c: c}
 }
 
 // NewCreateTestSOROrder Test new order using SOR (TRADE)
 func (c *Client) NewCreateTestSOROrder() *CreateTestSOROrder {
-	c.req = &request{path: "/api/v3/sor/order/test", method: http.MethodPost, authType: AuthSigned}
+	c.req = &request{path: "/api/v3/sor/order/test", method: http.MethodPost, authType: types.AuthSigned}
 	return &CreateTestSOROrder{c: c}
 }
 
 // NewAccountInfo Account information (USER_DATA)
 func (c *Client) NewAccountInfo() *AccountInfo {
-	c.req = &request{path: "/api/v3/account", method: http.MethodGet, authType: AuthSigned}
+	c.req = &request{path: "/api/v3/account", method: http.MethodGet, authType: types.AuthSigned}
 	return &AccountInfo{c: c}
 }
 
 // NewAccountTrade Account trade list (USER_DATA)
 func (c *Client) NewAccountTrade() *AccountTrade {
-	c.req = &request{path: "/api/v3/myTrades", method: http.MethodGet, authType: AuthSigned}
+	c.req = &request{path: "/api/v3/myTrades", method: http.MethodGet, authType: types.AuthSigned}
 	return &AccountTrade{c: c}
 }
 
 // NewQueryUnfilledOrder Query Unfilled Order Count (USER_DATA)
 func (c *Client) NewQueryUnfilledOrder() *QueryUnfilledOrder {
-	c.req = &request{path: "/api/v3/rateLimit/order", method: http.MethodGet, authType: AuthSigned}
+	c.req = &request{path: "/api/v3/rateLimit/order", method: http.MethodGet, authType: types.AuthSigned}
 	return &QueryUnfilledOrder{c: c}
 }
 
 // NewQueryPreventedMatches Query Prevented Matches (USER_DATA)
 func (c *Client) NewQueryPreventedMatches() *QueryPreventedMatches {
-	c.req = &request{path: "/api/v3/myPreventedMatches", method: http.MethodGet, authType: AuthSigned}
+	c.req = &request{path: "/api/v3/myPreventedMatches", method: http.MethodGet, authType: types.AuthSigned}
 	return &QueryPreventedMatches{c: c}
 }
 
 // NewQueryAllocations Query Allocations (USER_DATA)
 func (c *Client) NewQueryAllocations() *QueryAllocations {
-	c.req = &request{path: "/api/v3/myAllocations", method: http.MethodGet, authType: AuthSigned}
+	c.req = &request{path: "/api/v3/myAllocations", method: http.MethodGet, authType: types.AuthSigned}
 	return &QueryAllocations{c: c}
 }
 
 // NewQueryCommission Query Commission Rates (USER_DATA)
 func (c *Client) NewQueryCommission() *QueryCommission {
-	c.req = &request{path: "/api/v3/account/commission", method: http.MethodGet, authType: AuthSigned}
+	c.req = &request{path: "/api/v3/account/commission", method: http.MethodGet, authType: types.AuthSigned}
 	return &QueryCommission{c: c}
 }
 
 // NewStartUserDataStream Start user data stream (USER_STREAM)
 func (c *Client) NewStartUserDataStream() *StartUserDataStream {
-	c.req = &request{path: "/api/v3/userDataStream", method: http.MethodPost, authType: AuthApiKey}
+	c.req = &request{path: "/api/v3/userDataStream", method: http.MethodPost, authType: types.AuthApiKey}
 	return &StartUserDataStream{c: c}
 }
 
 // NewCloseUserDataStream Close user data stream (USER_STREAM)
 func (c *Client) NewCloseUserDataStream() *CloseUserDataStream {
-	c.req = &request{path: "/api/v3/userDataStream", method: http.MethodDelete, authType: AuthApiKey}
+	c.req = &request{path: "/api/v3/userDataStream", method: http.MethodDelete, authType: types.AuthApiKey}
 	return &CloseUserDataStream{c: c}
 }
 
 // NewPingUserDataStream Keepalive user data stream (USER_STREAM)
 func (c *Client) NewPingUserDataStream() *PingUserDataStream {
-	c.req = &request{path: "/api/v3/userDataStream", method: http.MethodPut, authType: AuthApiKey}
+	c.req = &request{path: "/api/v3/userDataStream", method: http.MethodPut, authType: types.AuthApiKey}
 	return &PingUserDataStream{c: c}
 }

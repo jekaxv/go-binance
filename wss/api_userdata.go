@@ -5,20 +5,25 @@ import (
 	"encoding/json"
 )
 
-// StartUserDataStream Start a new user data stream.
-type StartUserDataStream struct {
+// SessionLogon Authenticate WebSocket connection using the provided API key.
+type SessionLogon struct {
 	c *Client
 }
+type SessionResult struct {
+	ApiKey           string `json:"apiKey"`
+	AuthorizedSince  int64  `json:"authorizedSince"`
+	ConnectedSince   int64  `json:"connectedSince"`
+	ReturnRateLimits bool   `json:"returnRateLimits"`
+	ServerTime       int64  `json:"serverTime"`
+	UserDataStream   bool   `json:"userDataStream"`
+}
 
-type StartUserDataStreamResponse struct {
+type SessionResponse struct {
 	ApiResponse
-	Result struct {
-		ListenKey string `json:"listenKey"`
-	} `json:"result"`
+	Result *SessionResult `json:"result"`
 }
 
-func (s *StartUserDataStream) Do(ctx context.Context) (*StartUserDataStreamResponse, error) {
-	s.c.combined(false)
+func (s *SessionLogon) Do(ctx context.Context) (*SessionResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
 	if err := s.c.send(); err != nil {
 		return nil, err
@@ -29,7 +34,7 @@ func (s *StartUserDataStream) Do(ctx context.Context) (*StartUserDataStreamRespo
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		case message := <-onMessage:
-			var resp *StartUserDataStreamResponse
+			var resp *SessionResponse
 			return resp, json.Unmarshal(message, &resp)
 		case err := <-onError:
 			return nil, err
@@ -37,18 +42,12 @@ func (s *StartUserDataStream) Do(ctx context.Context) (*StartUserDataStreamRespo
 	}
 }
 
-// PingUserDataStream Ping a user data stream to keep it alive.
-type PingUserDataStream struct {
+// SessionStatus Query the status of the WebSocket connection, inspecting which API key (if any) is used to authorize requests.
+type SessionStatus struct {
 	c *Client
 }
 
-func (s *PingUserDataStream) ListenKey(listenKey string) *PingUserDataStream {
-	s.c.req.Params["listenKey"] = listenKey
-	return s
-}
-
-func (s *PingUserDataStream) Do(ctx context.Context) (*ApiResponse, error) {
-	s.c.combined(false)
+func (s *SessionStatus) Do(ctx context.Context) (*SessionResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
 	if err := s.c.send(); err != nil {
 		return nil, err
@@ -59,7 +58,7 @@ func (s *PingUserDataStream) Do(ctx context.Context) (*ApiResponse, error) {
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		case message := <-onMessage:
-			var resp *ApiResponse
+			var resp *SessionResponse
 			return resp, json.Unmarshal(message, &resp)
 		case err := <-onError:
 			return nil, err
@@ -67,18 +66,13 @@ func (s *PingUserDataStream) Do(ctx context.Context) (*ApiResponse, error) {
 	}
 }
 
-// StopUserDataStream Explicitly stop and close the user data stream.
-type StopUserDataStream struct {
+// SessionLogout Forget the API key previously authenticated.
+// If the connection is not authenticated, this request does nothing.
+type SessionLogout struct {
 	c *Client
 }
 
-func (s *StopUserDataStream) ListenKey(listenKey string) *StopUserDataStream {
-	s.c.req.Params["listenKey"] = listenKey
-	return s
-}
-
-func (s *StopUserDataStream) Do(ctx context.Context) (*ApiResponse, error) {
-	s.c.combined(false)
+func (s *SessionLogout) Do(ctx context.Context) (*SessionResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
 	if err := s.c.send(); err != nil {
 		return nil, err
@@ -89,7 +83,7 @@ func (s *StopUserDataStream) Do(ctx context.Context) (*ApiResponse, error) {
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		case message := <-onMessage:
-			var resp *ApiResponse
+			var resp *SessionResponse
 			return resp, json.Unmarshal(message, &resp)
 		case err := <-onError:
 			return nil, err

@@ -24,8 +24,8 @@ Initialize the client with your API key and secret. The endpoint is optional, de
 
 ```go
 client := binance.NewClient(http.Options{
-    ApiKey:    "YourApiKey",
-    ApiSecret: "YourApiSecret",
+    ApiKey:    "YOUR_API_KEY",
+    ApiSecret: "YOUR_API_SECRET",
 })
 ```
 ### Create Order
@@ -38,17 +38,16 @@ import (
 	"fmt"
 	"github.com/jekaxv/go-binance"
 	"github.com/jekaxv/go-binance/https"
-	"github.com/jekaxv/go-binance/types"
 )
 
 func main() {
 	client := binance.NewClient(https.Options{
 		Endpoint:  https.TestnetURL,
-		ApiKey:    "YourApiKey",
-		ApiSecret: "YourApiSecret",
+		ApiKey:    "YOUR_API_KEY",
+		ApiSecret: "YOUR_API_SECRET",
 	})
 	resp, err := client.NewCreateOrder().Symbol("BTCUSDT").
-		Side(types.OrderSideBUY).Type(types.OrderTypeMARKET).Quantity("0.001").
+		Side(binance.OrderSideBUY).Type(binance.OrderTypeMARKET).Quantity("0.001").
 		Do(context.Background())
 	if err != nil {
 		fmt.Println(err)
@@ -74,8 +73,8 @@ import (
 
 func main() {
 	client := binance.NewWsApiClient(wss.Options{
-		ApiKey:    "YourApiKey",
-		ApiSecret: "YourApiSecret",
+		ApiKey:    "YOUR_API_KEY",
+		ApiSecret: "YOUR_API_SECRET",
 	})
 	resp, err := client.NewDepth().Symbol("BTCUSDT").Do(context.Background())
 	if err != nil {

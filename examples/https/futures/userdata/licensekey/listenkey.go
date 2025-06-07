@@ -5,15 +5,16 @@ import (
 	"fmt"
 	"github.com/jekaxv/go-binance"
 	"github.com/jekaxv/go-binance/https"
+	"github.com/jekaxv/go-binance/types"
 )
 
 func main() {
-	client := binance.NewClient(https.Options{
-		Endpoint:  https.TestnetURL,
+	client := binance.NewFuturesClient(https.Options{
 		ApiKey:    "YOUR_API_KEY",
-		ApiSecret: "YOUR_API_SECRET",
+		ApiSecret: `YOUR_API_SECRET`,
+		SignType:  types.SignTypeEd25519,
 	})
-	resp, err := client.NewCancelOpenOrder().Symbol("BTCUSDT").Do(context.Background())
+	resp, err := client.NewGetListenKey().Do(context.Background())
 	if err != nil {
 		fmt.Println(err)
 		return

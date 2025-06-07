@@ -2,36 +2,36 @@ package wss
 
 import (
 	"context"
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"github.com/jekaxv/go-binance/types"
+	"github.com/jekaxv/go-binance/utils"
+	"log/slog"
 	"math/rand"
-	"reflect"
-	"sort"
-	"strings"
 	"time"
 )
 
 type Client struct {
-	Opt  *Options
-	conn *websocket.Conn
-	req  *request
+	Opt    *Options
+	Logger *slog.Logger
+	conn   *websocket.Conn
+	req    *request
 }
 
 // connect initializes the WebSocket connection.
 func (c *Client) connect(ctx context.Context) error {
-	conn, _, err := websocket.DefaultDialer.DialContext(ctx, c.Opt.Endpoint, nil)
+	conn, resp, err := websocket.DefaultDialer.DialContext(ctx, c.Opt.Endpoint, nil)
 	if err != nil {
+		c.Logger.Debug("websocket dial failed", "endpoint", c.Opt.Endpoint, "error", err)
 		return err
 	}
+	c.Logger.Debug("websocket connection established", "endpoint", c.Opt.Endpoint, "status", resp.Status)
 	c.conn = conn
 	return nil
 }
-func (c *Client) SetReq(method string, aType ...AuthType) {
-	reqType := AuthNone
+func (c *Client) SetReq(method string, aType ...types.AuthType) {
+	reqType := types.AuthNone
 	if len(aType) > 0 {
 		reqType = aType[0]
 	}
@@ -70,17 +70,21 @@ func (c *Client) keepAlive() {
 	lastResponse := time.Now()
 	c.conn.SetPongHandler(func(msg string) error {
 		lastResponse = time.Now()
+		c.Logger.Debug("received pong", "time", lastResponse.Format(time.RFC3339))
 		return nil
 	})
 
 	go func() {
 		defer ticker.Stop()
+		c.Logger.Debug("websocket keepalive started", "timeout", WebsocketStreamsTimeout.String())
 		for {
 			deadline := time.Now().Add(10 * time.Second)
 			err := c.conn.WriteControl(websocket.PingMessage, []byte{}, deadline)
 			if err != nil {
+				c.Logger.Debug("failed to send ping", "error", err)
 				return
 			}
+			c.Logger.Debug("ping sent", "deadline", deadline.Format(time.RFC3339))
 			<-ticker.C
 			if time.Since(lastResponse) > WebsocketStreamsTimeout {
 				return
@@ -98,10 +102,14 @@ func (c *Client) wsServe(ctx context.Context) (<-chan []byte, <-chan error) {
 	onError := make(chan error)
 
 	go func() {
-		defer close(onMessage)
-		defer close(onError)
+		defer func() {
+			close(onMessage)
+			close(onError)
+			c.Logger.Debug("websocket serve goroutine exited")
+		}()
 
 		if err := c.connect(ctx); err != nil {
+			c.Logger.Debug("websocket connect failed", "error", err)
 			onError <- err
 			return
 		}
@@ -110,13 +118,16 @@ func (c *Client) wsServe(ctx context.Context) (<-chan []byte, <-chan error) {
 		for {
 			select {
 			case <-ctx.Done():
+				c.Logger.Debug("context done, websocket serve stopping")
 				return
 			default:
 				_, message, err := c.conn.ReadMessage()
 				if err != nil {
+					c.Logger.Debug("failed to read message from websocket", "error", err)
 					onError <- err
 					return
 				}
+				c.Logger.Debug("websocket message received", "length", len(message))
 				onMessage <- message
 			}
 		}
@@ -132,10 +143,15 @@ func (c *Client) wsApiServe(ctx context.Context) (<-chan []byte, <-chan error) {
 	onMessage := make(chan []byte, 8)
 	onError := make(chan error)
 	err := c.connect(ctx)
+	c.Logger.Debug("attempting websocket connection", "endpoint", c.Opt.Endpoint)
 	go func() {
-		defer close(onMessage)
-		defer close(onError)
+		defer func() {
+			close(onMessage)
+			close(onError)
+			c.Logger.Debug("wsApiServe goroutine exited")
+		}()
 		if err != nil {
+			c.Logger.Debug("websocket connect failed", "error", err)
 			onError <- err
 			return
 		}
@@ -144,13 +160,16 @@ func (c *Client) wsApiServe(ctx context.Context) (<-chan []byte, <-chan error) {
 		for {
 			select {
 			case <-ctx.Done():
+				c.Logger.Debug("context done, exiting wsApiServe loop")
 				return
 			default:
 				_, message, err := c.conn.ReadMessage()
 				if err != nil {
+					c.Logger.Debug("error reading websocket message", "error", err)
 					onError <- err
 					return
 				}
+				c.Logger.Debug("received websocket message", "length", len(message))
 				onMessage <- message
 			}
 		}
@@ -175,50 +194,38 @@ func (c *Client) Send() error {
 }
 
 func (c *Client) send() error {
-	c.req.Id = uuid4()
 	if c.conn == nil {
+		c.Logger.Debug("cannot send: connection is nil")
 		return errors.New("websocket connection is nil")
 	}
-	if c.req.AuthType == AuthSigned {
+	c.req.Id = uuid4()
+	c.Logger.Debug("generating request ID", "id", c.req.Id)
+	if c.req.AuthType == types.AuthSigned {
 		c.req.Params["timestamp"] = time.Now().UnixMilli()
 	}
-	if c.req.AuthType == AuthApiKey || c.req.AuthType == AuthSigned {
+	if c.req.AuthType == types.AuthApiKey || c.req.AuthType == types.AuthSigned {
 		c.req.Params["apiKey"] = c.Opt.ApiKey
 	}
-	if c.req.AuthType == AuthSigned {
-		mac := hmac.New(sha256.New, []byte(c.Opt.ApiSecret))
-		if _, err := mac.Write([]byte(SortMap(c.req.Params))); err != nil {
+
+	if c.req.AuthType == types.AuthSigned {
+		if c.Opt.SignType == types.SignTypeRsa {
+			c.req.SignFunc = utils.RsaSign
+		} else if c.Opt.SignType == types.SignTypeEd25519 {
+			c.req.SignFunc = utils.Ed25519Sign
+		} else {
+			c.req.SignFunc = utils.HmacSign
+		}
+		sortedData := utils.SortMap(c.req.Params)
+		c.Logger.Debug("sorted params for signature", "params", sortedData)
+		sign, err := c.req.SignFunc(c.Opt.ApiSecret, sortedData)
+		if err != nil {
+			c.Logger.Debug("signature generation failed", "error", err)
 			return err
 		}
-		c.req.Params["signature"] = hex.EncodeToString(mac.Sum(nil))
+		c.req.Params["signature"] = sign
+		c.Logger.Debug("signature added to request", "signature", sign)
 	}
 	return c.conn.WriteJSON(c.req)
-}
-
-func SortMap(params map[string]any) string {
-	keys := make([]string, 0, len(params))
-	for key := range params {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
-
-	var sortedParams []string
-	for _, key := range keys {
-		finalVar := ""
-		value := params[key]
-		switch reflect.TypeOf(value).Kind() {
-		case reflect.Slice:
-			if elems, ok := value.([]string); ok {
-				finalVar = `["` + strings.Join(elems, `","`) + `"]`
-			} else {
-				finalVar = fmt.Sprintf("%v", value)
-			}
-		default:
-			finalVar = fmt.Sprintf("%v", value)
-		}
-		sortedParams = append(sortedParams, key+"="+finalVar)
-	}
-	return strings.Join(sortedParams, "&")
 }
 
 func (c *Client) NewWebsocketStreams() *WebsocketStreams {
@@ -317,156 +324,156 @@ func (c *Client) NewTickerBook() *TickerBook {
 
 // NewCreateOrder Place new order (TRADE)
 func (c *Client) NewCreateOrder() *CreateOrder {
-	c.req = &request{Method: "order.place", Params: make(map[string]any), AuthType: AuthSigned}
+	c.req = &request{Method: "order.place", Params: make(map[string]any), AuthType: types.AuthSigned}
 	return &CreateOrder{c: c}
 }
 
 // NewCreateTestOrder Test new order (TRADE)
 func (c *Client) NewCreateTestOrder() *CreateTestOrder {
-	c.req = &request{Method: "order.test", Params: make(map[string]any), AuthType: AuthSigned}
+	c.req = &request{Method: "order.test", Params: make(map[string]any), AuthType: types.AuthSigned}
 	return &CreateTestOrder{c: c}
 }
 
 // NewQueryOrder Query order (USER_DATA)
 func (c *Client) NewQueryOrder() *QueryOrder {
-	c.req = &request{Method: "order.status", Params: make(map[string]any), AuthType: AuthSigned}
+	c.req = &request{Method: "order.status", Params: make(map[string]any), AuthType: types.AuthSigned}
 	return &QueryOrder{c: c}
 }
 
 // NewCancelOrder Cancel order (TRADE)
 func (c *Client) NewCancelOrder() *CancelOrder {
-	c.req = &request{Method: "order.cancel", Params: make(map[string]any), AuthType: AuthSigned}
+	c.req = &request{Method: "order.cancel", Params: make(map[string]any), AuthType: types.AuthSigned}
 	return &CancelOrder{c: c}
 }
 
 // NewCancelReplaceOrder Cancel and replace order (TRADE)
 func (c *Client) NewCancelReplaceOrder() *CancelReplaceOrder {
-	c.req = &request{Method: "order.cancelReplace", Params: make(map[string]any), AuthType: AuthSigned}
+	c.req = &request{Method: "order.cancelReplace", Params: make(map[string]any), AuthType: types.AuthSigned}
 	return &CancelReplaceOrder{c: c}
 }
 
 // NewOpenOrdersStatus Current open orders (USER_DATA)
 func (c *Client) NewOpenOrdersStatus() *OpenOrdersStatus {
-	c.req = &request{Method: "openOrders.status", Params: make(map[string]any), AuthType: AuthSigned}
+	c.req = &request{Method: "openOrders.status", Params: make(map[string]any), AuthType: types.AuthSigned}
 	return &OpenOrdersStatus{c: c}
 }
 
 // NewCancelOpenOrder Cancel open orders (TRADE)
 func (c *Client) NewCancelOpenOrder() *CancelOpenOrder {
-	c.req = &request{Method: "openOrders.cancelAll", Params: make(map[string]any), AuthType: AuthSigned}
+	c.req = &request{Method: "openOrders.cancelAll", Params: make(map[string]any), AuthType: types.AuthSigned}
 	return &CancelOpenOrder{c: c}
 }
 
 // NewCreateOCOOrder Place new Order list - OCO (TRADE)
 func (c *Client) NewCreateOCOOrder() *CreateOCOOrder {
-	c.req = &request{Method: "orderList.place.oco", Params: make(map[string]any), AuthType: AuthSigned}
+	c.req = &request{Method: "orderList.place.oco", Params: make(map[string]any), AuthType: types.AuthSigned}
 	return &CreateOCOOrder{c: c}
 }
 
 // NewCreateOTOOrder Place new Order list - OTO (TRADE)
 func (c *Client) NewCreateOTOOrder() *CreateOTOOrder {
-	c.req = &request{Method: "orderList.place.oto", Params: make(map[string]any), AuthType: AuthSigned}
+	c.req = &request{Method: "orderList.place.oto", Params: make(map[string]any), AuthType: types.AuthSigned}
 	return &CreateOTOOrder{c: c}
 }
 
 // NewCreateOTOCOOrder Place new Order list - OTOCO (TRADE)
 func (c *Client) NewCreateOTOCOOrder() *CreateOTOCOOrder {
-	c.req = &request{Method: "orderList.place.otoco", Params: make(map[string]any), AuthType: AuthSigned}
+	c.req = &request{Method: "orderList.place.otoco", Params: make(map[string]any), AuthType: types.AuthSigned}
 	return &CreateOTOCOOrder{c: c}
 }
 
 // NewQueryOrderList Query Order list (USER_DATA)
 func (c *Client) NewQueryOrderList() *QueryOrderList {
-	c.req = &request{Method: "orderList.status", Params: make(map[string]any), AuthType: AuthSigned}
+	c.req = &request{Method: "orderList.status", Params: make(map[string]any), AuthType: types.AuthSigned}
 	return &QueryOrderList{c: c}
 }
 
 // NewCancelOrderList Cancel Order list (TRADE)
 func (c *Client) NewCancelOrderList() *CancelOrderList {
-	c.req = &request{Method: "orderList.cancel", Params: make(map[string]any), AuthType: AuthSigned}
+	c.req = &request{Method: "orderList.cancel", Params: make(map[string]any), AuthType: types.AuthSigned}
 	return &CancelOrderList{c: c}
 }
 
 // NewQueryOpenOrder Current open Order lists (USER_DATA)
 func (c *Client) NewQueryOpenOrder() *QueryOpenOrder {
-	c.req = &request{Method: "openOrderLists.status", Params: make(map[string]any), AuthType: AuthSigned}
+	c.req = &request{Method: "openOrderLists.status", Params: make(map[string]any), AuthType: types.AuthSigned}
 	return &QueryOpenOrder{c: c}
 }
 
 // NewCreateSOROrder Place new order using SOR (TRADE)
 func (c *Client) NewCreateSOROrder() *CreateSOROrder {
-	c.req = &request{Method: "sor.order.place", Params: make(map[string]any), AuthType: AuthSigned}
+	c.req = &request{Method: "sor.order.place", Params: make(map[string]any), AuthType: types.AuthSigned}
 	return &CreateSOROrder{c: c}
 }
 
 // NewCreateTestSOROrder Test new order using SOR (TRADE)
 func (c *Client) NewCreateTestSOROrder() *CreateTestSOROrder {
-	c.req = &request{Method: "sor.order.test", Params: make(map[string]any), AuthType: AuthSigned}
+	c.req = &request{Method: "sor.order.test", Params: make(map[string]any), AuthType: types.AuthSigned}
 	return &CreateTestSOROrder{c: c}
 }
 
 // NewAccountInformation Account information (USER_DATA)
 func (c *Client) NewAccountInformation() *AccountInformation {
-	c.req = &request{Method: "account.status", Params: make(map[string]any), AuthType: AuthSigned}
+	c.req = &request{Method: "account.status", Params: make(map[string]any), AuthType: types.AuthSigned}
 	return &AccountInformation{c: c}
 }
 
 // NewUnfilledOrder Unfilled Order Count (USER_DATA)
 func (c *Client) NewUnfilledOrder() *UnfilledOrder {
-	c.req = &request{Method: "account.rateLimits.orders", Params: make(map[string]any), AuthType: AuthSigned}
+	c.req = &request{Method: "account.rateLimits.orders", Params: make(map[string]any), AuthType: types.AuthSigned}
 	return &UnfilledOrder{c: c}
 }
 
 // NewAccountOrderHistory Account order history (USER_DATA)
 func (c *Client) NewAccountOrderHistory() *AccountOrderHistory {
-	c.req = &request{Method: "allOrders", Params: make(map[string]any), AuthType: AuthSigned}
+	c.req = &request{Method: "allOrders", Params: make(map[string]any), AuthType: types.AuthSigned}
 	return &AccountOrderHistory{c: c}
 }
 
 // NewAllOrderList Account Order list history (USER_DATA)
 func (c *Client) NewAllOrderList() *AllOrderList {
-	c.req = &request{Method: "allOrderLists", Params: make(map[string]any), AuthType: AuthSigned}
+	c.req = &request{Method: "allOrderLists", Params: make(map[string]any), AuthType: types.AuthSigned}
 	return &AllOrderList{c: c}
 }
 
 // NewAccountTradeHistory Account trade history (USER_DATA)
 func (c *Client) NewAccountTradeHistory() *AccountTradeHistory {
-	c.req = &request{Method: "myTrades", Params: make(map[string]any), AuthType: AuthSigned}
+	c.req = &request{Method: "myTrades", Params: make(map[string]any), AuthType: types.AuthSigned}
 	return &AccountTradeHistory{c: c}
 }
 
 // NewAccountPreventedMatches Account prevented matches (USER_DATA)
 func (c *Client) NewAccountPreventedMatches() *AccountPreventedMatches {
-	c.req = &request{Method: "myPreventedMatches", Params: make(map[string]any), AuthType: AuthSigned}
+	c.req = &request{Method: "myPreventedMatches", Params: make(map[string]any), AuthType: types.AuthSigned}
 	return &AccountPreventedMatches{c: c}
 }
 
 // NewAccountAllocations Account allocations (USER_DATA)
 func (c *Client) NewAccountAllocations() *AccountAllocations {
-	c.req = &request{Method: "myAllocations", Params: make(map[string]any), AuthType: AuthSigned}
+	c.req = &request{Method: "myAllocations", Params: make(map[string]any), AuthType: types.AuthSigned}
 	return &AccountAllocations{c: c}
 }
 
 // NewAccountCommission Account Commission Rates (USER_DATA)
 func (c *Client) NewAccountCommission() *AccountCommission {
-	c.req = &request{Method: "account.commission", Params: make(map[string]any), AuthType: AuthSigned}
+	c.req = &request{Method: "account.commission", Params: make(map[string]any), AuthType: types.AuthSigned}
 	return &AccountCommission{c: c}
 }
 
-// NewStartUserDataStream Start user data stream (USER_STREAM)
-func (c *Client) NewStartUserDataStream() *StartUserDataStream {
-	c.req = &request{Method: "userDataStream.start", Params: make(map[string]any), AuthType: AuthApiKey}
-	return &StartUserDataStream{c: c}
+// NewSessionLogon Log in with API key (SIGNED)
+func (c *Client) NewSessionLogon() *SessionLogon {
+	c.req = &request{Method: "session.logon", Params: make(map[string]any), AuthType: types.AuthSigned}
+	return &SessionLogon{c: c}
 }
 
-// NewPingUserDataStream Ping user data stream (USER_STREAM)
-func (c *Client) NewPingUserDataStream() *PingUserDataStream {
-	c.req = &request{Method: "userDataStream.ping", Params: make(map[string]any), AuthType: AuthApiKey}
-	return &PingUserDataStream{c: c}
+// NewSessionStatus Query session status (SIGNED)
+func (c *Client) NewSessionStatus() *SessionStatus {
+	c.req = &request{Method: "session.status", Params: make(map[string]any), AuthType: types.AuthSigned}
+	return &SessionStatus{c: c}
 }
 
-// NewStopUserDataStream Stop user data stream (USER_STREAM)
-func (c *Client) NewStopUserDataStream() *StopUserDataStream {
-	c.req = &request{Method: "userDataStream.stop", Params: make(map[string]any), AuthType: AuthApiKey}
-	return &StopUserDataStream{c: c}
+// NewSessionLogout Log out of the session
+func (c *Client) NewSessionLogout() *SessionLogout {
+	c.req = &request{Method: "session.logout", Params: make(map[string]any), AuthType: types.AuthSigned}
+	return &SessionLogout{c: c}
 }

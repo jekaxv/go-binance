@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	client := binance.NewWsFuturesClient(wss.Options{
+	client := binance.NewFuturesWsApiClient(wss.Options{
 		Endpoint: wss.FuturesTestnetBaseURL,
 	})
 	resp, err := client.NewDepth().Symbol("BTCUSDT").Limit(5).Do(context.Background())

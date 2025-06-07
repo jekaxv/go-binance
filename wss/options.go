@@ -1,13 +1,16 @@
 package wss
 
-import "time"
+import (
+	"github.com/jekaxv/go-binance/types"
+	"time"
+)
 
 const (
 	BaseURL    = "wss://stream.binance.com:9443"
 	TestnetURL = "wss://stream.testnet.binance.vision"
 
 	ApiBaseURL    = "wss://ws-api.binance.com:443/ws-api/v3"
-	ApiTestnetURL = "wss://testnet.binance.vision/ws-api/v3"
+	ApiTestnetURL = "wss://ws-api.testnet.binance.vision/ws-api/v3"
 
 	FuturesBaseURL        = "wss://ws-fapi.binance.com/ws-fapi/v1"
 	FuturesTestnetBaseURL = "wss://testnet.binancefuture.com/ws-fapi/v1"
@@ -21,6 +24,7 @@ type Options struct {
 	Endpoint  string
 	ApiKey    string
 	ApiSecret string
+	SignType  types.SignType
 }
 
 func (o *Options) init() {
@@ -61,7 +65,7 @@ func NewApiOptions(opt ...Options) *Options {
 	return &opt[0]
 }
 
-func NewFuturesOptions(opt ...Options) *Options {
+func NewFuturesApiOptions(opt ...Options) *Options {
 	if len(opt) == 0 {
 		opt = append(opt, Options{})
 	}
@@ -69,7 +73,7 @@ func NewFuturesOptions(opt ...Options) *Options {
 	return &opt[0]
 }
 
-func NewFuturesStreamOptions(opt ...Options) *Options {
+func NewFuturesWsOptions(opt ...Options) *Options {
 	if len(opt) == 0 {
 		opt = append(opt, Options{})
 	}

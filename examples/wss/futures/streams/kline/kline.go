@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	client := binance.NewWsFutures(wss.Options{
+	client := binance.NewFuturesWsClient(wss.Options{
 		Endpoint: wss.FuturesStreamUrl,
 	})
 	ctx, cancelFunc := context.WithTimeout(context.Background(), 5*time.Second)

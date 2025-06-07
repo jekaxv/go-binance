@@ -11,8 +11,8 @@ import (
 func main() {
 	client := binance.NewWsClient(wss.Options{
 		Endpoint:  wss.TestnetURL,
-		ApiKey:    "YourApiKey",
-		ApiSecret: "YourApiSecret",
+		ApiKey:    "YOUR_API_KEY",
+		ApiSecret: "YOUR_API_SECRET",
 	})
 	ctx, cancelFunc := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancelFunc()

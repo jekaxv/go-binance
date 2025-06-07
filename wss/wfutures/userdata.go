@@ -205,98 +205,6 @@ func (s *WebsocketStreams) SubscribeUserData(listenKey string) *UserDataStream {
 	return &UserDataStream{s}
 }
 
-// StartUserDataStream Start a new user data stream.
-type StartUserDataStream struct {
-	c *Client
-}
-
-type StartUserDataStreamResponse struct {
-	wss.ApiResponse
-	Result struct {
-		ListenKey string `json:"listenKey"`
-	} `json:"result"`
-}
-
-func (s *StartUserDataStream) Do(ctx context.Context) (*StartUserDataStreamResponse, error) {
-	s.c.combined(false)
-	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
-		return nil, err
-	}
-	defer s.c.close()
-	for {
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		case message := <-onMessage:
-			var resp *StartUserDataStreamResponse
-			return resp, json.Unmarshal(message, &resp)
-		case err := <-onError:
-			return nil, err
-		}
-	}
-}
-
-// PingUserDataStream Ping a user data stream to keep it alive.
-type PingUserDataStream struct {
-	c *Client
-}
-
-func (s *PingUserDataStream) ListenKey(listenKey string) *PingUserDataStream {
-	s.c.setParams("listenKey", listenKey)
-	return s
-}
-
-func (s *PingUserDataStream) Do(ctx context.Context) (*wss.ApiResponse, error) {
-	s.c.combined(false)
-	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
-		return nil, err
-	}
-	defer s.c.close()
-	for {
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		case message := <-onMessage:
-			var resp *wss.ApiResponse
-			return resp, json.Unmarshal(message, &resp)
-		case err := <-onError:
-			return nil, err
-		}
-	}
-}
-
-// StopUserDataStream Explicitly stop and close the user data stream.
-type StopUserDataStream struct {
-	c *Client
-}
-
-func (s *StopUserDataStream) ListenKey(listenKey string) *StopUserDataStream {
-	s.c.setParams("listenKey", listenKey)
-	return s
-}
-
-func (s *StopUserDataStream) Do(ctx context.Context) (*wss.ApiResponse, error) {
-	s.c.combined(false)
-	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
-		return nil, err
-	}
-	defer s.c.close()
-	for {
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		case message := <-onMessage:
-			var resp *wss.ApiResponse
-			return resp, json.Unmarshal(message, &resp)
-		case err := <-onError:
-			return nil, err
-		}
-	}
-}
-
 func (e *UserDataStream) Do(ctx context.Context) (<-chan *UserDataEvent, <-chan error) {
 	messageCh := make(chan *UserDataEvent, 8)
 	errorCh := make(chan error)
@@ -351,4 +259,90 @@ func (e *UserDataStream) parseUserEvent(message []byte) (*UserDataEvent, error) 
 		return event, json.Unmarshal(message, &event.OrderTriggerReject)
 	}
 	return event, nil
+}
+
+// SessionLogon Authenticate WebSocket connection using the provided API key.
+type SessionLogon struct {
+	c *Client
+}
+type SessionResult struct {
+	ApiKey           string `json:"apiKey"`
+	AuthorizedSince  int64  `json:"authorizedSince"`
+	ConnectedSince   int64  `json:"connectedSince"`
+	ReturnRateLimits bool   `json:"returnRateLimits"`
+	ServerTime       int64  `json:"serverTime"`
+	UserDataStream   bool   `json:"userDataStream"`
+}
+
+type SessionResponse struct {
+	wss.ApiResponse
+	Result *SessionResult `json:"result"`
+}
+
+func (s *SessionLogon) Do(ctx context.Context) (*SessionResponse, error) {
+	onMessage, onError := s.c.wsApiServe(ctx)
+	if err := s.c.send(); err != nil {
+		return nil, err
+	}
+	defer s.c.close()
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case message := <-onMessage:
+			var resp *SessionResponse
+			return resp, json.Unmarshal(message, &resp)
+		case err := <-onError:
+			return nil, err
+		}
+	}
+}
+
+// SessionStatus Query the status of the WebSocket connection, inspecting which API key (if any) is used to authorize requests.
+type SessionStatus struct {
+	c *Client
+}
+
+func (s *SessionStatus) Do(ctx context.Context) (*SessionResponse, error) {
+	onMessage, onError := s.c.wsApiServe(ctx)
+	if err := s.c.send(); err != nil {
+		return nil, err
+	}
+	defer s.c.close()
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case message := <-onMessage:
+			var resp *SessionResponse
+			return resp, json.Unmarshal(message, &resp)
+		case err := <-onError:
+			return nil, err
+		}
+	}
+}
+
+// SessionLogout Forget the API key previously authenticated.
+// If the connection is not authenticated, this request does nothing.
+type SessionLogout struct {
+	c *Client
+}
+
+func (s *SessionLogout) Do(ctx context.Context) (*SessionResponse, error) {
+	onMessage, onError := s.c.wsApiServe(ctx)
+	if err := s.c.send(); err != nil {
+		return nil, err
+	}
+	defer s.c.close()
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case message := <-onMessage:
+			var resp *SessionResponse
+			return resp, json.Unmarshal(message, &resp)
+		case err := <-onError:
+			return nil, err
+		}
+	}
 }

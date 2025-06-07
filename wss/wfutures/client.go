@@ -2,6 +2,7 @@ package wfutures
 
 import (
 	"context"
+	"github.com/jekaxv/go-binance/types"
 	"github.com/jekaxv/go-binance/wss"
 )
 
@@ -64,60 +65,60 @@ func (c *Client) NewTickerBook() *TickerBook {
 
 // NewCreateOrder New Order(TRADE)
 func (c *Client) NewCreateOrder() *CreateOrder {
-	c.C.SetReq("order.place", wss.AuthSigned)
+	c.C.SetReq("order.place", types.AuthSigned)
 	return &CreateOrder{c: c}
 }
 
 // NewModifyOrder Modify Order (TRADE)
 func (c *Client) NewModifyOrder() *ModifyOrder {
-	c.C.SetReq("order.modify", wss.AuthSigned)
+	c.C.SetReq("order.modify", types.AuthSigned)
 	return &ModifyOrder{c: c}
 }
 
 // NewCancelOrder Cancel Order (TRADE)
 func (c *Client) NewCancelOrder() *CancelOrder {
-	c.C.SetReq("order.cancel", wss.AuthSigned)
+	c.C.SetReq("order.cancel", types.AuthSigned)
 	return &CancelOrder{c: c}
 }
 
 // NewQueryOrder Query Order (USER_DATA)
 func (c *Client) NewQueryOrder() *QueryOrder {
-	c.C.SetReq("order.status", wss.AuthSigned)
+	c.C.SetReq("order.status", types.AuthSigned)
 	return &QueryOrder{c: c}
 }
 
 // NewPositionInfo Position Information V2 (USER_DATA)
 func (c *Client) NewPositionInfo() *PositionInfo {
-	c.C.SetReq("v2/account.position", wss.AuthSigned)
+	c.C.SetReq("v2/account.position", types.AuthSigned)
 	return &PositionInfo{c: c}
 }
 
 // NewAccountBalance Futures Account Balance V2(USER_DATA)
 func (c *Client) NewAccountBalance() *AccountBalance {
-	c.C.SetReq("v2/account.balance", wss.AuthSigned)
+	c.C.SetReq("v2/account.balance", types.AuthSigned)
 	return &AccountBalance{c: c}
 }
 
 // NewAccountInfo Account Information V2(USER_DATA)
 func (c *Client) NewAccountInfo() *AccountInfo {
-	c.C.SetReq("v2/account.status", wss.AuthSigned)
+	c.C.SetReq("v2/account.status", types.AuthSigned)
 	return &AccountInfo{c: c}
 }
 
-// NewStartUserDataStream Start user data stream (USER_STREAM)
-func (c *Client) NewStartUserDataStream() *StartUserDataStream {
-	c.C.SetReq("userDataStream.start", wss.AuthApiKey)
-	return &StartUserDataStream{c: c}
+// NewSessionLogon Log in with API key (SIGNED)
+func (c *Client) NewSessionLogon() *SessionLogon {
+	c.C.SetReq("session.logon", types.AuthSigned)
+	return &SessionLogon{c: c}
 }
 
-// NewPingUserDataStream Ping user data stream (USER_STREAM)
-func (c *Client) NewPingUserDataStream() *PingUserDataStream {
-	c.C.SetReq("userDataStream.ping", wss.AuthApiKey)
-	return &PingUserDataStream{c: c}
+// NewSessionStatus Query session status (SIGNED)
+func (c *Client) NewSessionStatus() *SessionStatus {
+	c.C.SetReq("session.status", types.AuthSigned)
+	return &SessionStatus{c: c}
 }
 
-// NewStopUserDataStream Stop user data stream (USER_STREAM)
-func (c *Client) NewStopUserDataStream() *StopUserDataStream {
-	c.C.SetReq("userDataStream.stop", wss.AuthApiKey)
-	return &StopUserDataStream{c: c}
+// NewSessionLogout Log out of the session
+func (c *Client) NewSessionLogout() *SessionLogout {
+	c.C.SetReq("session.logout", types.AuthSigned)
+	return &SessionLogout{c: c}
 }

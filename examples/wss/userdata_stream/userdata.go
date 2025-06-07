@@ -12,8 +12,8 @@ func main() {
 	ctx, cancelFunc := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancelFunc()
 	client := binance.NewWsClient(wss.Options{
-		ApiKey:    "YourApiKey",
-		ApiSecret: "YourApiSecret",
+		ApiKey:    "YOUR_API_KEY",
+		ApiSecret: "YOUR_API_SECRET",
 	})
 	onMessage, onError := client.NewWebsocketStreams().SubscribeUserData("ListenKey").Do(ctx)
 	for {

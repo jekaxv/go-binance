@@ -9,7 +9,7 @@ import (
 
 func main() {
 	client := binance.NewFuturesClient(https.Options{
-		ApiKey: "Api Key",
+		ApiKey: "YOUR_API_KEY",
 	})
 	resp, err := client.NewHistoricalTrades().Symbol("BTCUSDT").Limit(10).Do(context.Background())
 	if err != nil {

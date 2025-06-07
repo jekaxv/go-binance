@@ -10,8 +10,8 @@ import (
 func main() {
 	client := binance.NewClient(https.Options{
 		Endpoint:  https.TestnetURL,
-		ApiKey:    "YourApiKey",
-		ApiSecret: "YourApiSecret",
+		ApiKey:    "YOUR_API_KEY",
+		ApiSecret: "YOUR_API_SECRET",
 	})
 	resp, err := client.NewCancelOrder().Symbol("BTCUSDT").OrderId(4).Do(context.Background())
 	if err != nil {
