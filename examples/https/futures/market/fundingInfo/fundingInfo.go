@@ -4,13 +4,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/jekaxv/go-binance"
-	"github.com/jekaxv/go-binance/https"
 )
 
 func main() {
-	client := binance.NewFuturesClient(https.Options{
-		Endpoint: https.FuturesTestnetUrl,
-	})
+	client := binance.NewFuturesClient()
 	resp, err := client.NewFundingInfo().Do(context.Background())
 	if err != nil {
 		panic(err)

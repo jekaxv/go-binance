@@ -2,57 +2,56 @@ package binance
 
 import (
 	"encoding/json"
-	"github.com/jekaxv/go-binance/https"
-	"github.com/jekaxv/go-binance/https/hfutures"
-	"github.com/jekaxv/go-binance/wss"
-	"github.com/jekaxv/go-binance/wss/wfutures"
-	"log/slog"
+	"github.com/jekaxv/go-binance/core"
+	"github.com/jekaxv/go-binance/futures"
+	"github.com/jekaxv/go-binance/spot"
+	"net/http"
 )
 
-func NewClient(opt ...https.Options) *https.Client {
-	return &https.Client{
-		Opt:        https.NewOptions(opt...),
-		HttpClient: https.DefaultClient,
-		Logger:     slog.Default(),
-	}
-}
-
-func NewWsClient(opt ...wss.Options) *wss.Client {
-	return &wss.Client{
-		Opt:    wss.NewOptions(opt...),
-		Logger: slog.Default(),
-	}
-}
-
-func NewWsApiClient(opt ...wss.Options) *wss.Client {
-	return &wss.Client{
-		Opt:    wss.NewApiOptions(opt...),
-		Logger: slog.Default(),
-	}
-}
-
-func NewFuturesClient(opt ...https.Options) *hfutures.Client {
-	return &hfutures.Client{
-		C: &https.Client{
-			Opt:        https.NewFuturesOptions(opt...),
-			HttpClient: https.DefaultClient,
-			Logger:     slog.Default(),
+func NewClient(opt ...core.Options) *spot.Client {
+	return &spot.Client{
+		C: &core.Client{
+			Opt:        core.NewOptions(opt...),
+			HttpClient: http.DefaultClient,
 		},
 	}
 }
-func NewFuturesWsApiClient(opt ...wss.Options) *wfutures.Client {
-	return &wfutures.Client{
-		C: &wss.Client{
-			Opt:    wss.NewFuturesApiOptions(opt...),
-			Logger: slog.Default(),
+
+func NewWsClient(opt ...core.Options) *spot.WsClient {
+	return &spot.WsClient{
+		C: &core.WsClient{
+			Opt: core.NewOptions(opt...),
 		},
 	}
 }
-func NewFuturesWsClient(opt ...wss.Options) *wfutures.Client {
-	return &wfutures.Client{
-		C: &wss.Client{
-			Opt:    wss.NewFuturesWsOptions(opt...),
-			Logger: slog.Default(),
+
+func NewWsApiClient(opt ...core.Options) *spot.WsClient {
+	return &spot.WsClient{
+		C: &core.WsClient{
+			Opt: core.NewWsApiOptions(opt...),
+		},
+	}
+}
+
+func NewFuturesClient(opt ...core.Options) *futures.Client {
+	return &futures.Client{
+		C: &core.Client{
+			Opt:        core.NewFuturesOptions(opt...),
+			HttpClient: http.DefaultClient,
+		},
+	}
+}
+func NewFuturesWsApiClient(opt ...core.Options) *futures.WsClient {
+	return &futures.WsClient{
+		C: &core.WsClient{
+			Opt: core.NewFuturesApiOptions(opt...),
+		},
+	}
+}
+func NewFuturesWsClient(opt ...core.Options) *futures.WsClient {
+	return &futures.WsClient{
+		C: &core.WsClient{
+			Opt: core.NewFuturesWsOptions(opt...),
 		},
 	}
 }

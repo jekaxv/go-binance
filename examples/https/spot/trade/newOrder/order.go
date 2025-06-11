@@ -4,18 +4,17 @@ import (
 	"context"
 	"fmt"
 	"github.com/jekaxv/go-binance"
-	"github.com/jekaxv/go-binance/https"
-	"github.com/jekaxv/go-binance/types"
+	"github.com/jekaxv/go-binance/core"
 )
 
 func main() {
-	client := binance.NewClient(https.Options{
-		Endpoint:  https.TestnetURL,
+	client := binance.NewClient(core.Options{
+		Endpoint:  core.TestnetURL,
 		ApiKey:    "YOUR_API_KEY",
 		ApiSecret: "YOUR_API_SECRET",
 	})
 	resp, err := client.NewCreateOrder().Symbol("BTCUSDT").
-		Side(types.OrderSideBUY).Type(types.OrderTypeMARKET).Quantity("0.001").
+		Side(core.OrderSideBUY).Type(core.OrderTypeMARKET).Quantity("0.001").
 		Do(context.Background())
 	if err != nil {
 		fmt.Println(err)

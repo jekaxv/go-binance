@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/jekaxv/go-binance"
-	"github.com/jekaxv/go-binance/wss"
+	"github.com/jekaxv/go-binance/core"
 )
 
 func main() {
-	client := binance.NewWsApiClient(wss.Options{
-		Endpoint:  wss.ApiTestnetURL,
+	client := binance.NewWsApiClient(core.Options{
+		Endpoint:  core.ApiTestnetURL,
 		ApiKey:    "YOUR_API_KEY",
 		ApiSecret: "YOUR_API_SECRET",
 	})

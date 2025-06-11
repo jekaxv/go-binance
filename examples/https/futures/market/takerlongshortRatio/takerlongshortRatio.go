@@ -4,13 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/jekaxv/go-binance"
-	"github.com/jekaxv/go-binance/https"
-	"github.com/jekaxv/go-binance/types"
+	"github.com/jekaxv/go-binance/core"
 )
 
 func main() {
-	client := binance.NewFuturesClient(https.Options{})
-	resp, err := client.NewTakerVolume().Symbol("BTCUSDT").Period(types.Interval5m).Do(context.Background())
+	client := binance.NewFuturesClient()
+	resp, err := client.NewTakerVolume().Symbol("BTCUSDT").Period(core.Interval5m).Do(context.Background())
 	if err != nil {
 		panic(err)
 	}

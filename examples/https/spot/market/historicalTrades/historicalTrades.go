@@ -4,13 +4,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/jekaxv/go-binance"
-	"github.com/jekaxv/go-binance/https"
 )
 
 func main() {
-	client := binance.NewClient(https.Options{
-		Endpoint: https.TestnetURL,
-	})
+	client := binance.NewClient()
 	resp, err := client.NewHistoricalTrades().Symbol("BTCUSDT").Limit(10).Do(context.Background())
 	if err != nil {
 		panic(err)

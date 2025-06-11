@@ -4,17 +4,16 @@ import (
 	"context"
 	"fmt"
 	"github.com/jekaxv/go-binance"
-	"github.com/jekaxv/go-binance/https"
-	"github.com/jekaxv/go-binance/https/hfutures"
+	"github.com/jekaxv/go-binance/core"
+	"github.com/jekaxv/go-binance/futures"
 )
 
 func main() {
-	client := binance.NewFuturesClient(https.Options{
-		Endpoint:  https.FuturesTestnetUrl,
+	client := binance.NewFuturesClient(core.Options{
 		ApiKey:    "YOUR_API_KEY",
 		ApiSecret: "YOUR_API_SECRET",
 	})
-	orders := []hfutures.OrderReq{{
+	orders := []futures.OrderReq{{
 		Symbol:    "BTCUSDT",
 		Side:      "BUY",
 		OrderType: "MARKET",

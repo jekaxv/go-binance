@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/jekaxv/go-binance"
-	"github.com/jekaxv/go-binance/https"
+	"github.com/jekaxv/go-binance/core"
 )
 
 func main() {
-	client := binance.NewClient(https.Options{
-		Endpoint:  https.TestnetURL,
+	client := binance.NewClient(core.Options{
+		Endpoint:  core.TestnetURL,
 		ApiKey:    "YOUR_API_KEY",
 		ApiSecret: "YOUR_API_SECRET",
 	})

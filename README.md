@@ -1,6 +1,13 @@
 ## go-binance
 
-A simple Go library for interacting with the Binance API.
+### Overview
+
+This Go package provides a simple, typed client for interacting with the Binance REST and WebSocket APIs. It supports:
+
+- Spot trading: Market data, account information, and trade endpoints. 
+- Futures trading (WebSocket): Real-time data streams via WebSocket for futures markets.
+
+The package wraps the core HTTP and WebSocket clients and exposes domain-specific APIs under spot and futures namespaces.
 
 ## Installation
 
@@ -18,12 +25,12 @@ import (
 
 ## Quickstart
 
-### New Client
+### Creating a Client
 
 Initialize the client with your API key and secret. The endpoint is optional, default is "https://api.binance.com".
 
 ```go
-client := binance.NewClient(http.Options{
+client := binance.NewClient(core.Options{
     ApiKey:    "YOUR_API_KEY",
     ApiSecret: "YOUR_API_SECRET",
 })
@@ -37,17 +44,17 @@ import (
 	"context"
 	"fmt"
 	"github.com/jekaxv/go-binance"
-	"github.com/jekaxv/go-binance/https"
+	"github.com/jekaxv/go-binance/core"
 )
 
 func main() {
-	client := binance.NewClient(https.Options{
-		Endpoint:  https.TestnetURL,
+	client := binance.NewClient(core.Options{
+		Endpoint:  core.TestnetURL,
 		ApiKey:    "YOUR_API_KEY",
 		ApiSecret: "YOUR_API_SECRET",
 	})
 	resp, err := client.NewCreateOrder().Symbol("BTCUSDT").
-		Side(binance.OrderSideBUY).Type(binance.OrderTypeMARKET).Quantity("0.001").
+		Side(core.OrderSideBUY).Type(core.OrderTypeMARKET).Quantity("0.001").
 		Do(context.Background())
 	if err != nil {
 		fmt.Println(err)
@@ -58,7 +65,7 @@ func main() {
 ```
 
 ## Websocket
-### New Client
+### Creating a WebSocket Client
 Initialize the client with your API key and secret. The endpoint is optional, default is "wss://stream.binance.com:9443".
 
 ```go
@@ -68,11 +75,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/jekaxv/go-binance"
-	"github.com/jekaxv/go-binance/wss"
+	"github.com/jekaxv/go-binance/core"
 )
 
 func main() {
-	client := binance.NewWsApiClient(wss.Options{
+	client := binance.NewWsApiClient(core.Options{
 		ApiKey:    "YOUR_API_KEY",
 		ApiSecret: "YOUR_API_SECRET",
 	})

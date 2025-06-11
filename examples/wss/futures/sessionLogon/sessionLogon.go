@@ -4,15 +4,14 @@ import (
 	"context"
 	"fmt"
 	"github.com/jekaxv/go-binance"
-	"github.com/jekaxv/go-binance/types"
-	"github.com/jekaxv/go-binance/wss"
+	"github.com/jekaxv/go-binance/core"
 )
 
 func main() {
-	client := binance.NewFuturesWsApiClient(wss.Options{
+	client := binance.NewFuturesWsApiClient(core.Options{
 		ApiKey:    "YOUR_API_KEY",
 		ApiSecret: "YOUR_API_SECRET",
-		SignType:  types.SignTypeEd25519,
+		SignType:  core.SignTypeEd25519,
 	})
 	resp, err := client.NewSessionLogon().Do(context.Background())
 	if err != nil {

@@ -4,14 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/jekaxv/go-binance"
-	"github.com/jekaxv/go-binance/wss"
 	"time"
 )
 
 func main() {
-	client := binance.NewFuturesWsClient(wss.Options{
-		Endpoint: wss.FuturesStreamUrl,
-	})
+	client := binance.NewFuturesWsClient()
 	ctx, cancelFunc := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancelFunc()
 	onMessage, onError := client.NewWebsocketStreams().SubscribeMarkPrice("btcusdt").Do(ctx)

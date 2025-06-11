@@ -4,19 +4,16 @@ import (
 	"context"
 	"fmt"
 	"github.com/jekaxv/go-binance"
-	"github.com/jekaxv/go-binance/types"
-	"github.com/jekaxv/go-binance/wss"
+	"github.com/jekaxv/go-binance/core"
 	"time"
 )
 
 func main() {
-	client := binance.NewFuturesWsClient(wss.Options{
-		Endpoint: wss.FuturesStreamUrl,
-	})
+	client := binance.NewFuturesWsClient()
 	ctx, cancelFunc := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancelFunc()
 	onMessage, onError := client.NewWebsocketStreams().
-		SubscribeKline("BTCUSDT", types.Interval1m).
+		SubscribeKline("BTCUSDT", core.Interval1m).
 		Do(ctx)
 	for {
 		select {
