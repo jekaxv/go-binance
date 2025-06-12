@@ -23,13 +23,13 @@ type baseHttpTestSuite struct {
 func (s *baseHttpTestSuite) SetupTest() {
 	s.client = new(mockedHttpClient)
 	client := Client{
-		C: &core.Client{
+		&core.Client{
 			Opt: &core.Options{
 				ApiKey:    "YOUR_API_KEY",
 				ApiSecret: "YOUR_API_SECRET",
+				Logger:    slog.Default(),
 			},
 			HttpClient: http.DefaultClient,
-			Logger:     slog.Default(),
 		},
 	}
 	s.client.Client = &client
@@ -47,7 +47,7 @@ func (s *baseHttpTestSuite) mockServer(msg []byte) *httptest.Server {
 
 func (s *baseHttpTestSuite) setup(msg []byte) *httptest.Server {
 	server := s.mockServer(msg)
-	s.client.C.Opt.Endpoint = server.URL
+	s.client.Opt.Endpoint = server.URL
 	return server
 }
 

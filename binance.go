@@ -10,7 +10,7 @@ import (
 
 func NewClient(opt ...core.Options) *spot.Client {
 	return &spot.Client{
-		C: &core.Client{
+		Client: &core.Client{
 			Opt:        core.NewOptions(opt...),
 			HttpClient: http.DefaultClient,
 		},
@@ -19,7 +19,7 @@ func NewClient(opt ...core.Options) *spot.Client {
 
 func NewWsClient(opt ...core.Options) *spot.WsClient {
 	return &spot.WsClient{
-		C: &core.WsClient{
+		WsClient: &core.WsClient{
 			Opt: core.NewOptions(opt...),
 		},
 	}
@@ -27,7 +27,7 @@ func NewWsClient(opt ...core.Options) *spot.WsClient {
 
 func NewWsApiClient(opt ...core.Options) *spot.WsClient {
 	return &spot.WsClient{
-		C: &core.WsClient{
+		WsClient: &core.WsClient{
 			Opt: core.NewWsApiOptions(opt...),
 		},
 	}
@@ -35,7 +35,7 @@ func NewWsApiClient(opt ...core.Options) *spot.WsClient {
 
 func NewFuturesClient(opt ...core.Options) *futures.Client {
 	return &futures.Client{
-		C: &core.Client{
+		Client: &core.Client{
 			Opt:        core.NewFuturesOptions(opt...),
 			HttpClient: http.DefaultClient,
 		},
@@ -43,14 +43,14 @@ func NewFuturesClient(opt ...core.Options) *futures.Client {
 }
 func NewFuturesWsApiClient(opt ...core.Options) *futures.WsClient {
 	return &futures.WsClient{
-		C: &core.WsClient{
+		WsClient: &core.WsClient{
 			Opt: core.NewFuturesApiOptions(opt...),
 		},
 	}
 }
 func NewFuturesWsClient(opt ...core.Options) *futures.WsClient {
 	return &futures.WsClient{
-		C: &core.WsClient{
+		WsClient: &core.WsClient{
 			Opt: core.NewFuturesWsOptions(opt...),
 		},
 	}

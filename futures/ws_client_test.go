@@ -22,18 +22,18 @@ type baseWsTestSuite struct {
 }
 
 func (s *baseWsTestSuite) mockClient(url string) {
-	s.client.WsClient.C.Opt.Endpoint = url
+	s.client.WsClient.Opt.Endpoint = url
 }
 
 func (s *baseWsTestSuite) SetupTest() {
 	s.client = new(mockedWsClient)
 	client := WsClient{
-		C: &core.WsClient{
+		&core.WsClient{
 			Opt: &core.Options{
 				ApiKey:    "YOUR_API_KEY",
 				ApiSecret: "YOUR_API_SECRET",
+				Logger:    slog.Default(),
 			},
-			Logger: slog.Default(),
 		},
 	}
 	s.client.WsClient = &client

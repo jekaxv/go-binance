@@ -91,3 +91,5 @@ func main() {
 	fmt.Printf(binance.PrettyPrint(resp))
 }
 ```
+
+More examples can be found in [examples](https://github.com/jekaxv/go-binance/tree/main/examples)
