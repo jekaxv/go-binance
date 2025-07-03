@@ -3,12 +3,14 @@ package spot
 import (
 	"context"
 	"encoding/json"
+	"github.com/jekaxv/go-binance/core"
 	"github.com/shopspring/decimal"
 )
 
 // AccountInformation Query information about your account.
 type AccountInformation struct {
 	c *WsClient
+	r *core.WsRequest
 }
 
 type AccountInformationResult struct {
@@ -38,22 +40,27 @@ type AccountInformationResponse struct {
 // OmitZeroBalances When set to true, emits only the non-zero balances of an account.
 // Default value: false
 func (s *AccountInformation) OmitZeroBalances(omitZeroBalances bool) *AccountInformation {
-	s.c.setParams("omitZeroBalances", omitZeroBalances)
+	s.r.Set("omitZeroBalances", omitZeroBalances)
 	return s
 }
 
 // RecvWindow The value cannot be greater than 60000
 func (s *AccountInformation) RecvWindow(recvWindow int) *AccountInformation {
-	s.c.setParams("recvWindow", recvWindow)
+	s.r.Set("recvWindow", recvWindow)
 	return s
 }
 
 func (s *AccountInformation) Do(ctx context.Context) (*AccountInformationResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
@@ -70,6 +77,7 @@ func (s *AccountInformation) Do(ctx context.Context) (*AccountInformationRespons
 // UnfilledOrder Query your current unfilled order count for all intervals.
 type UnfilledOrder struct {
 	c *WsClient
+	r *core.WsRequest
 }
 
 type UnfilledOrderResult struct {
@@ -85,16 +93,21 @@ type UnfilledOrderResponse struct {
 }
 
 func (s *UnfilledOrder) RecvWindow(recvWindow int) *UnfilledOrder {
-	s.c.setParams("recvWindow", recvWindow)
+	s.r.Set("recvWindow", recvWindow)
 	return s
 }
 
 func (s *UnfilledOrder) Do(ctx context.Context) (*UnfilledOrderResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
@@ -111,6 +124,7 @@ func (s *UnfilledOrder) Do(ctx context.Context) (*UnfilledOrderResponse, error) 
 // AccountOrderHistory Query information about all your orders – active, canceled, filled – filtered by time range.
 type AccountOrderHistory struct {
 	c *WsClient
+	r *core.WsRequest
 }
 
 type AccountOrderHistoryResult struct {
@@ -144,37 +158,42 @@ type AccountOrderHistoryResponse struct {
 }
 
 func (s *AccountOrderHistory) Symbol(symbol string) *AccountOrderHistory {
-	s.c.setParams("symbol", symbol)
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 // OrderId Order ID to begin at
 func (s *AccountOrderHistory) OrderId(orderId int) *AccountOrderHistory {
-	s.c.setParams("orderId", orderId)
+	s.r.Set("orderId", orderId)
 	return s
 }
 func (s *AccountOrderHistory) StartTime(startTime int) *AccountOrderHistory {
-	s.c.setParams("startTime", startTime)
+	s.r.Set("startTime", startTime)
 	return s
 }
 func (s *AccountOrderHistory) EndTime(endTime int) *AccountOrderHistory {
-	s.c.setParams("endTime", endTime)
+	s.r.Set("endTime", endTime)
 	return s
 }
 func (s *AccountOrderHistory) Limit(limit int) *AccountOrderHistory {
-	s.c.setParams("limit", limit)
+	s.r.Set("limit", limit)
 	return s
 }
 func (s *AccountOrderHistory) RecvWindow(recvWindow int) *AccountOrderHistory {
-	s.c.setParams("recvWindow", recvWindow)
+	s.r.Set("recvWindow", recvWindow)
 	return s
 }
 func (s *AccountOrderHistory) Do(ctx context.Context) (*AccountOrderHistoryResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
@@ -191,6 +210,7 @@ func (s *AccountOrderHistory) Do(ctx context.Context) (*AccountOrderHistoryRespo
 // AllOrderList Query information about all your order lists, filtered by time range.
 type AllOrderList struct {
 	c *WsClient
+	r *core.WsRequest
 }
 
 type AllOrderListResult struct {
@@ -211,31 +231,36 @@ type AllOrderListResponse struct {
 
 // FromId Order list ID to begin at
 func (s *AllOrderList) FromId(fromId int) *AllOrderList {
-	s.c.setParams("fromId", fromId)
+	s.r.Set("fromId", fromId)
 	return s
 }
 func (s *AllOrderList) StartTime(startTime int) *AllOrderList {
-	s.c.setParams("startTime", startTime)
+	s.r.Set("startTime", startTime)
 	return s
 }
 func (s *AllOrderList) EndTime(endTime int) *AllOrderList {
-	s.c.setParams("endTime", endTime)
+	s.r.Set("endTime", endTime)
 	return s
 }
 func (s *AllOrderList) Limit(limit int) *AllOrderList {
-	s.c.setParams("limit", limit)
+	s.r.Set("limit", limit)
 	return s
 }
 func (s *AllOrderList) RecvWindow(recvWindow int) *AllOrderList {
-	s.c.setParams("recvWindow", recvWindow)
+	s.r.Set("recvWindow", recvWindow)
 	return s
 }
 func (s *AllOrderList) Do(ctx context.Context) (*AllOrderListResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
@@ -252,6 +277,7 @@ func (s *AllOrderList) Do(ctx context.Context) (*AllOrderListResponse, error) {
 // AccountTradeHistory Query information about all your trades, filtered by time range.
 type AccountTradeHistory struct {
 	c *WsClient
+	r *core.WsRequest
 }
 type AccountTradeHistoryResult struct {
 	Symbol          string          `json:"symbol"`
@@ -274,39 +300,44 @@ type AccountTradeHistoryResponse struct {
 }
 
 func (s *AccountTradeHistory) Symbol(symbol string) *AccountTradeHistory {
-	s.c.setParams("symbol", symbol)
+	s.r.Set("symbol", symbol)
 	return s
 }
 func (s *AccountTradeHistory) OrderId(orderId int) *AccountTradeHistory {
-	s.c.setParams("orderId", orderId)
+	s.r.Set("orderId", orderId)
 	return s
 }
 func (s *AccountTradeHistory) StartTime(startTime int) *AccountTradeHistory {
-	s.c.setParams("startTime", startTime)
+	s.r.Set("startTime", startTime)
 	return s
 }
 func (s *AccountTradeHistory) EndTime(endTime int) *AccountTradeHistory {
-	s.c.setParams("endTime", endTime)
+	s.r.Set("endTime", endTime)
 	return s
 }
 func (s *AccountTradeHistory) FromId(fromId int) *AccountTradeHistory {
-	s.c.setParams("fromId", fromId)
+	s.r.Set("fromId", fromId)
 	return s
 }
 func (s *AccountTradeHistory) Limit(limit int) *AccountTradeHistory {
-	s.c.setParams("limit", limit)
+	s.r.Set("limit", limit)
 	return s
 }
 func (s *AccountTradeHistory) RecvWindow(recvWindow int) *AccountTradeHistory {
-	s.c.setParams("recvWindow", recvWindow)
+	s.r.Set("recvWindow", recvWindow)
 	return s
 }
 func (s *AccountTradeHistory) Do(ctx context.Context) (*AccountTradeHistoryResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
@@ -323,6 +354,7 @@ func (s *AccountTradeHistory) Do(ctx context.Context) (*AccountTradeHistoryRespo
 // AccountPreventedMatches Displays the list of orders that were expired due to STP.
 type AccountPreventedMatches struct {
 	c *WsClient
+	r *core.WsRequest
 }
 type AccountPreventedMatchesResult struct {
 	Symbol                  string          `json:"symbol"`
@@ -342,36 +374,41 @@ type AccountPreventedMatchesResponse struct {
 }
 
 func (s *AccountPreventedMatches) Symbol(symbol string) *AccountPreventedMatches {
-	s.c.setParams("symbol", symbol)
+	s.r.Set("symbol", symbol)
 	return s
 }
 func (s *AccountPreventedMatches) PreventedMatchId(preventedMatchId int) *AccountPreventedMatches {
-	s.c.setParams("preventedMatchId", preventedMatchId)
+	s.r.Set("preventedMatchId", preventedMatchId)
 	return s
 }
 func (s *AccountPreventedMatches) OrderId(orderId int) *AccountPreventedMatches {
-	s.c.setParams("orderId", orderId)
+	s.r.Set("orderId", orderId)
 	return s
 }
 func (s *AccountPreventedMatches) FromPreventedMatchId(fromPreventedMatchId int) *AccountPreventedMatches {
-	s.c.setParams("fromPreventedMatchId", fromPreventedMatchId)
+	s.r.Set("fromPreventedMatchId", fromPreventedMatchId)
 	return s
 }
 func (s *AccountPreventedMatches) Limit(limit int) *AccountPreventedMatches {
-	s.c.setParams("limit", limit)
+	s.r.Set("limit", limit)
 	return s
 }
 func (s *AccountPreventedMatches) RecvWindow(recvWindow int) *AccountPreventedMatches {
-	s.c.setParams("recvWindow", recvWindow)
+	s.r.Set("recvWindow", recvWindow)
 	return s
 }
 
 func (s *AccountPreventedMatches) Do(ctx context.Context) (*AccountPreventedMatchesResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
@@ -388,6 +425,7 @@ func (s *AccountPreventedMatches) Do(ctx context.Context) (*AccountPreventedMatc
 // AccountAllocations Retrieves allocations resulting from SOR order placement.
 type AccountAllocations struct {
 	c *WsClient
+	r *core.WsRequest
 }
 type AccountAllocationsResult struct {
 	Symbol          string          `json:"symbol"`
@@ -411,39 +449,44 @@ type AccountAllocationsResponse struct {
 }
 
 func (s *AccountAllocations) Symbol(symbol string) *AccountAllocations {
-	s.c.setParams("symbol", symbol)
+	s.r.Set("symbol", symbol)
 	return s
 }
 func (s *AccountAllocations) StartTime(startTime int) *AccountAllocations {
-	s.c.setParams("startTime", startTime)
+	s.r.Set("startTime", startTime)
 	return s
 }
 func (s *AccountAllocations) EndTime(endTime int) *AccountAllocations {
-	s.c.setParams("endTime", endTime)
+	s.r.Set("endTime", endTime)
 	return s
 }
 func (s *AccountAllocations) FromAllocationId(fromAllocationId int) *AccountAllocations {
-	s.c.setParams("fromAllocationId", fromAllocationId)
+	s.r.Set("fromAllocationId", fromAllocationId)
 	return s
 }
 func (s *AccountAllocations) Limit(limit int) *AccountAllocations {
-	s.c.setParams("limit", limit)
+	s.r.Set("limit", limit)
 	return s
 }
 func (s *AccountAllocations) OrderId(orderId int) *AccountAllocations {
-	s.c.setParams("orderId", orderId)
+	s.r.Set("orderId", orderId)
 	return s
 }
 func (s *AccountAllocations) RecvWindow(recvWindow int) *AccountAllocations {
-	s.c.setParams("recvWindow", recvWindow)
+	s.r.Set("recvWindow", recvWindow)
 	return s
 }
 func (s *AccountAllocations) Do(ctx context.Context) (*AccountAllocationsResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
@@ -459,6 +502,7 @@ func (s *AccountAllocations) Do(ctx context.Context) (*AccountAllocationsRespons
 
 type AccountCommission struct {
 	c *WsClient
+	r *core.WsRequest
 }
 type AccountCommissionResult struct {
 	Symbol             string             `json:"symbol"`
@@ -473,16 +517,21 @@ type AccountCommissionResponse struct {
 }
 
 func (s *AccountCommission) Symbol(symbol string) *AccountCommission {
-	s.c.setParams("symbol", symbol)
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *AccountCommission) Do(ctx context.Context) (*AccountCommissionResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():

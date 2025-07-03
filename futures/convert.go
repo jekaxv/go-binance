@@ -3,23 +3,23 @@ package futures
 import (
 	"context"
 	"encoding/json"
+	"github.com/jekaxv/go-binance/core"
 	"github.com/shopspring/decimal"
 )
 
 // ConvertExchangeInfo Query for all convertible token pairs and the tokens’ respective upper/lower limits
 type ConvertExchangeInfo struct {
-	c         *Client
-	fromAsset *string
-	toAsset   *string
+	c *Client
+	r *core.Request
 }
 
 func (s *ConvertExchangeInfo) FromAsset(fromAsset string) *ConvertExchangeInfo {
-	s.fromAsset = &fromAsset
+	s.r.Set("fromAsset", fromAsset)
 	return s
 }
 
 func (s *ConvertExchangeInfo) ToAsset(toAsset string) *ConvertExchangeInfo {
-	s.toAsset = &toAsset
+	s.r.Set("toAsset", toAsset)
 	return s
 }
 
@@ -33,14 +33,8 @@ type ConvertExchangeInfoResponse struct {
 }
 
 func (s *ConvertExchangeInfo) Do(ctx context.Context) ([]*ConvertExchangeInfoResponse, error) {
-	if s.fromAsset != nil {
-		s.c.set("fromAsset", *s.fromAsset)
-	}
-	if s.toAsset != nil {
-		s.c.set("toAsset", *s.toAsset)
-	}
-	var resp []*ConvertExchangeInfoResponse
-	if err := s.c.invoke(ctx); err != nil {
+	resp := make([]*ConvertExchangeInfoResponse, 0)
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return resp, err
 	}
 	return resp, json.Unmarshal(s.c.rawBody(), &resp)
@@ -48,40 +42,35 @@ func (s *ConvertExchangeInfo) Do(ctx context.Context) ([]*ConvertExchangeInfoRes
 
 // GetQuote Request a quote for the requested token pairs
 type GetQuote struct {
-	c          *Client
-	fromAsset  string
-	toAsset    string
-	fromAmount *float64
-	toAmount   *float64
-	validTime  *string
-	recvWindow *int64
+	c *Client
+	r *core.Request
 }
 
 func (s *GetQuote) FromAsset(fromAsset string) *GetQuote {
-	s.fromAsset = fromAsset
+	s.r.Set("fromAsset", fromAsset)
 	return s
 }
 
 func (s *GetQuote) ToAsset(toAsset string) *GetQuote {
-	s.toAsset = toAsset
+	s.r.Set("toAsset", toAsset)
 	return s
 }
 func (s *GetQuote) FromAmount(fromAmount float64) *GetQuote {
-	s.fromAmount = &fromAmount
+	s.r.Set("fromAmount", fromAmount)
 	return s
 }
 func (s *GetQuote) ToAmount(toAmount float64) *GetQuote {
-	s.toAmount = &toAmount
+	s.r.Set("toAmount", toAmount)
 	return s
 }
 
 // ValidTime 10s, default 10s
 func (s *GetQuote) ValidTime(validTime string) *GetQuote {
-	s.validTime = &validTime
+	s.r.Set("validTime", validTime)
 	return s
 }
 func (s *GetQuote) RecvWindow(recvWindow int64) *GetQuote {
-	s.recvWindow = &recvWindow
+	s.r.Set("recvWindow", recvWindow)
 	return s
 }
 
@@ -95,40 +84,25 @@ type GetQuoteResponse struct {
 }
 
 func (s *GetQuote) Do(ctx context.Context) (*GetQuoteResponse, error) {
-	s.c.set("fromAsset", s.fromAsset)
-	s.c.set("toAsset", s.toAsset)
-	if s.fromAmount != nil {
-		s.c.set("fromAmount", *s.fromAmount)
-	}
-	if s.toAmount != nil {
-		s.c.set("toAmount", *s.toAmount)
-	}
-	if s.validTime != nil {
-		s.c.set("validTime", *s.validTime)
-	}
-	if s.recvWindow != nil {
-		s.c.set("recvWindow", *s.recvWindow)
-	}
-	var resp *GetQuoteResponse
-	if err := s.c.invoke(ctx); err != nil {
+	resp := new(GetQuoteResponse)
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return resp, err
 	}
-	return resp, json.Unmarshal(s.c.rawBody(), &resp)
+	return resp, json.Unmarshal(s.c.rawBody(), resp)
 }
 
 // AcceptQuote Accept the offered quote by quote ID.
 type AcceptQuote struct {
-	c          *Client
-	quoteId    string
-	recvWindow *int64
+	c *Client
+	r *core.Request
 }
 
 func (s *AcceptQuote) QuoteId(quoteId string) *AcceptQuote {
-	s.quoteId = quoteId
+	s.r.Set("quoteId", quoteId)
 	return s
 }
 func (s *AcceptQuote) RecvWindow(recvWindow int64) *AcceptQuote {
-	s.recvWindow = &recvWindow
+	s.r.Set("recvWindow", recvWindow)
 	return s
 }
 
@@ -139,30 +113,25 @@ type AcceptQuoteResponse struct {
 }
 
 func (s *AcceptQuote) Do(ctx context.Context) (*AcceptQuoteResponse, error) {
-	s.c.set("quoteId", s.quoteId)
-	if s.recvWindow != nil {
-		s.c.set("recvWindow", *s.recvWindow)
-	}
-	var resp *AcceptQuoteResponse
-	if err := s.c.invoke(ctx); err != nil {
+	resp := new(AcceptQuoteResponse)
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return resp, err
 	}
-	return resp, json.Unmarshal(s.c.rawBody(), &resp)
+	return resp, json.Unmarshal(s.c.rawBody(), resp)
 }
 
 // ConvertOrderStatus Query order status by order ID.
 type ConvertOrderStatus struct {
-	c       *Client
-	quoteId *string
-	orderId *string
+	c *Client
+	r *core.Request
 }
 
 func (s *ConvertOrderStatus) QuoteId(quoteId string) *ConvertOrderStatus {
-	s.quoteId = &quoteId
+	s.r.Set("quoteId", quoteId)
 	return s
 }
 func (s *ConvertOrderStatus) OrderId(orderId string) *ConvertOrderStatus {
-	s.orderId = &orderId
+	s.r.Set("orderId", orderId)
 	return s
 }
 
@@ -179,15 +148,9 @@ type ConvertOrderStatusResponse struct {
 }
 
 func (s *ConvertOrderStatus) Do(ctx context.Context) (*ConvertOrderStatusResponse, error) {
-	if s.quoteId != nil {
-		s.c.set("quoteId", *s.quoteId)
-	}
-	if s.orderId != nil {
-		s.c.set("orderId", *s.orderId)
-	}
-	var resp *ConvertOrderStatusResponse
-	if err := s.c.invoke(ctx); err != nil {
+	resp := new(ConvertOrderStatusResponse)
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return resp, err
 	}
-	return resp, json.Unmarshal(s.c.rawBody(), &resp)
+	return resp, json.Unmarshal(s.c.rawBody(), resp)
 }

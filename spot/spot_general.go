@@ -74,10 +74,11 @@ type SymbolFilter struct {
 // Ping Test connectivity to the Rest API.
 type Ping struct {
 	c *Client
+	r *core.Request
 }
 
 func (s *Ping) Do(ctx context.Context) error {
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return err
 	}
 	return nil
@@ -86,6 +87,7 @@ func (s *Ping) Do(ctx context.Context) error {
 // ServerTime Test connectivity to the Rest API and get the current server time.
 type ServerTime struct {
 	c *Client
+	r *core.Request
 }
 
 type ServerTimeResponse struct {
@@ -94,7 +96,7 @@ type ServerTimeResponse struct {
 
 func (s *ServerTime) Do(ctx context.Context) (*ServerTimeResponse, error) {
 	var resp ServerTimeResponse
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return &resp, err
 	}
 	return &resp, json.Unmarshal(s.c.rawBody(), &resp)
@@ -102,12 +104,8 @@ func (s *ServerTime) Do(ctx context.Context) (*ServerTimeResponse, error) {
 
 // ExchangeInfo Current exchange trading rules and symbol information
 type ExchangeInfo struct {
-	c                  *Client
-	symbol             *string
-	symbols            []string
-	permissions        []core.PermissionEnum
-	showPermissionSets *bool
-	symbolStatus       *core.SymbolStatusEnum
+	c *Client
+	r *core.Request
 }
 
 type ExchangeInfoResponse struct {
@@ -119,55 +117,38 @@ type ExchangeInfoResponse struct {
 }
 
 func (s *ExchangeInfo) Symbol(symbol string) *ExchangeInfo {
-	s.symbol = &symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *ExchangeInfo) Symbols(symbols []string) *ExchangeInfo {
-	s.symbols = symbols
+	s.r.Set("symbols", symbols)
 	return s
 }
 
 // Permissions can support single or multiple values (e.g. SPOT, ["MARGIN","LEVERAGED"]). This cannot be used in combination with symbol or symbols.
 func (s *ExchangeInfo) Permissions(permissions []core.PermissionEnum) *ExchangeInfo {
-	s.permissions = permissions
+	s.r.Set("permissions", permissions)
 	return s
 }
 
 // ShowPermissionSets Controls whether the content of the permissionSets field is populated or not. Defaults to true
 func (s *ExchangeInfo) ShowPermissionSets(showPermissionSets bool) *ExchangeInfo {
-	s.showPermissionSets = &showPermissionSets
+	s.r.Set("showPermissionSets", showPermissionSets)
 	return s
 }
 
 // SymbolStatus Filters symbols that have this tradingStatus. Valid values: TRADING, HALT, BREAK
 // Cannot be used in combination with symbols or symbol.
 func (s *ExchangeInfo) SymbolStatus(symbolStatus core.SymbolStatusEnum) *ExchangeInfo {
-	s.symbolStatus = &symbolStatus
+	s.r.Set("symbolStatus", symbolStatus)
 	return s
 }
 
 func (s *ExchangeInfo) Do(ctx context.Context) (*ExchangeInfoResponse, error) {
-	var resp ExchangeInfoResponse
-	if s.symbol != nil {
-		s.c.set("symbol", *s.symbol)
+	resp := new(ExchangeInfoResponse)
+	if err := s.c.invoke(s.r, ctx); err != nil {
+		return resp, err
 	}
-	if len(s.symbols) != 0 {
-		s.c.set("symbols", s.symbols)
-	}
-	if len(s.permissions) == 1 {
-		s.c.set("permissions", s.permissions[0])
-	} else if len(s.permissions) >= 2 {
-		s.c.set("permissions", s.permissions)
-	}
-	if s.showPermissionSets != nil {
-		s.c.set("showPermissionSets", *s.showPermissionSets)
-	}
-	if s.symbolStatus != nil {
-		s.c.set("symbolStatus", *s.symbolStatus)
-	}
-	if err := s.c.invoke(ctx); err != nil {
-		return &resp, err
-	}
-	return &resp, json.Unmarshal(s.c.rawBody(), &resp)
+	return resp, json.Unmarshal(s.c.rawBody(), resp)
 }

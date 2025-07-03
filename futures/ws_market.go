@@ -3,12 +3,14 @@ package futures
 import (
 	"context"
 	"encoding/json"
+	"github.com/jekaxv/go-binance/core"
 	"github.com/shopspring/decimal"
 )
 
 // WsDepth Get current order book. Note that this request returns limited market depth
 type WsDepth struct {
 	c *WsClient
+	r *core.WsRequest
 }
 
 type DepthResult struct {
@@ -25,22 +27,27 @@ type WsDepthResponse struct {
 }
 
 func (s *WsDepth) Symbol(symbol string) *WsDepth {
-	s.c.setParams("symbol", symbol)
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 // Limit Default 500; Valid limits:[5, 10, 20, 50, 100, 500, 1000]
 func (s *WsDepth) Limit(limit uint) *WsDepth {
-	s.c.setParams("limit", limit)
+	s.r.Set("limit", limit)
 	return s
 }
 
 func (s *WsDepth) Do(ctx context.Context) (*WsDepthResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
@@ -56,8 +63,8 @@ func (s *WsDepth) Do(ctx context.Context) (*WsDepthResponse, error) {
 
 // WsTickerPrice Latest price for a symbol or symbols.
 type WsTickerPrice struct {
-	c      *WsClient
-	symbol *string
+	c *WsClient
+	r *core.WsRequest
 }
 
 type TickerPriceResult struct {
@@ -72,24 +79,28 @@ type WsTickerPriceResponse struct {
 }
 
 func (s *WsTickerPrice) Symbol(symbol string) *WsTickerPrice {
-	s.c.setParams("symbol", symbol)
-	s.symbol = &symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *WsTickerPrice) Do(ctx context.Context) (*WsTickerPriceResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		case message := <-onMessage:
 			resp := new(WsTickerPriceResponse)
-			if s.symbol == nil {
+			if s.r.Get("symbol") == nil {
 				return resp, json.Unmarshal(message, &resp)
 			}
 			var apiResp ApiResponse
@@ -111,8 +122,8 @@ func (s *WsTickerPrice) Do(ctx context.Context) (*WsTickerPriceResponse, error) 
 
 // WsTickerBook Best price/qty on the order book for a symbol or symbols.
 type WsTickerBook struct {
-	c      *WsClient
-	symbol *string
+	c *WsClient
+	r *core.WsRequest
 }
 
 type TickerBookResult struct {
@@ -131,24 +142,28 @@ type WsTickerBookResponse struct {
 }
 
 func (s *WsTickerBook) Symbol(symbol string) *WsTickerBook {
-	s.c.setParams("symbol", symbol)
-	s.symbol = &symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *WsTickerBook) Do(ctx context.Context) (*WsTickerBookResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		case message := <-onMessage:
 			resp := new(WsTickerBookResponse)
-			if s.symbol == nil {
+			if s.r.Get("symbol") == nil {
 				return resp, json.Unmarshal(message, &resp)
 			}
 			var apiResp ApiResponse

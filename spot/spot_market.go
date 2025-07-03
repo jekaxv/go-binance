@@ -9,9 +9,8 @@ import (
 
 // Depth Get depth of a market
 type Depth struct {
-	c      *Client
-	symbol string
-	limit  *uint
+	c *Client
+	r *core.Request
 }
 
 type DepthResponse struct {
@@ -21,33 +20,28 @@ type DepthResponse struct {
 }
 
 func (s *Depth) Symbol(symbol string) *Depth {
-	s.symbol = symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 // Limit Default 100; max 5000. If limit > 5000, then the response will truncate to 5000.
-func (s *Depth) Limit(limit uint) *Depth {
-	s.limit = &limit
+func (s *Depth) Limit(limit int) *Depth {
+	s.r.Set("limit", limit)
 	return s
 }
 
 func (s *Depth) Do(ctx context.Context) (*DepthResponse, error) {
-	var resp DepthResponse
-	s.c.set("symbol", s.symbol)
-	if s.limit != nil {
-		s.c.set("limit", *s.limit)
+	resp := new(DepthResponse)
+	if err := s.c.invoke(s.r, ctx); err != nil {
+		return resp, err
 	}
-	if err := s.c.invoke(ctx); err != nil {
-		return &resp, err
-	}
-	return &resp, json.Unmarshal(s.c.rawBody(), &resp)
+	return resp, json.Unmarshal(s.c.rawBody(), resp)
 }
 
 // Trades Get recent trades.
 type Trades struct {
-	c      *Client
-	symbol string
-	limit  *uint
+	c *Client
+	r *core.Request
 }
 
 type TradesResponse struct {
@@ -61,23 +55,19 @@ type TradesResponse struct {
 }
 
 func (s *Trades) Symbol(symbol string) *Trades {
-	s.symbol = symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 // Limit Default 500; max 1000.
-func (s *Trades) Limit(limit uint) *Trades {
-	s.limit = &limit
+func (s *Trades) Limit(limit int) *Trades {
+	s.r.Set("limit", limit)
 	return s
 }
 
 func (s *Trades) Do(ctx context.Context) ([]*TradesResponse, error) {
-	var resp []*TradesResponse
-	s.c.set("symbol", s.symbol)
-	if s.limit != nil {
-		s.c.set("limit", *s.limit)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	resp := make([]*TradesResponse, 0)
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return resp, err
 	}
 	return resp, json.Unmarshal(s.c.rawBody(), &resp)
@@ -85,51 +75,38 @@ func (s *Trades) Do(ctx context.Context) ([]*TradesResponse, error) {
 
 // HistoricalTrades Get older trades.
 type HistoricalTrades struct {
-	c      *Client
-	symbol string
-	limit  *int
-	fromId *uint64
+	c *Client
+	r *core.Request
 }
 
 func (s *HistoricalTrades) Symbol(symbol string) *HistoricalTrades {
-	s.symbol = symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 // Limit Default 500; max 1000.
 func (s *HistoricalTrades) Limit(limit int) *HistoricalTrades {
-	s.limit = &limit
+	s.r.Set("limit", limit)
 	return s
 }
 
 // FromId Trade id to fetch from. Default gets most recent trades.
 func (s *HistoricalTrades) FromId(fromId uint64) *HistoricalTrades {
-	s.fromId = &fromId
+	s.r.Set("fromId", fromId)
 	return s
 }
 
 func (s *HistoricalTrades) Do(ctx context.Context) ([]*TradesResponse, error) {
-	var resp []*TradesResponse
-	s.c.set("symbol", s.symbol)
-	if s.limit != nil {
-		s.c.set("limit", *s.limit)
-	}
-	if s.fromId != nil {
-		s.c.set("fromId", *s.fromId)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	resp := make([]*TradesResponse, 0)
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return resp, err
 	}
 	return resp, json.Unmarshal(s.c.rawBody(), &resp)
 }
 
 type AggTrades struct {
-	c         *Client
-	symbol    string
-	fromId    *uint64
-	startTime *uint64
-	endTime   *uint64
-	limit     *uint
+	c *Client
+	r *core.Request
 }
 
 type AggTradesResponse struct {
@@ -144,50 +121,37 @@ type AggTradesResponse struct {
 }
 
 func (s *AggTrades) Symbol(symbol string) *AggTrades {
-	s.symbol = symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 // FromId ID to get aggregate trades from INCLUSIVE.
 func (s *AggTrades) FromId(fromId uint64) *AggTrades {
-	s.fromId = &fromId
+	s.r.Set("fromId", fromId)
 	return s
 }
 
 // StartTime Timestamp in ms to get aggregate trades from INCLUSIVE.
 func (s *AggTrades) StartTime(startTime uint64) *AggTrades {
-	s.startTime = &startTime
+	s.r.Set("startTime", startTime)
 	return s
 }
 
 // EndTime Timestamp in ms to get aggregate trades until INCLUSIVE.
 func (s *AggTrades) EndTime(endTime uint64) *AggTrades {
-	s.endTime = &endTime
+	s.r.Set("endTime", endTime)
 	return s
 }
 
 // Limit Default 500; max 1000.
-func (s *AggTrades) Limit(limit uint) *AggTrades {
-	s.limit = &limit
+func (s *AggTrades) Limit(limit int) *AggTrades {
+	s.r.Set("limit", limit)
 	return s
 }
 
 func (s *AggTrades) Do(ctx context.Context) ([]*AggTradesResponse, error) {
-	var resp []*AggTradesResponse
-	s.c.set("symbol", s.symbol)
-	if s.limit != nil {
-		s.c.set("limit", *s.limit)
-	}
-	if s.fromId != nil {
-		s.c.set("fromId", *s.fromId)
-	}
-	if s.startTime != nil {
-		s.c.set("startTime", *s.startTime)
-	}
-	if s.endTime != nil {
-		s.c.set("endTime", *s.endTime)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	resp := make([]*AggTradesResponse, 0)
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return resp, err
 	}
 	return resp, json.Unmarshal(s.c.rawBody(), &resp)
@@ -195,66 +159,47 @@ func (s *AggTrades) Do(ctx context.Context) ([]*AggTradesResponse, error) {
 
 // KlineData Kline/candlestick bars for a symbol. Klines are uniquely identified by their open time.
 type KlineData struct {
-	c         *Client
-	symbol    string
-	interval  core.IntervalEnum
-	startTime *uint64
-	endTime   *uint64
-	timeZone  *string
-	limit     *uint
+	c *Client
+	r *core.Request
 }
 
 func (s *KlineData) Symbol(symbol string) *KlineData {
-	s.symbol = symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *KlineData) Interval(interval core.IntervalEnum) *KlineData {
-	s.interval = interval
+	s.r.Set("interval", interval)
 	return s
 }
 
 func (s *KlineData) StartTime(startTime uint64) *KlineData {
-	s.startTime = &startTime
+	s.r.Set("startTime", startTime)
 	return s
 }
 
 func (s *KlineData) EndTime(endTime uint64) *KlineData {
-	s.endTime = &endTime
+	s.r.Set("endTime", endTime)
 	return s
 }
 
 // TimeZone Default: 0 (UTC)
 func (s *KlineData) TimeZone(timeZone string) *KlineData {
-	s.timeZone = &timeZone
+	s.r.Set("timeZone", timeZone)
 	return s
 }
 
 // Limit Default 500; max 1000.
-func (s *KlineData) Limit(limit uint) *KlineData {
-	s.limit = &limit
+func (s *KlineData) Limit(limit int) *KlineData {
+	s.r.Set("limit", limit)
 	return s
 }
 
 func (s *KlineData) Do(ctx context.Context) ([]*KlineResult, error) {
-	s.c.set("symbol", s.symbol)
-	s.c.set("interval", s.interval)
-	if s.limit != nil {
-		s.c.set("limit", *s.limit)
-	}
-	if s.startTime != nil {
-		s.c.set("startTime", *s.startTime)
-	}
-	if s.endTime != nil {
-		s.c.set("endTime", *s.endTime)
-	}
-	if s.timeZone != nil {
-		s.c.set("timeZone", *s.timeZone)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
-	var res [][]any
+	res := make([][]any, 0)
 	if err := json.Unmarshal(s.c.rawBody(), &res); err != nil {
 		return nil, err
 	}
@@ -262,7 +207,7 @@ func (s *KlineData) Do(ctx context.Context) ([]*KlineResult, error) {
 }
 
 func parseKlineData(res [][]any) []*KlineResult {
-	var resp []*KlineResult
+	resp := make([]*KlineResult, 0)
 	for _, v := range res {
 		openPrice, _ := decimal.NewFromString(v[1].(string))
 		highPrice, _ := decimal.NewFromString(v[2].(string))
@@ -292,63 +237,44 @@ func parseKlineData(res [][]any) []*KlineResult {
 // UIKlines The request is similar to klines having the same parameters and response.
 // uiKlines return modified kline data, optimized for presentation of candlestick charts.
 type UIKlines struct {
-	c         *Client
-	symbol    string
-	interval  core.IntervalEnum
-	startTime *uint64
-	endTime   *uint64
-	timeZone  *string
-	limit     *uint
+	c *Client
+	r *core.Request
 }
 
 func (s *UIKlines) Symbol(symbol string) *UIKlines {
-	s.symbol = symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *UIKlines) Interval(interval core.IntervalEnum) *UIKlines {
-	s.interval = interval
+	s.r.Set("interval", interval)
 	return s
 }
 
 func (s *UIKlines) StartTime(startTime uint64) *UIKlines {
-	s.startTime = &startTime
+	s.r.Set("startTime", startTime)
 	return s
 }
 
 func (s *UIKlines) EndTime(endTime uint64) *UIKlines {
-	s.endTime = &endTime
+	s.r.Set("endTime", endTime)
 	return s
 }
 
 // TimeZone Default: 0 (UTC)
 func (s *UIKlines) TimeZone(timeZone string) *UIKlines {
-	s.timeZone = &timeZone
+	s.r.Set("timeZone", timeZone)
 	return s
 }
 
 // Limit Default 500; max 1000.
 func (s *UIKlines) Limit(limit uint) *UIKlines {
-	s.limit = &limit
+	s.r.Set("limit", limit)
 	return s
 }
 
 func (s *UIKlines) Do(ctx context.Context) ([]*KlineResult, error) {
-	s.c.set("symbol", s.symbol)
-	s.c.set("interval", s.interval)
-	if s.limit != nil {
-		s.c.set("limit", *s.limit)
-	}
-	if s.startTime != nil {
-		s.c.set("startTime", *s.startTime)
-	}
-	if s.endTime != nil {
-		s.c.set("endTime", *s.endTime)
-	}
-	if s.timeZone != nil {
-		s.c.set("timeZone", *s.timeZone)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
 	var res [][]any
@@ -360,8 +286,8 @@ func (s *UIKlines) Do(ctx context.Context) ([]*KlineResult, error) {
 
 // AveragePrice Current average price for a symbol.
 type AveragePrice struct {
-	c      *Client
-	symbol string
+	c *Client
+	r *core.Request
 }
 
 type AveragePriceResponse struct {
@@ -371,14 +297,13 @@ type AveragePriceResponse struct {
 }
 
 func (s *AveragePrice) Symbol(symbol string) *AveragePrice {
-	s.symbol = symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *AveragePrice) Do(ctx context.Context) (*AveragePriceResponse, error) {
 	var resp *AveragePriceResponse
-	s.c.set("symbol", s.symbol)
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return resp, err
 	}
 	return resp, json.Unmarshal(s.c.rawBody(), &resp)
@@ -386,10 +311,8 @@ func (s *AveragePrice) Do(ctx context.Context) (*AveragePriceResponse, error) {
 
 // TickerPrice24h 24 hour rolling window price change statistics. Careful when accessing this with no symbol.
 type TickerPrice24h struct {
-	c          *Client
-	symbol     *string
-	symbols    []string
-	tickerType *core.TickerTypeEnum
+	c *Client
+	r *core.Request
 }
 
 type TickerPrice24hResponse struct {
@@ -419,36 +342,27 @@ type TickerPrice24hResponse struct {
 // Symbol Parameter symbol and symbols cannot be used in combination.
 // If neither parameter is sent, tickers for all symbols will be returned in an array.
 func (s *TickerPrice24h) Symbol(symbol string) *TickerPrice24h {
-	s.symbol = &symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *TickerPrice24h) Symbols(symbols []string) *TickerPrice24h {
-	s.symbols = symbols
+	s.r.Set("symbols", symbols)
 	return s
 }
 
 // Type Supported values: FULL or MINI. If none provided, the default is FULL
 func (s *TickerPrice24h) Type(tickerType core.TickerTypeEnum) *TickerPrice24h {
-	s.tickerType = &tickerType
+	s.r.Set("type", tickerType)
 	return s
 }
 
 func (s *TickerPrice24h) Do(ctx context.Context) ([]*TickerPrice24hResponse, error) {
-	var resp []*TickerPrice24hResponse
-	if s.symbol != nil {
-		s.c.set("symbol", *s.symbol)
-	}
-	if len(s.symbols) != 0 {
-		s.c.set("symbols", s.symbols)
-	}
-	if s.tickerType != nil {
-		s.c.set("type", *s.tickerType)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	resp := make([]*TickerPrice24hResponse, 0)
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return resp, err
 	}
-	if s.symbol == nil {
+	if s.r.GetQuery("symbol") == "" {
 		return resp, json.Unmarshal(s.c.rawBody(), &resp)
 	}
 	var signalResp *TickerPrice24hResponse
@@ -461,53 +375,39 @@ func (s *TickerPrice24h) Do(ctx context.Context) ([]*TickerPrice24hResponse, err
 
 // TradingDayTicker Price change statistics for a trading day.
 type TradingDayTicker struct {
-	c          *Client
-	symbol     *string
-	symbols    []string
-	timeZone   *string
-	tickerType *core.TickerTypeEnum
+	c *Client
+	r *core.Request
 }
 
 func (s *TradingDayTicker) Symbol(symbol string) *TradingDayTicker {
-	s.symbol = &symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *TradingDayTicker) Symbols(symbols []string) *TradingDayTicker {
-	s.symbols = symbols
+	s.r.Set("symbols", symbols)
 	return s
 }
 
 // TimeZone Default: 0 (UTC)
 func (s *TradingDayTicker) TimeZone(timeZone string) *TradingDayTicker {
-	s.timeZone = &timeZone
+	s.r.Set("timeZone", timeZone)
 	return s
 }
 
 // Type Supported values: FULL or MINI. If none provided, the default is FULL
 func (s *TradingDayTicker) Type(tickerType core.TickerTypeEnum) *TradingDayTicker {
-	s.tickerType = &tickerType
+	s.r.Set("type", tickerType)
 	return s
 }
 
 func (s *TradingDayTicker) Do(ctx context.Context) ([]*TickerResponse, error) {
-	var resp []*TickerResponse
-	if s.symbol != nil {
-		s.c.set("symbol", *s.symbol)
-	}
-	if len(s.symbols) != 0 {
-		s.c.set("symbols", s.symbols)
-	}
-	if s.tickerType != nil {
-		s.c.set("type", *s.tickerType)
-	}
-	if s.timeZone != nil {
-		s.c.set("timeZone", *s.timeZone)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	resp := make([]*TickerResponse, 0)
+
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return resp, err
 	}
-	if s.symbol == nil {
+	if s.r.GetQuery("symbol") == "" {
 		return resp, json.Unmarshal(s.c.rawBody(), &resp)
 	}
 	var signalResp *TickerResponse
@@ -520,9 +420,8 @@ func (s *TradingDayTicker) Do(ctx context.Context) ([]*TickerResponse, error) {
 
 // PriceTicker Latest price for a symbol or symbols.
 type PriceTicker struct {
-	c       *Client
-	symbol  *string
-	symbols []string
+	c *Client
+	r *core.Request
 }
 
 type PriceTickerResponse struct {
@@ -531,27 +430,21 @@ type PriceTickerResponse struct {
 }
 
 func (s *PriceTicker) Symbol(symbol string) *PriceTicker {
-	s.symbol = &symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *PriceTicker) Symbols(symbols []string) *PriceTicker {
-	s.symbols = symbols
+	s.r.Set("symbols", symbols)
 	return s
 }
 
 func (s *PriceTicker) Do(ctx context.Context) ([]*PriceTickerResponse, error) {
-	var resp []*PriceTickerResponse
-	if s.symbol != nil {
-		s.c.set("symbol", *s.symbol)
-	}
-	if len(s.symbols) != 0 {
-		s.c.set("symbols", s.symbols)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	resp := make([]*PriceTickerResponse, 0)
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return resp, err
 	}
-	if s.symbol == nil {
+	if s.r.GetQuery("symbol") == "" {
 		return resp, json.Unmarshal(s.c.rawBody(), &resp)
 	}
 	var signalResp *PriceTickerResponse
@@ -564,9 +457,8 @@ func (s *PriceTicker) Do(ctx context.Context) ([]*PriceTickerResponse, error) {
 
 // OrderBookTicker Best price/qty on the order book for a symbol or symbols.
 type OrderBookTicker struct {
-	c       *Client
-	symbol  *string
-	symbols []string
+	c *Client
+	r *core.Request
 }
 
 type OrderBookTickerResponse struct {
@@ -578,31 +470,25 @@ type OrderBookTickerResponse struct {
 }
 
 func (s *OrderBookTicker) Symbol(symbol string) *OrderBookTicker {
-	s.symbol = &symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *OrderBookTicker) Symbols(symbols []string) *OrderBookTicker {
-	s.symbols = symbols
+	s.r.Set("symbols", symbols)
 	return s
 }
 
 func (s *OrderBookTicker) Do(ctx context.Context) ([]*OrderBookTickerResponse, error) {
-	var resp []*OrderBookTickerResponse
-	if s.symbol != nil {
-		s.c.set("symbol", *s.symbol)
-	}
-	if len(s.symbols) != 0 {
-		s.c.set("symbols", s.symbols)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	resp := make([]*OrderBookTickerResponse, 0)
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return resp, err
 	}
-	if s.symbol == nil {
+	if s.r.GetQuery("symbol") == "" {
 		return resp, json.Unmarshal(s.c.rawBody(), &resp)
 	}
-	var signalResp *OrderBookTickerResponse
-	if err := json.Unmarshal(s.c.rawBody(), &signalResp); err != nil {
+	signalResp := new(OrderBookTickerResponse)
+	if err := json.Unmarshal(s.c.rawBody(), signalResp); err != nil {
 		return nil, err
 	}
 	resp = append(resp, signalResp)
@@ -611,11 +497,8 @@ func (s *OrderBookTicker) Do(ctx context.Context) ([]*OrderBookTickerResponse, e
 
 // Ticker Rolling window price change statistics
 type Ticker struct {
-	c          *Client
-	symbol     *string
-	symbols    []string
-	windowSize *string
-	tickerType *core.TickerTypeEnum
+	c *Client
+	r *core.Request
 }
 
 type TickerResponse struct {
@@ -637,12 +520,12 @@ type TickerResponse struct {
 }
 
 func (s *Ticker) Symbol(symbol string) *Ticker {
-	s.symbol = &symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *Ticker) Symbols(symbols []string) *Ticker {
-	s.symbols = symbols
+	s.r.Set("symbols", symbols)
 	return s
 }
 
@@ -652,38 +535,26 @@ func (s *Ticker) Symbols(symbols []string) *Ticker {
 // 1h, 2h....23h - for hours
 // 1d...7d - for days
 func (s *Ticker) WindowSize(windowSize string) *Ticker {
-	s.windowSize = &windowSize
+	s.r.Set("windowSize", windowSize)
 	return s
 }
 
 // Type Supported values: FULL or MINI. If none provided, the default is FULL
 func (s *Ticker) Type(tickerType core.TickerTypeEnum) *Ticker {
-	s.tickerType = &tickerType
+	s.r.Set("type", tickerType)
 	return s
 }
 
 func (s *Ticker) Do(ctx context.Context) ([]*TickerResponse, error) {
-	var resp []*TickerResponse
-	if s.symbol != nil {
-		s.c.set("symbol", *s.symbol)
-	}
-	if len(s.symbols) != 0 {
-		s.c.set("symbols", s.symbols)
-	}
-	if s.tickerType != nil {
-		s.c.set("type", *s.tickerType)
-	}
-	if s.windowSize != nil {
-		s.c.set("windowSize", *s.windowSize)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	resp := make([]*TickerResponse, 0)
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return resp, err
 	}
-	if s.symbol == nil {
+	if s.r.GetQuery("symbol") == "" {
 		return resp, json.Unmarshal(s.c.rawBody(), &resp)
 	}
-	var signalResp *TickerResponse
-	if err := json.Unmarshal(s.c.rawBody(), &signalResp); err != nil {
+	signalResp := new(TickerResponse)
+	if err := json.Unmarshal(s.c.rawBody(), signalResp); err != nil {
 		return nil, err
 	}
 	resp = append(resp, signalResp)

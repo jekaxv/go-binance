@@ -1146,7 +1146,7 @@ func (s *apiMarketTestSuite) TestNewIndexInfo() {
 	]`)
 	server := s.setup(msg)
 	defer server.Close()
-	resp, err := s.client.NewIndexInfo().Symbol("BTCDOMUSDT").Do(context.Background())
+	resp, err := s.client.NewIndexInfo().Do(context.Background())
 	r := s.r()
 	r.Empty(err)
 	var testResp []*IndexInfoResponse

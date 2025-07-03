@@ -10,7 +10,7 @@ import (
 type RateLimit struct {
 	RateLimitType string `json:"rateLimitType"`
 	Interval      string `json:"interval"`
-	Limit         uint   `json:"limit"`
+	Limit         int    `json:"limit"`
 }
 
 // ExchangeFilter define exchange filter
@@ -22,10 +22,11 @@ type ExchangeFilter struct {
 // Ping Test connectivity to the Rest API.
 type Ping struct {
 	c *Client
+	r *core.Request
 }
 
 func (s *Ping) Do(ctx context.Context) error {
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return err
 	}
 	return nil
@@ -33,23 +34,25 @@ func (s *Ping) Do(ctx context.Context) error {
 
 type ServerTime struct {
 	c *Client
+	r *core.Request
 }
 
 type ServerTimeResponse struct {
-	ServerTime uint64 `json:"serverTime"`
+	ServerTime int64 `json:"serverTime"`
 }
 
 func (s *ServerTime) Do(ctx context.Context) (*ServerTimeResponse, error) {
-	var resp ServerTimeResponse
-	if err := s.c.invoke(ctx); err != nil {
-		return &resp, err
+	resp := new(ServerTimeResponse)
+	if err := s.c.invoke(s.r, ctx); err != nil {
+		return resp, err
 	}
-	return &resp, json.Unmarshal(s.c.rawBody(), &resp)
+	return resp, json.Unmarshal(s.c.rawBody(), resp)
 }
 
 // ExchangeInfo Current exchange trading rules and symbol information
 type ExchangeInfo struct {
 	c *Client
+	r *core.Request
 }
 
 type SymbolFilter struct {
@@ -96,92 +99,82 @@ type SymbolInfo struct {
 
 type ExchangeInfoResponse struct {
 	Timezone        string            `json:"timezone"`
-	ServerTime      uint64            `json:"serverTime"`
+	ServerTime      int64             `json:"serverTime"`
 	RateLimits      []*RateLimit      `json:"rateLimits"`
 	ExchangeFilters []*ExchangeFilter `json:"exchangeFilters"`
 	Symbols         []*SymbolInfo     `json:"symbols"`
 }
 
 func (s *ExchangeInfo) Do(ctx context.Context) (*ExchangeInfoResponse, error) {
-	var resp ExchangeInfoResponse
-	if err := s.c.invoke(ctx); err != nil {
-		return &resp, err
+	resp := new(ExchangeInfoResponse)
+	if err := s.c.invoke(s.r, ctx); err != nil {
+		return resp, err
 	}
-	return &resp, json.Unmarshal(s.c.rawBody(), &resp)
+	return resp, json.Unmarshal(s.c.rawBody(), resp)
 }
 
 // Depth Get depth of a market
 type Depth struct {
-	c      *Client
-	symbol string
-	limit  *uint
+	c *Client
+	r *core.Request
 }
 
 type DepthResponse struct {
 	LastUpdateId    int                 `json:"lastUpdateId"`
-	OutputTime      uint64              `json:"E"`
-	TransactionTime uint64              `json:"T"`
+	OutputTime      int64               `json:"E"`
+	TransactionTime int64               `json:"T"`
 	Bids            [][]decimal.Decimal `json:"bids"` // first is PRICE, second is QTY
 	Asks            [][]decimal.Decimal `json:"asks"`
 }
 
 func (s *Depth) Symbol(symbol string) *Depth {
-	s.symbol = symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 // Limit Default 500; max 1000. If limit > 1000, then the response will truncate to 1000.
-func (s *Depth) Limit(limit uint) *Depth {
-	s.limit = &limit
+func (s *Depth) Limit(limit int) *Depth {
+	s.r.Set("limit", limit)
 	return s
 }
 
 func (s *Depth) Do(ctx context.Context) (*DepthResponse, error) {
-	var resp DepthResponse
-	s.c.set("symbol", s.symbol)
-	if s.limit != nil {
-		s.c.set("limit", *s.limit)
+	resp := new(DepthResponse)
+	if err := s.c.invoke(s.r, ctx); err != nil {
+		return resp, err
 	}
-	if err := s.c.invoke(ctx); err != nil {
-		return &resp, err
-	}
-	return &resp, json.Unmarshal(s.c.rawBody(), &resp)
+	return resp, json.Unmarshal(s.c.rawBody(), resp)
 }
 
 // Trades Get recent trades.
 type Trades struct {
-	c      *Client
-	symbol string
-	limit  *uint
+	c *Client
+	r *core.Request
 }
 
 type TradesResponse struct {
-	Id           uint64          `json:"id,omitempty"`
+	Id           int64           `json:"id,omitempty"`
 	Price        decimal.Decimal `json:"price,omitempty"`
 	Qty          decimal.Decimal `json:"qty,omitempty"`
-	Time         uint64          `json:"time,omitempty"`
+	Time         int64           `json:"time,omitempty"`
 	QuoteQty     decimal.Decimal `json:"quoteQty,omitempty"`
 	IsBuyerMaker bool            `json:"isBuyerMaker"`
 }
 
 func (s *Trades) Symbol(symbol string) *Trades {
-	s.symbol = symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 // Limit Default 500; max 1000.
-func (s *Trades) Limit(limit uint) *Trades {
-	s.limit = &limit
+func (s *Trades) Limit(limit int) *Trades {
+	s.r.Set("limit", limit)
 	return s
 }
 
 func (s *Trades) Do(ctx context.Context) ([]*TradesResponse, error) {
-	var resp []*TradesResponse
-	s.c.set("symbol", s.symbol)
-	if s.limit != nil {
-		s.c.set("limit", *s.limit)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	resp := make([]*TradesResponse, 0)
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return resp, err
 	}
 	return resp, json.Unmarshal(s.c.rawBody(), &resp)
@@ -189,51 +182,38 @@ func (s *Trades) Do(ctx context.Context) ([]*TradesResponse, error) {
 
 // HistoricalTrades Get older trades.
 type HistoricalTrades struct {
-	c      *Client
-	symbol string
-	limit  *int
-	fromId *uint64
+	c *Client
+	r *core.Request
 }
 
 func (s *HistoricalTrades) Symbol(symbol string) *HistoricalTrades {
-	s.symbol = symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 // Limit Default 500; max 1000.
 func (s *HistoricalTrades) Limit(limit int) *HistoricalTrades {
-	s.limit = &limit
+	s.r.Set("limit", limit)
 	return s
 }
 
 // FromId Trade id to fetch from. Default gets most recent trades.
-func (s *HistoricalTrades) FromId(fromId uint64) *HistoricalTrades {
-	s.fromId = &fromId
+func (s *HistoricalTrades) FromId(fromId int64) *HistoricalTrades {
+	s.r.Set("fromId", fromId)
 	return s
 }
 
 func (s *HistoricalTrades) Do(ctx context.Context) ([]*TradesResponse, error) {
-	var resp []*TradesResponse
-	s.c.set("symbol", s.symbol)
-	if s.limit != nil {
-		s.c.set("limit", *s.limit)
-	}
-	if s.fromId != nil {
-		s.c.set("fromId", *s.fromId)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	resp := make([]*TradesResponse, 0)
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return resp, err
 	}
 	return resp, json.Unmarshal(s.c.rawBody(), &resp)
 }
 
 type AggTrades struct {
-	c         *Client
-	symbol    string
-	fromId    *uint64
-	startTime *uint64
-	endTime   *uint64
-	limit     *uint
+	c *Client
+	r *core.Request
 }
 
 type AggTradesResponse struct {
@@ -247,50 +227,37 @@ type AggTradesResponse struct {
 }
 
 func (s *AggTrades) Symbol(symbol string) *AggTrades {
-	s.symbol = symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 // FromId ID to get aggregate trades from INCLUSIVE.
-func (s *AggTrades) FromId(fromId uint64) *AggTrades {
-	s.fromId = &fromId
+func (s *AggTrades) FromId(fromId int64) *AggTrades {
+	s.r.Set("fromId", fromId)
 	return s
 }
 
 // StartTime Timestamp in ms to get aggregate trades from INCLUSIVE.
-func (s *AggTrades) StartTime(startTime uint64) *AggTrades {
-	s.startTime = &startTime
+func (s *AggTrades) StartTime(startTime int64) *AggTrades {
+	s.r.Set("startTime", startTime)
 	return s
 }
 
 // EndTime Timestamp in ms to get aggregate trades until INCLUSIVE.
-func (s *AggTrades) EndTime(endTime uint64) *AggTrades {
-	s.endTime = &endTime
+func (s *AggTrades) EndTime(endTime int64) *AggTrades {
+	s.r.Set("endTime", endTime)
 	return s
 }
 
 // Limit Default 500; max 1000.
-func (s *AggTrades) Limit(limit uint) *AggTrades {
-	s.limit = &limit
+func (s *AggTrades) Limit(limit int) *AggTrades {
+	s.r.Set("limit", limit)
 	return s
 }
 
 func (s *AggTrades) Do(ctx context.Context) ([]*AggTradesResponse, error) {
-	var resp []*AggTradesResponse
-	s.c.set("symbol", s.symbol)
-	if s.limit != nil {
-		s.c.set("limit", *s.limit)
-	}
-	if s.fromId != nil {
-		s.c.set("fromId", *s.fromId)
-	}
-	if s.startTime != nil {
-		s.c.set("startTime", *s.startTime)
-	}
-	if s.endTime != nil {
-		s.c.set("endTime", *s.endTime)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	resp := make([]*AggTradesResponse, 0)
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return resp, err
 	}
 	return resp, json.Unmarshal(s.c.rawBody(), &resp)
@@ -298,22 +265,18 @@ func (s *AggTrades) Do(ctx context.Context) ([]*AggTradesResponse, error) {
 
 // KlineData Kline/candlestick bars for a symbol. Klines are uniquely identified by their open time.
 type KlineData struct {
-	c         *Client
-	symbol    string
-	interval  core.IntervalEnum
-	startTime *uint64
-	endTime   *uint64
-	limit     *uint
+	c *Client
+	r *core.Request
 }
 
 type KlineDataResponse struct {
-	OpenTime                 uint64          `json:"openTime"`
+	OpenTime                 int64           `json:"openTime"`
 	OpenPrice                decimal.Decimal `json:"openPrice"`
 	HighPrice                decimal.Decimal `json:"highPrice"`
 	LowPrice                 decimal.Decimal `json:"lowPrice"`
 	ClosePrice               decimal.Decimal `json:"closePrice"`
 	Volume                   decimal.Decimal `json:"volume"`
-	CloseTime                uint64          `json:"closeTime"`
+	CloseTime                int64           `json:"closeTime"`
 	QuoteAssetVolume         decimal.Decimal `json:"quoteAssetVolume"`
 	NumberOfTrades           int             `json:"numberOfTrades"`
 	TakerBuyBaseAssetVolume  decimal.Decimal `json:"takerBuyBaseAssetVolume"`
@@ -321,52 +284,41 @@ type KlineDataResponse struct {
 }
 
 func (s *KlineData) Symbol(symbol string) *KlineData {
-	s.symbol = symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *KlineData) Interval(interval core.IntervalEnum) *KlineData {
-	s.interval = interval
+	s.r.Set("interval", interval)
 	return s
 }
 
-func (s *KlineData) StartTime(startTime uint64) *KlineData {
-	s.startTime = &startTime
+func (s *KlineData) StartTime(startTime int64) *KlineData {
+	s.r.Set("startTime", startTime)
 	return s
 }
 
-func (s *KlineData) EndTime(endTime uint64) *KlineData {
-	s.endTime = &endTime
+func (s *KlineData) EndTime(endTime int64) *KlineData {
+	s.r.Set("endTime", endTime)
 	return s
 }
 
 // Limit Default 500; max 1000.
-func (s *KlineData) Limit(limit uint) *KlineData {
-	s.limit = &limit
+func (s *KlineData) Limit(limit int) *KlineData {
+	s.r.Set("limit", limit)
 	return s
 }
 
 func (s *KlineData) Do(ctx context.Context) ([]*KlineDataResponse, error) {
-	s.c.set("symbol", s.symbol)
-	s.c.set("interval", s.interval)
-	if s.limit != nil {
-		s.c.set("limit", *s.limit)
-	}
-	if s.startTime != nil {
-		s.c.set("startTime", *s.startTime)
-	}
-	if s.endTime != nil {
-		s.c.set("endTime", *s.endTime)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
 	return parseKlineData(s.c.rawBody())
 }
 
 func parseKlineData(rawBody []byte) ([]*KlineDataResponse, error) {
-	var resp []*KlineDataResponse
-	var res [][]any
+	resp := make([]*KlineDataResponse, 0)
+	res := make([][]any, 0)
 	if err := json.Unmarshal(rawBody, &res); err != nil {
 		return resp, err
 	}
@@ -380,13 +332,13 @@ func parseKlineData(rawBody []byte) ([]*KlineDataResponse, error) {
 		takerBuyBaseAssetVolume, _ := decimal.NewFromString(v[9].(string))
 		takerBuyQuoteAssetVolume, _ := decimal.NewFromString(v[10].(string))
 		resp = append(resp, &KlineDataResponse{
-			OpenTime:                 uint64(v[0].(float64)),
+			OpenTime:                 int64(v[0].(float64)),
 			OpenPrice:                openPrice,
 			HighPrice:                highPrice,
 			LowPrice:                 lowPrice,
 			ClosePrice:               closePrice,
 			Volume:                   volumePrice,
-			CloseTime:                uint64(v[6].(float64)),
+			CloseTime:                int64(v[6].(float64)),
 			QuoteAssetVolume:         quoteAssetVolume,
 			NumberOfTrades:           int(v[8].(float64)),
 			TakerBuyBaseAssetVolume:  takerBuyBaseAssetVolume,
@@ -398,60 +350,43 @@ func parseKlineData(rawBody []byte) ([]*KlineDataResponse, error) {
 
 // ContractKline Kline/candlestick bars for a specific contract type. Klines are uniquely identified by their open time.
 type ContractKline struct {
-	c            *Client
-	pair         string
-	contractType core.ContractType
-	interval     core.IntervalEnum
-	startTime    *uint64
-	endTime      *uint64
-	limit        *uint
+	c *Client
+	r *core.Request
 }
 
 func (s *ContractKline) Pair(pair string) *ContractKline {
-	s.pair = pair
+	s.r.Set("pair", pair)
 	return s
 }
 
 func (s *ContractKline) ContractType(contractType core.ContractType) *ContractKline {
-	s.contractType = contractType
+	s.r.Set("contractType", contractType)
 	return s
 }
 
 func (s *ContractKline) Interval(interval core.IntervalEnum) *ContractKline {
-	s.interval = interval
+	s.r.Set("interval", interval)
 	return s
 }
 
-func (s *ContractKline) StartTime(startTime uint64) *ContractKline {
-	s.startTime = &startTime
+func (s *ContractKline) StartTime(startTime int64) *ContractKline {
+	s.r.Set("startTime", startTime)
 	return s
 }
 
-func (s *ContractKline) EndTime(endTime uint64) *ContractKline {
-	s.endTime = &endTime
+func (s *ContractKline) EndTime(endTime int64) *ContractKline {
+	s.r.Set("endTime", endTime)
 	return s
 }
 
 // Limit Default 500; max 1000.
-func (s *ContractKline) Limit(limit uint) *ContractKline {
-	s.limit = &limit
+func (s *ContractKline) Limit(limit int) *ContractKline {
+	s.r.Set("limit", limit)
 	return s
 }
 
 func (s *ContractKline) Do(ctx context.Context) ([]*KlineDataResponse, error) {
-	s.c.set("pair", s.pair)
-	s.c.set("contractType", s.contractType)
-	s.c.set("interval", s.interval)
-	if s.limit != nil {
-		s.c.set("limit", *s.limit)
-	}
-	if s.startTime != nil {
-		s.c.set("startTime", *s.startTime)
-	}
-	if s.endTime != nil {
-		s.c.set("endTime", *s.endTime)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
 	return parseKlineData(s.c.rawBody())
@@ -459,53 +394,38 @@ func (s *ContractKline) Do(ctx context.Context) ([]*KlineDataResponse, error) {
 
 // IndexKline Kline/candlestick bars for the index price of a pair. Klines are uniquely identified by their open time.
 type IndexKline struct {
-	c         *Client
-	pair      string
-	interval  core.IntervalEnum
-	startTime *uint64
-	endTime   *uint64
-	limit     *uint
+	c *Client
+	r *core.Request
 }
 
 func (s *IndexKline) Pair(pair string) *IndexKline {
-	s.pair = pair
+	s.r.Set("pair", pair)
 	return s
 }
 
 func (s *IndexKline) Interval(interval core.IntervalEnum) *IndexKline {
-	s.interval = interval
+	s.r.Set("interval", interval)
 	return s
 }
 
-func (s *IndexKline) StartTime(startTime uint64) *IndexKline {
-	s.startTime = &startTime
+func (s *IndexKline) StartTime(startTime int64) *IndexKline {
+	s.r.Set("startTime", startTime)
 	return s
 }
 
-func (s *IndexKline) EndTime(endTime uint64) *IndexKline {
-	s.endTime = &endTime
+func (s *IndexKline) EndTime(endTime int64) *IndexKline {
+	s.r.Set("endTime", endTime)
 	return s
 }
 
 // Limit Default 500; max 1000.
-func (s *IndexKline) Limit(limit uint) *IndexKline {
-	s.limit = &limit
+func (s *IndexKline) Limit(limit int) *IndexKline {
+	s.r.Set("limit", limit)
 	return s
 }
 
 func (s *IndexKline) Do(ctx context.Context) ([]*KlineDataResponse, error) {
-	s.c.set("pair", s.pair)
-	s.c.set("interval", s.interval)
-	if s.limit != nil {
-		s.c.set("limit", *s.limit)
-	}
-	if s.startTime != nil {
-		s.c.set("startTime", *s.startTime)
-	}
-	if s.endTime != nil {
-		s.c.set("endTime", *s.endTime)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
 	return parseKlineData(s.c.rawBody())
@@ -513,53 +433,38 @@ func (s *IndexKline) Do(ctx context.Context) ([]*KlineDataResponse, error) {
 
 // MarkKline Kline/candlestick bars for the mark price of a symbol. Klines are uniquely identified by their open time.
 type MarkKline struct {
-	c         *Client
-	symbol    string
-	interval  core.IntervalEnum
-	startTime *uint64
-	endTime   *uint64
-	limit     *uint
+	c *Client
+	r *core.Request
 }
 
 func (s *MarkKline) Symbol(symbol string) *MarkKline {
-	s.symbol = symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *MarkKline) Interval(interval core.IntervalEnum) *MarkKline {
-	s.interval = interval
+	s.r.Set("interval", interval)
 	return s
 }
 
-func (s *MarkKline) StartTime(startTime uint64) *MarkKline {
-	s.startTime = &startTime
+func (s *MarkKline) StartTime(startTime int64) *MarkKline {
+	s.r.Set("startTime", startTime)
 	return s
 }
 
-func (s *MarkKline) EndTime(endTime uint64) *MarkKline {
-	s.endTime = &endTime
+func (s *MarkKline) EndTime(endTime int64) *MarkKline {
+	s.r.Set("endTime", endTime)
 	return s
 }
 
 // Limit Default 500; max 1000.
-func (s *MarkKline) Limit(limit uint) *MarkKline {
-	s.limit = &limit
+func (s *MarkKline) Limit(limit int) *MarkKline {
+	s.r.Set("limit", limit)
 	return s
 }
 
 func (s *MarkKline) Do(ctx context.Context) ([]*KlineDataResponse, error) {
-	s.c.set("symbol", s.symbol)
-	s.c.set("interval", s.interval)
-	if s.limit != nil {
-		s.c.set("limit", *s.limit)
-	}
-	if s.startTime != nil {
-		s.c.set("startTime", *s.startTime)
-	}
-	if s.endTime != nil {
-		s.c.set("endTime", *s.endTime)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
 	return parseKlineData(s.c.rawBody())
@@ -567,53 +472,38 @@ func (s *MarkKline) Do(ctx context.Context) ([]*KlineDataResponse, error) {
 
 // PremiumKline Premium index kline bars of a symbol. Klines are uniquely identified by their open time.
 type PremiumKline struct {
-	c         *Client
-	symbol    string
-	interval  core.IntervalEnum
-	startTime *uint64
-	endTime   *uint64
-	limit     *uint
+	c *Client
+	r *core.Request
 }
 
 func (s *PremiumKline) Symbol(symbol string) *PremiumKline {
-	s.symbol = symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *PremiumKline) Interval(interval core.IntervalEnum) *PremiumKline {
-	s.interval = interval
+	s.r.Set("interval", interval)
 	return s
 }
 
-func (s *PremiumKline) StartTime(startTime uint64) *PremiumKline {
-	s.startTime = &startTime
+func (s *PremiumKline) StartTime(startTime int64) *PremiumKline {
+	s.r.Set("startTime", startTime)
 	return s
 }
 
-func (s *PremiumKline) EndTime(endTime uint64) *PremiumKline {
-	s.endTime = &endTime
+func (s *PremiumKline) EndTime(endTime int64) *PremiumKline {
+	s.r.Set("endTime", endTime)
 	return s
 }
 
 // Limit Default 500; max 1000.
-func (s *PremiumKline) Limit(limit uint) *PremiumKline {
-	s.limit = &limit
+func (s *PremiumKline) Limit(limit int) *PremiumKline {
+	s.r.Set("limit", limit)
 	return s
 }
 
 func (s *PremiumKline) Do(ctx context.Context) ([]*KlineDataResponse, error) {
-	s.c.set("symbol", s.symbol)
-	s.c.set("interval", s.interval)
-	if s.limit != nil {
-		s.c.set("limit", *s.limit)
-	}
-	if s.startTime != nil {
-		s.c.set("startTime", *s.startTime)
-	}
-	if s.endTime != nil {
-		s.c.set("endTime", *s.endTime)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
 	return parseKlineData(s.c.rawBody())
@@ -621,8 +511,8 @@ func (s *PremiumKline) Do(ctx context.Context) ([]*KlineDataResponse, error) {
 
 // MarkPrice Mark Price and Funding Rate
 type MarkPrice struct {
-	c      *Client
-	symbol *string
+	c *Client
+	r *core.Request
 }
 
 type MarkPriceResponse struct {
@@ -637,36 +527,30 @@ type MarkPriceResponse struct {
 }
 
 func (s *MarkPrice) Symbol(symbol string) *MarkPrice {
-	s.symbol = &symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *MarkPrice) Do(ctx context.Context) ([]*MarkPriceResponse, error) {
-	if s.symbol != nil {
-		s.c.set("symbol", *s.symbol)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
-	var resp []*MarkPriceResponse
-	if s.symbol == nil {
+	resp := make([]*MarkPriceResponse, 0)
+	if s.r.GetQuery("symbol") == "" {
 		return resp, json.Unmarshal(s.c.rawBody(), &resp)
 	}
-	var res MarkPriceResponse
-	if err := json.Unmarshal(s.c.rawBody(), &res); err != nil {
+	res := new(MarkPriceResponse)
+	if err := json.Unmarshal(s.c.rawBody(), res); err != nil {
 		return nil, err
 	}
-	resp = append(resp, &res)
+	resp = append(resp, res)
 	return resp, nil
 }
 
 // FundingRate Get Funding Rate History
 type FundingRate struct {
-	c         *Client
-	symbol    *string
-	startTime *uint64
-	endTime   *uint64
-	limit     *uint
+	c *Client
+	r *core.Request
 }
 
 type FundingRateResponse struct {
@@ -677,43 +561,31 @@ type FundingRateResponse struct {
 }
 
 func (s *FundingRate) Symbol(symbol string) *FundingRate {
-	s.symbol = &symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
-func (s *FundingRate) StartTime(startTime uint64) *FundingRate {
-	s.startTime = &startTime
+func (s *FundingRate) StartTime(startTime int64) *FundingRate {
+	s.r.Set("startTime", startTime)
 	return s
 }
 
-func (s *FundingRate) EndTime(endTime uint64) *FundingRate {
-	s.endTime = &endTime
+func (s *FundingRate) EndTime(endTime int64) *FundingRate {
+	s.r.Set("endTime", endTime)
 	return s
 }
 
 // Limit Default 100; max 1000.
-func (s *FundingRate) Limit(limit uint) *FundingRate {
-	s.limit = &limit
+func (s *FundingRate) Limit(limit int) *FundingRate {
+	s.r.Set("limit", limit)
 	return s
 }
 
 func (s *FundingRate) Do(ctx context.Context) ([]*FundingRateResponse, error) {
-	if s.symbol != nil {
-		s.c.set("symbol", *s.symbol)
-	}
-	if s.limit != nil {
-		s.c.set("limit", *s.limit)
-	}
-	if s.startTime != nil {
-		s.c.set("startTime", *s.startTime)
-	}
-	if s.endTime != nil {
-		s.c.set("endTime", *s.endTime)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
-	var resp []*FundingRateResponse
+	resp := make([]*FundingRateResponse, 0)
 	return resp, json.Unmarshal(s.c.rawBody(), &resp)
 }
 
@@ -721,6 +593,7 @@ func (s *FundingRate) Do(ctx context.Context) ([]*FundingRateResponse, error) {
 // 0 share 500/5min/IP rate limit with GET /fapi/v1/fundingInfo
 type FundingInfo struct {
 	c *Client
+	r *core.Request
 }
 
 type FundingInfoResponse struct {
@@ -732,22 +605,22 @@ type FundingInfoResponse struct {
 }
 
 func (s *FundingInfo) Do(ctx context.Context) ([]*FundingInfoResponse, error) {
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
-	var resp []*FundingInfoResponse
+	resp := make([]*FundingInfoResponse, 0)
 	return resp, json.Unmarshal(s.c.rawBody(), &resp)
 }
 
 // Ticker24hr 24 hour rolling window price change statistics.
 // Careful when accessing this with no symbol.
 type Ticker24hr struct {
-	c      *Client
-	symbol *string
+	c *Client
+	r *core.Request
 }
 
 func (s *Ticker24hr) Symbol(symbol string) *Ticker24hr {
-	s.symbol = &symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
@@ -771,28 +644,25 @@ type TickerStatisticsResponse struct {
 }
 
 func (s *Ticker24hr) Do(ctx context.Context) ([]*TickerStatisticsResponse, error) {
-	if s.symbol != nil {
-		s.c.set("symbol", *s.symbol)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
-	var resp []*TickerStatisticsResponse
-	if s.symbol == nil {
+	resp := make([]*TickerStatisticsResponse, 0)
+	if s.r.GetQuery("symbol") == "" {
 		return resp, json.Unmarshal(s.c.rawBody(), &resp)
 	}
-	var res TickerStatisticsResponse
-	if err := json.Unmarshal(s.c.rawBody(), &res); err != nil {
+	res := new(TickerStatisticsResponse)
+	if err := json.Unmarshal(s.c.rawBody(), res); err != nil {
 		return nil, err
 	}
-	resp = append(resp, &res)
+	resp = append(resp, res)
 	return resp, nil
 }
 
 // TickerPrice Latest price for a symbol or symbols.
 type TickerPrice struct {
-	c      *Client
-	symbol *string
+	c *Client
+	r *core.Request
 }
 
 type TickerPriceResponse struct {
@@ -802,33 +672,30 @@ type TickerPriceResponse struct {
 }
 
 func (s *TickerPrice) Symbol(symbol string) *TickerPrice {
-	s.symbol = &symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *TickerPrice) Do(ctx context.Context) ([]*TickerPriceResponse, error) {
-	if s.symbol != nil {
-		s.c.set("symbol", *s.symbol)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
-	var resp []*TickerPriceResponse
-	if s.symbol == nil {
+	resp := make([]*TickerPriceResponse, 0)
+	if s.r.GetQuery("symbol") == "" {
 		return resp, json.Unmarshal(s.c.rawBody(), &resp)
 	}
-	var res TickerPriceResponse
-	if err := json.Unmarshal(s.c.rawBody(), &res); err != nil {
+	res := new(TickerPriceResponse)
+	if err := json.Unmarshal(s.c.rawBody(), res); err != nil {
 		return nil, err
 	}
-	resp = append(resp, &res)
+	resp = append(resp, res)
 	return resp, nil
 }
 
 // BookTicker Best price/qty on the order book for a symbol or symbols.
 type BookTicker struct {
-	c      *Client
-	symbol *string
+	c *Client
+	r *core.Request
 }
 
 type BookTickerResponse struct {
@@ -841,33 +708,30 @@ type BookTickerResponse struct {
 }
 
 func (s *BookTicker) Symbol(symbol string) *BookTicker {
-	s.symbol = &symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *BookTicker) Do(ctx context.Context) ([]*BookTickerResponse, error) {
-	if s.symbol != nil {
-		s.c.set("symbol", *s.symbol)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
-	var resp []*BookTickerResponse
-	if s.symbol == nil {
+	resp := make([]*BookTickerResponse, 0)
+	if s.r.GetQuery("symbol") == "" {
 		return resp, json.Unmarshal(s.c.rawBody(), &resp)
 	}
-	var res BookTickerResponse
-	if err := json.Unmarshal(s.c.rawBody(), &res); err != nil {
+	res := new(BookTickerResponse)
+	if err := json.Unmarshal(s.c.rawBody(), res); err != nil {
 		return nil, err
 	}
-	resp = append(resp, &res)
+	resp = append(resp, res)
 	return resp, nil
 }
 
 // DeliveryPrice Quarterly Contract Settlement Price
 type DeliveryPrice struct {
-	c      *Client
-	symbol string
+	c *Client
+	r *core.Request
 }
 
 type DeliveryPriceResponse struct {
@@ -876,23 +740,22 @@ type DeliveryPriceResponse struct {
 }
 
 func (s *DeliveryPrice) Symbol(symbol string) *DeliveryPrice {
-	s.symbol = symbol
+	s.r.Set("pair", symbol)
 	return s
 }
 
 func (s *DeliveryPrice) Do(ctx context.Context) ([]*DeliveryPriceResponse, error) {
-	s.c.set("pair", s.symbol)
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
-	var resp []*DeliveryPriceResponse
+	resp := make([]*DeliveryPriceResponse, 0)
 	return resp, json.Unmarshal(s.c.rawBody(), &resp)
 }
 
 // OpenInterest Get present open interest of a specific symbol.
 type OpenInterest struct {
-	c      *Client
-	symbol string
+	c *Client
+	r *core.Request
 }
 
 type OpenInterestResponse struct {
@@ -902,27 +765,22 @@ type OpenInterestResponse struct {
 }
 
 func (s *OpenInterest) Symbol(symbol string) *OpenInterest {
-	s.symbol = symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *OpenInterest) Do(ctx context.Context) (*OpenInterestResponse, error) {
-	s.c.set("symbol", s.symbol)
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
-	var resp OpenInterestResponse
-	return &resp, json.Unmarshal(s.c.rawBody(), &resp)
+	resp := new(OpenInterestResponse)
+	return resp, json.Unmarshal(s.c.rawBody(), resp)
 }
 
 // OpenInterestHist Open Interest Statistics
 type OpenInterestHist struct {
-	c         *Client
-	symbol    string
-	period    core.IntervalEnum
-	limit     *uint
-	startTime *uint64
-	endTime   *uint64
+	c *Client
+	r *core.Request
 }
 
 type OpenInterestHistResponse struct {
@@ -933,60 +791,45 @@ type OpenInterestHistResponse struct {
 }
 
 func (s *OpenInterestHist) Symbol(symbol string) *OpenInterestHist {
-	s.symbol = symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 // Period "5m","15m","30m","1h","2h","4h","6h","12h","1d"
 func (s *OpenInterestHist) Period(period core.IntervalEnum) *OpenInterestHist {
-	s.period = period
+	s.r.Set("period", period)
 	return s
 }
 
 // Limit default 30, max 500
-func (s *OpenInterestHist) Limit(limit uint) *OpenInterestHist {
-	s.limit = &limit
+func (s *OpenInterestHist) Limit(limit int) *OpenInterestHist {
+	s.r.Set("limit", limit)
 	return s
 }
 
-func (s *OpenInterestHist) StartTime(startTime uint64) *OpenInterestHist {
-	s.startTime = &startTime
+func (s *OpenInterestHist) StartTime(startTime int64) *OpenInterestHist {
+	s.r.Set("startTime", startTime)
 	return s
 }
 
-func (s *OpenInterestHist) EndTime(endTime uint64) *OpenInterestHist {
-	s.endTime = &endTime
+func (s *OpenInterestHist) EndTime(endTime int64) *OpenInterestHist {
+	s.r.Set("endTime", endTime)
 	return s
 }
 
 func (s *OpenInterestHist) Do(ctx context.Context) ([]*OpenInterestHistResponse, error) {
-	s.c.set("symbol", s.symbol)
-	s.c.set("period", s.period)
-	if s.limit != nil {
-		s.c.set("limit", *s.limit)
-	}
-	if s.startTime != nil {
-		s.c.set("startTime", *s.startTime)
-	}
-	if s.endTime != nil {
-		s.c.set("endTime", *s.endTime)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
-	var resp []*OpenInterestHistResponse
+	resp := make([]*OpenInterestHistResponse, 0)
 	return resp, json.Unmarshal(s.c.rawBody(), &resp)
 }
 
 // TopTraderPositionsRatio The proportion of net long and net short positions to total open positions of the top 20% users with the highest margin balance.
 // Long Position % = Long positions of top traders / Total open positions of top traders Short Position % = Short positions of top traders / Total open positions of top traders Long/Short Ratio (Positions) = Long Position % / Short Position %
 type TopTraderPositionsRatio struct {
-	c         *Client
-	symbol    string
-	period    core.IntervalEnum
-	limit     *uint
-	startTime *uint64
-	endTime   *uint64
+	c *Client
+	r *core.Request
 }
 
 type TopTraderRatioResponse struct {
@@ -998,171 +841,126 @@ type TopTraderRatioResponse struct {
 }
 
 func (s *TopTraderPositionsRatio) Symbol(symbol string) *TopTraderPositionsRatio {
-	s.symbol = symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 // Period "5m","15m","30m","1h","2h","4h","6h","12h","1d"
 func (s *TopTraderPositionsRatio) Period(period core.IntervalEnum) *TopTraderPositionsRatio {
-	s.period = period
+	s.r.Set("period", period)
 	return s
 }
 
 // Limit default 30, max 500
-func (s *TopTraderPositionsRatio) Limit(limit uint) *TopTraderPositionsRatio {
-	s.limit = &limit
+func (s *TopTraderPositionsRatio) Limit(limit int) *TopTraderPositionsRatio {
+	s.r.Set("limit", limit)
 	return s
 }
 
-func (s *TopTraderPositionsRatio) StartTime(startTime uint64) *TopTraderPositionsRatio {
-	s.startTime = &startTime
+func (s *TopTraderPositionsRatio) StartTime(startTime int64) *TopTraderPositionsRatio {
+	s.r.Set("startTime", startTime)
 	return s
 }
 
-func (s *TopTraderPositionsRatio) EndTime(endTime uint64) *TopTraderPositionsRatio {
-	s.endTime = &endTime
+func (s *TopTraderPositionsRatio) EndTime(endTime int64) *TopTraderPositionsRatio {
+	s.r.Set("endTime", endTime)
 	return s
 }
 
 func (s *TopTraderPositionsRatio) Do(ctx context.Context) ([]*TopTraderRatioResponse, error) {
-	s.c.set("symbol", s.symbol)
-	s.c.set("period", s.period)
-	if s.limit != nil {
-		s.c.set("limit", *s.limit)
-	}
-	if s.startTime != nil {
-		s.c.set("startTime", *s.startTime)
-	}
-	if s.endTime != nil {
-		s.c.set("endTime", *s.endTime)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
-	var resp []*TopTraderRatioResponse
+	resp := make([]*TopTraderRatioResponse, 0)
 	return resp, json.Unmarshal(s.c.rawBody(), &resp)
 }
 
 // TopTraderAccountsRatio The proportion of net long and net short accounts to total accounts of the top 20% users with the highest margin balance.
 type TopTraderAccountsRatio struct {
-	c         *Client
-	symbol    string
-	period    core.IntervalEnum
-	limit     *uint
-	startTime *uint64
-	endTime   *uint64
+	c *Client
+	r *core.Request
 }
 
 func (s *TopTraderAccountsRatio) Symbol(symbol string) *TopTraderAccountsRatio {
-	s.symbol = symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 // Period "5m","15m","30m","1h","2h","4h","6h","12h","1d"
 func (s *TopTraderAccountsRatio) Period(period core.IntervalEnum) *TopTraderAccountsRatio {
-	s.period = period
+	s.r.Set("period", period)
 	return s
 }
 
 // Limit default 30, max 500
-func (s *TopTraderAccountsRatio) Limit(limit uint) *TopTraderAccountsRatio {
-	s.limit = &limit
+func (s *TopTraderAccountsRatio) Limit(limit int) *TopTraderAccountsRatio {
+	s.r.Set("limit", limit)
 	return s
 }
 
-func (s *TopTraderAccountsRatio) StartTime(startTime uint64) *TopTraderAccountsRatio {
-	s.startTime = &startTime
+func (s *TopTraderAccountsRatio) StartTime(startTime int64) *TopTraderAccountsRatio {
+	s.r.Set("startTime", startTime)
 	return s
 }
 
-func (s *TopTraderAccountsRatio) EndTime(endTime uint64) *TopTraderAccountsRatio {
-	s.endTime = &endTime
+func (s *TopTraderAccountsRatio) EndTime(endTime int64) *TopTraderAccountsRatio {
+	s.r.Set("endTime", endTime)
 	return s
 }
 
 func (s *TopTraderAccountsRatio) Do(ctx context.Context) ([]*TopTraderRatioResponse, error) {
-	s.c.set("symbol", s.symbol)
-	s.c.set("period", s.period)
-	if s.limit != nil {
-		s.c.set("limit", *s.limit)
-	}
-	if s.startTime != nil {
-		s.c.set("startTime", *s.startTime)
-	}
-	if s.endTime != nil {
-		s.c.set("endTime", *s.endTime)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
-	var resp []*TopTraderRatioResponse
+	resp := make([]*TopTraderRatioResponse, 0)
 	return resp, json.Unmarshal(s.c.rawBody(), &resp)
 }
 
 // SymbolRatio Query symbol Long/Short Ratio
 type SymbolRatio struct {
-	c         *Client
-	symbol    string
-	period    core.IntervalEnum
-	limit     *uint
-	startTime *uint64
-	endTime   *uint64
+	c *Client
+	r *core.Request
 }
 
 func (s *SymbolRatio) Symbol(symbol string) *SymbolRatio {
-	s.symbol = symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 // Period "5m","15m","30m","1h","2h","4h","6h","12h","1d"
 func (s *SymbolRatio) Period(period core.IntervalEnum) *SymbolRatio {
-	s.period = period
+	s.r.Set("period", period)
 	return s
 }
 
 // Limit default 30, max 500
-func (s *SymbolRatio) Limit(limit uint) *SymbolRatio {
-	s.limit = &limit
+func (s *SymbolRatio) Limit(limit int) *SymbolRatio {
+	s.r.Set("limit", limit)
 	return s
 }
 
-func (s *SymbolRatio) StartTime(startTime uint64) *SymbolRatio {
-	s.startTime = &startTime
+func (s *SymbolRatio) StartTime(startTime int64) *SymbolRatio {
+	s.r.Set("startTime", startTime)
 	return s
 }
 
-func (s *SymbolRatio) EndTime(endTime uint64) *SymbolRatio {
-	s.endTime = &endTime
+func (s *SymbolRatio) EndTime(endTime int64) *SymbolRatio {
+	s.r.Set("endTime", endTime)
 	return s
 }
 
 func (s *SymbolRatio) Do(ctx context.Context) ([]*TopTraderRatioResponse, error) {
-	s.c.set("symbol", s.symbol)
-	s.c.set("period", s.period)
-	if s.limit != nil {
-		s.c.set("limit", *s.limit)
-	}
-	if s.startTime != nil {
-		s.c.set("startTime", *s.startTime)
-	}
-	if s.endTime != nil {
-		s.c.set("endTime", *s.endTime)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
-	var resp []*TopTraderRatioResponse
+	resp := make([]*TopTraderRatioResponse, 0)
 	return resp, json.Unmarshal(s.c.rawBody(), &resp)
 }
 
 // TakerVolume Taker Buy/Sell Volume
 type TakerVolume struct {
-	c         *Client
-	symbol    string
-	period    core.IntervalEnum
-	limit     *uint
-	startTime *uint64
-	endTime   *uint64
+	c *Client
+	r *core.Request
 }
 
 type TakerVolumeResponse struct {
@@ -1173,60 +971,44 @@ type TakerVolumeResponse struct {
 }
 
 func (s *TakerVolume) Symbol(symbol string) *TakerVolume {
-	s.symbol = symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 // Period "5m","15m","30m","1h","2h","4h","6h","12h","1d"
 func (s *TakerVolume) Period(period core.IntervalEnum) *TakerVolume {
-	s.period = period
+	s.r.Set("period", period)
 	return s
 }
 
 // Limit default 30, max 500
-func (s *TakerVolume) Limit(limit uint) *TakerVolume {
-	s.limit = &limit
+func (s *TakerVolume) Limit(limit int) *TakerVolume {
+	s.r.Set("limit", limit)
 	return s
 }
 
-func (s *TakerVolume) StartTime(startTime uint64) *TakerVolume {
-	s.startTime = &startTime
+func (s *TakerVolume) StartTime(startTime int64) *TakerVolume {
+	s.r.Set("startTime", startTime)
 	return s
 }
 
-func (s *TakerVolume) EndTime(endTime uint64) *TakerVolume {
-	s.endTime = &endTime
+func (s *TakerVolume) EndTime(endTime int64) *TakerVolume {
+	s.r.Set("endTime", endTime)
 	return s
 }
 
 func (s *TakerVolume) Do(ctx context.Context) ([]*TakerVolumeResponse, error) {
-	s.c.set("symbol", s.symbol)
-	s.c.set("period", s.period)
-	if s.limit != nil {
-		s.c.set("limit", *s.limit)
-	}
-	if s.startTime != nil {
-		s.c.set("startTime", *s.startTime)
-	}
-	if s.endTime != nil {
-		s.c.set("endTime", *s.endTime)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
-	var resp []*TakerVolumeResponse
+	resp := make([]*TakerVolumeResponse, 0)
 	return resp, json.Unmarshal(s.c.rawBody(), &resp)
 }
 
 // FutureBasis Query future basis
 type FutureBasis struct {
-	c            *Client
-	symbol       string
-	contractType core.ContractType
-	period       core.IntervalEnum
-	limit        uint
-	startTime    *uint64
-	endTime      *uint64
+	c *Client
+	r *core.Request
 }
 
 type FutureBasisResponse struct {
@@ -1241,59 +1023,49 @@ type FutureBasisResponse struct {
 }
 
 func (s *FutureBasis) Symbol(symbol string) *FutureBasis {
-	s.symbol = symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *FutureBasis) ContractType(contractType core.ContractType) *FutureBasis {
-	s.contractType = contractType
+	s.r.Set("contractType", contractType)
 	return s
 }
 
 // Period "5m","15m","30m","1h","2h","4h","6h","12h","1d"
 func (s *FutureBasis) Period(period core.IntervalEnum) *FutureBasis {
-	s.period = period
+	s.r.Set("period", period)
 	return s
 }
 
 // Limit default 30, max 500
-func (s *FutureBasis) Limit(limit uint) *FutureBasis {
-	s.limit = limit
+func (s *FutureBasis) Limit(limit int) *FutureBasis {
+	s.r.Set("limit", limit)
 	return s
 }
 
-func (s *FutureBasis) StartTime(startTime uint64) *FutureBasis {
-	s.startTime = &startTime
+func (s *FutureBasis) StartTime(startTime int64) *FutureBasis {
+	s.r.Set("startTime", startTime)
 	return s
 }
 
-func (s *FutureBasis) EndTime(endTime uint64) *FutureBasis {
-	s.endTime = &endTime
+func (s *FutureBasis) EndTime(endTime int64) *FutureBasis {
+	s.r.Set("endTime", endTime)
 	return s
 }
 
 func (s *FutureBasis) Do(ctx context.Context) ([]*FutureBasisResponse, error) {
-	s.c.set("pair", s.symbol)
-	s.c.set("contractType", s.contractType)
-	s.c.set("period", s.period)
-	s.c.set("limit", s.limit)
-	if s.startTime != nil {
-		s.c.set("startTime", *s.startTime)
-	}
-	if s.endTime != nil {
-		s.c.set("endTime", *s.endTime)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
-	var resp []*FutureBasisResponse
+	resp := make([]*FutureBasisResponse, 0)
 	return resp, json.Unmarshal(s.c.rawBody(), &resp)
 }
 
 // IndexInfo Query composite index symbol information
 type IndexInfo struct {
-	c      *Client
-	symbol *string
+	c *Client
+	r *core.Request
 }
 
 type IndexInfoResponse struct {
@@ -1311,33 +1083,30 @@ type BaseAsset struct {
 }
 
 func (s *IndexInfo) Symbol(symbol string) *IndexInfo {
-	s.symbol = &symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *IndexInfo) Do(ctx context.Context) ([]*IndexInfoResponse, error) {
-	if s.symbol != nil {
-		s.c.set("symbol", *s.symbol)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
-	var resp []*IndexInfoResponse
-	if s.symbol != nil {
+	resp := make([]*IndexInfoResponse, 0)
+	if s.r.GetQuery("symbol") == "" {
 		return resp, json.Unmarshal(s.c.rawBody(), &resp)
 	}
-	var res IndexInfoResponse
-	if err := json.Unmarshal(s.c.rawBody(), &res); err != nil {
+	res := new(IndexInfoResponse)
+	if err := json.Unmarshal(s.c.rawBody(), res); err != nil {
 		return nil, err
 	}
-	resp = append(resp, &res)
+	resp = append(resp, res)
 	return resp, nil
 }
 
 // AssetIndex asset index for Multi-Assets mode
 type AssetIndex struct {
-	c      *Client
-	symbol *string
+	c *Client
+	r *core.Request
 }
 
 type AssetIndexResponse struct {
@@ -1355,33 +1124,30 @@ type AssetIndexResponse struct {
 }
 
 func (s *AssetIndex) Symbol(symbol string) *AssetIndex {
-	s.symbol = &symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *AssetIndex) Do(ctx context.Context) ([]*AssetIndexResponse, error) {
-	if s.symbol != nil {
-		s.c.set("symbol", *s.symbol)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
-	var resp []*AssetIndexResponse
-	if s.symbol == nil {
+	resp := make([]*AssetIndexResponse, 0)
+	if s.r.GetQuery("symbol") == "" {
 		return resp, json.Unmarshal(s.c.rawBody(), &resp)
 	}
-	var res AssetIndexResponse
-	if err := json.Unmarshal(s.c.rawBody(), &res); err != nil {
+	res := new(AssetIndexResponse)
+	if err := json.Unmarshal(s.c.rawBody(), res); err != nil {
 		return nil, err
 	}
-	resp = append(resp, &res)
+	resp = append(resp, res)
 	return resp, nil
 }
 
 // ConstituentsPrice Query index price constituents
 type ConstituentsPrice struct {
-	c      *Client
-	symbol string
+	c *Client
+	r *core.Request
 }
 
 type ConstituentResponse struct {
@@ -1398,23 +1164,22 @@ type ConstituentsPriceResponse struct {
 }
 
 func (s *ConstituentsPrice) Symbol(symbol string) *ConstituentsPrice {
-	s.symbol = symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *ConstituentsPrice) Do(ctx context.Context) (*ConstituentsPriceResponse, error) {
-	s.c.set("symbol", s.symbol)
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
-	var resp ConstituentsPriceResponse
-	return &resp, json.Unmarshal(s.c.rawBody(), &resp)
+	resp := new(ConstituentsPriceResponse)
+	return resp, json.Unmarshal(s.c.rawBody(), resp)
 }
 
 // InsuranceBalance Query Insurance Fund Balance Snapshot
 type InsuranceBalance struct {
-	c      *Client
-	symbol *string
+	c *Client
+	r *core.Request
 }
 
 type InsuranceBalanceAsset struct {
@@ -1429,25 +1194,22 @@ type InsuranceBalanceResponse struct {
 }
 
 func (s *InsuranceBalance) Symbol(symbol string) *InsuranceBalance {
-	s.symbol = &symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *InsuranceBalance) Do(ctx context.Context) ([]*InsuranceBalanceResponse, error) {
-	if s.symbol != nil {
-		s.c.set("symbol", *s.symbol)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
-	var resp []*InsuranceBalanceResponse
-	if s.symbol == nil {
+	resp := make([]*InsuranceBalanceResponse, 0)
+	if s.r.GetQuery("symbol") == "" {
 		return resp, json.Unmarshal(s.c.rawBody(), &resp)
 	}
-	var res InsuranceBalanceResponse
-	if err := json.Unmarshal(s.c.rawBody(), &res); err != nil {
+	res := new(InsuranceBalanceResponse)
+	if err := json.Unmarshal(s.c.rawBody(), res); err != nil {
 		return nil, err
 	}
-	resp = append(resp, &res)
+	resp = append(resp, res)
 	return resp, nil
 }

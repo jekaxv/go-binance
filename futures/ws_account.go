@@ -3,12 +3,14 @@ package futures
 import (
 	"context"
 	"encoding/json"
+	"github.com/jekaxv/go-binance/core"
 	"github.com/shopspring/decimal"
 )
 
 // WsAccountBalance Query account balance info
 type WsAccountBalance struct {
 	c *WsClient
+	r *core.WsRequest
 }
 
 type AccountBalanceResult struct {
@@ -29,16 +31,21 @@ type WsAccountBalanceResponse struct {
 }
 
 func (s *WsAccountBalance) RecvWindow(recvWindow uint) *WsAccountBalance {
-	s.c.setParams("recvWindow", recvWindow)
+	s.r.Set("recvWindow", recvWindow)
 	return s
 }
 
 func (s *WsAccountBalance) Do(ctx context.Context) (*WsAccountBalanceResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
@@ -55,6 +62,7 @@ func (s *WsAccountBalance) Do(ctx context.Context) (*WsAccountBalanceResponse, e
 // WsAccountInfo Get current account information. User in single-asset/ multi-assets mode will see different value, see comments in response section for detail.
 type WsAccountInfo struct {
 	c *WsClient
+	r *core.WsRequest
 }
 
 type AccountInfoResult struct {
@@ -79,16 +87,21 @@ type WsAccountInfoResponse struct {
 }
 
 func (s *WsAccountInfo) RecvWindow(recvWindow uint) *WsAccountInfo {
-	s.c.setParams("recvWindow", recvWindow)
+	s.r.Set("recvWindow", recvWindow)
 	return s
 }
 
 func (s *WsAccountInfo) Do(ctx context.Context) (*WsAccountInfoResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():

@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-type request struct {
+type Request struct {
 	method   string
 	path     string
 	authType AuthType
@@ -19,14 +19,7 @@ type request struct {
 	body     io.Reader
 }
 
-type response struct {
-	status    int
-	err       error
-	rawBody   []byte
-	rawHeader http.Header
-}
-
-func (r *request) set(key string, value any) *request {
+func (r *Request) Set(key string, value any) *Request {
 	if r.query == nil {
 		r.query = url.Values{}
 	}
@@ -43,9 +36,32 @@ func (r *request) set(key string, value any) *request {
 	return r
 }
 
-type wsRequest struct {
+func (r *Request) GetQuery(key string) string {
+	return r.query.Get(key)
+}
+
+type response struct {
+	status    int
+	err       error
+	rawBody   []byte
+	rawHeader http.Header
+}
+
+type WsRequest struct {
 	Id       string         `json:"id"`
 	Method   string         `json:"method"`
 	Params   map[string]any `json:"params,omitempty"`
 	AuthType AuthType       `json:"-"`
+}
+
+func (r *WsRequest) Set(key string, value any) *WsRequest {
+	r.Params[key] = value
+	return r
+}
+
+func (r *WsRequest) Get(key string) any {
+	if r.Params == nil {
+		return nil
+	}
+	return r.Params[key]
 }

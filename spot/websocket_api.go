@@ -103,6 +103,7 @@ type ApiSymbol struct {
 // WsPing Test connectivity to the WebSocket API.
 type WsPing struct {
 	c *WsClient
+	r *core.WsRequest
 }
 
 type ApiError struct {
@@ -123,10 +124,15 @@ type WsPingResponse struct {
 
 func (s *WsPing) Do(ctx context.Context) (*WsPingResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
@@ -143,6 +149,7 @@ func (s *WsPing) Do(ctx context.Context) (*WsPingResponse, error) {
 // WsServerTime Test connectivity to the WebSocket API and get the current server time.
 type WsServerTime struct {
 	c *WsClient
+	r *core.WsRequest
 }
 
 type WsServerTimeResponse struct {
@@ -154,10 +161,15 @@ type WsServerTimeResponse struct {
 
 func (s *WsServerTime) Do(ctx context.Context) (*WsServerTimeResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
@@ -174,6 +186,7 @@ func (s *WsServerTime) Do(ctx context.Context) (*WsServerTimeResponse, error) {
 // WsExchangeInfo Query current exchange trading rules, rate limits, and symbol information.
 type WsExchangeInfo struct {
 	c *WsClient
+	r *core.WsRequest
 }
 
 type ExchangeInfoResult struct {
@@ -191,25 +204,25 @@ type WsExchangeInfoResponse struct {
 
 // Symbol Describe a single symbol
 func (s *WsExchangeInfo) Symbol(symbol string) *WsExchangeInfo {
-	s.c.setParams("symbol", symbol)
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 // Symbols Describe multiple symbols
 func (s *WsExchangeInfo) Symbols(symbols []string) *WsExchangeInfo {
-	s.c.setParams("symbols", symbols)
+	s.r.Set("symbols", symbols)
 	return s
 }
 
 // Permissions Filter symbols by permissions
 func (s *WsExchangeInfo) Permissions(permissions []string) *WsExchangeInfo {
-	s.c.setParams("permissions", permissions)
+	s.r.Set("permissions", permissions)
 	return s
 }
 
 // ShowPermissionSets Controls whether the content of the permissionSets field is populated or not. Defaults to true.
 func (s *WsExchangeInfo) ShowPermissionSets(showPermissionSets bool) *WsExchangeInfo {
-	s.c.setParams("showPermissionSets", showPermissionSets)
+	s.r.Set("showPermissionSets", showPermissionSets)
 	return s
 }
 
@@ -217,15 +230,20 @@ func (s *WsExchangeInfo) ShowPermissionSets(showPermissionSets bool) *WsExchange
 // Valid values: TRADING, HALT, BREAK
 // Cannot be used in combination with symbol or symbols
 func (s *WsExchangeInfo) SymbolStatus(symbolStatus core.SymbolStatusEnum) *WsExchangeInfo {
-	s.c.setParams("symbolStatus", "symbolStatus")
+	s.r.Set("symbolStatus", "symbolStatus")
 	return s
 }
 func (s *WsExchangeInfo) Do(ctx context.Context) (*WsExchangeInfoResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():

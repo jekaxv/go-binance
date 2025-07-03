@@ -9,13 +9,6 @@ type WsClient struct {
 	*core.WsClient
 }
 
-func (c *WsClient) getParams(key string) any {
-	return c.GetParams(key)
-}
-func (c *WsClient) setParams(key string, value any) {
-	c.SetParams(key, value)
-}
-
 func (c *WsClient) wsServe(ctx context.Context) (<-chan []byte, <-chan error) {
 	return c.WsServe(ctx)
 }
@@ -35,8 +28,8 @@ func (c *WsClient) setEndpoint(endpoint string) {
 func (c *WsClient) close() error {
 	return c.Close()
 }
-func (c *WsClient) send() error {
-	return c.Send()
+func (c *WsClient) send(r *core.WsRequest) error {
+	return c.Send(r)
 }
 
 func (c *WsClient) wsApiServe(ctx context.Context) (<-chan []byte, <-chan error) {
@@ -49,246 +42,205 @@ func (c *WsClient) NewWebsocketStreams() *WebsocketStreams {
 
 // NewPing Test connectivity
 func (c *WsClient) NewPing() *WsPing {
-	c.SetReq("ping")
-	return &WsPing{c: c}
+	return &WsPing{c: c, r: c.SetReq("ping")}
 }
 
 // NewCheckServerTime Check server time
 func (c *WsClient) NewCheckServerTime() *WsServerTime {
-	c.SetReq("time")
-	return &WsServerTime{c: c}
+	return &WsServerTime{c: c, r: c.SetReq("time")}
 }
 
 // NewExchangeInfo Exchange information
 func (c *WsClient) NewExchangeInfo() *WsExchangeInfo {
-	c.SetReq("exchangeInfo")
-	return &WsExchangeInfo{c: c}
+	return &WsExchangeInfo{c: c, r: c.SetReq("exchangeInfo")}
 }
 
 // NewDepth Order book
 func (c *WsClient) NewDepth() *WsDepth {
-	c.SetReq("depth")
-	return &WsDepth{c: c}
+	return &WsDepth{c: c, r: c.SetReq("depth")}
 }
 
 // NewTradesRecent Recent trades
 func (c *WsClient) NewTradesRecent() *WsTradesRecent {
-	c.SetReq("trades.recent")
-	return &WsTradesRecent{c: c}
+	return &WsTradesRecent{c: c, r: c.SetReq("trades.recent")}
 }
 
 // NewTradesHistorical Historical trades
 func (c *WsClient) NewTradesHistorical() *WsTradesHistorical {
-	c.SetReq("trades.historical")
-	return &WsTradesHistorical{c: c}
+	return &WsTradesHistorical{c: c, r: c.SetReq("trades.historical")}
 }
 
 // NewTradesAggregate Aggregate trades
 func (c *WsClient) NewTradesAggregate() *WsTradesAggregate {
-	c.SetReq("trades.aggregate")
-	return &WsTradesAggregate{c: c}
+	return &WsTradesAggregate{c: c, r: c.SetReq("trades.aggregate")}
 }
 
 // NewKline Klines
 func (c *WsClient) NewKline() *WsKline {
-	c.SetReq("klines")
-	return &WsKline{c: c}
+	return &WsKline{c: c, r: c.SetReq("klines")}
 }
 
 // NewUiKlines UI Klines
 func (c *WsClient) NewUiKlines() *WsUiKlines {
-	c.SetReq("uiKlines")
-	return &WsUiKlines{c: c}
+	return &WsUiKlines{c: c, r: c.SetReq("uiKlines")}
 }
 
 // NewAveragePrice Current average price
 func (c *WsClient) NewAveragePrice() *WsAveragePrice {
-	c.SetReq("avgPrice")
-	return &WsAveragePrice{c: c}
+	return &WsAveragePrice{c: c, r: c.SetReq("avgPrice")}
 }
 
 // NewTicker24h 24hr ticker price change statistics
 func (c *WsClient) NewTicker24h() *WsTicker24h {
-	c.SetReq("ticker.24hr")
-	return &WsTicker24h{c: c}
+	return &WsTicker24h{c: c, r: c.SetReq("ticker.24hr")}
 }
 
 // NewTickerTradingDay Trading Day Ticker
 func (c *WsClient) NewTickerTradingDay() *WsTickerTradingDay {
-	c.SetReq("ticker.tradingDay")
-	return &WsTickerTradingDay{c: c}
+	return &WsTickerTradingDay{c: c, r: c.SetReq("ticker.tradingDay")}
 }
 
 // NewTicker Rolling window price change statistics
 func (c *WsClient) NewTicker() *WsTicker {
-	c.SetReq("ticker")
-	return &WsTicker{c: c}
+	return &WsTicker{c: c, r: c.SetReq("ticker")}
 }
 
 // NewTickerPrice Symbol price ticker
 func (c *WsClient) NewTickerPrice() *WsTickerPrice {
-	c.SetReq("ticker.price")
-	return &WsTickerPrice{c: c}
+	return &WsTickerPrice{c: c, r: c.SetReq("ticker.price")}
 }
 
 // NewTickerBook Symbol order book ticker
 func (c *WsClient) NewTickerBook() *WsTickerBook {
-	c.SetReq("ticker.book")
-	return &WsTickerBook{c: c}
+	return &WsTickerBook{c: c, r: c.SetReq("ticker.book")}
 }
 
 // NewCreateOrder Place new order (TRADE)
 func (c *WsClient) NewCreateOrder() *WsCreateOrder {
-	c.SetReq("order.place", core.AuthSigned)
-	return &WsCreateOrder{c: c}
+	return &WsCreateOrder{c: c, r: c.SetReq("order.place", core.AuthSigned)}
 }
 
 // NewCreateTestOrder Test new order (TRADE)
 func (c *WsClient) NewCreateTestOrder() *WsCreateTestOrder {
-	c.SetReq("order.test", core.AuthSigned)
-	return &WsCreateTestOrder{c: c}
+	return &WsCreateTestOrder{c: c, r: c.SetReq("order.test", core.AuthSigned)}
 }
 
 // NewQueryOrder Query order (USER_DATA)
 func (c *WsClient) NewQueryOrder() *WsQueryOrder {
-	c.SetReq("order.status", core.AuthSigned)
-	return &WsQueryOrder{c: c}
+	return &WsQueryOrder{c: c, r: c.SetReq("order.status", core.AuthSigned)}
 }
 
 // NewCancelOrder Cancel order (TRADE)
 func (c *WsClient) NewCancelOrder() *WsCancelOrder {
-	c.SetReq("order.cancel", core.AuthSigned)
-	return &WsCancelOrder{c: c}
+	return &WsCancelOrder{c: c, r: c.SetReq("order.cancel", core.AuthSigned)}
 }
 
 // NewCancelReplaceOrder Cancel and replace order (TRADE)
 func (c *WsClient) NewCancelReplaceOrder() *WsCancelReplaceOrder {
-	c.SetReq("order.cancelReplace", core.AuthSigned)
-	return &WsCancelReplaceOrder{c: c}
+	return &WsCancelReplaceOrder{c: c, r: c.SetReq("order.cancelReplace", core.AuthSigned)}
 }
 
 // NewOpenOrdersStatus Current open orders (USER_DATA)
 func (c *WsClient) NewOpenOrdersStatus() *WsOpenOrdersStatus {
-	c.SetReq("openOrders.status", core.AuthSigned)
-	return &WsOpenOrdersStatus{c: c}
+	return &WsOpenOrdersStatus{c: c, r: c.SetReq("openOrders.status", core.AuthSigned)}
 }
 
 // NewCancelOpenOrder Cancel open orders (TRADE)
 func (c *WsClient) NewCancelOpenOrder() *WsCancelOpenOrder {
-	c.SetReq("openOrders.cancelAll", core.AuthSigned)
-	return &WsCancelOpenOrder{c: c}
+	return &WsCancelOpenOrder{c: c, r: c.SetReq("openOrders.cancelAll", core.AuthSigned)}
 }
 
 // NewCreateOCOOrder Place new Order list - OCO (TRADE)
 func (c *WsClient) NewCreateOCOOrder() *WsCreateOCOOrder {
-	c.SetReq("orderList.place.oco", core.AuthSigned)
-	return &WsCreateOCOOrder{c: c}
+	return &WsCreateOCOOrder{c: c, r: c.SetReq("orderList.place.oco", core.AuthSigned)}
 }
 
 // NewCreateOTOOrder Place new Order list - OTO (TRADE)
 func (c *WsClient) NewCreateOTOOrder() *WsCreateOTOOrder {
-	c.SetReq("orderList.place.oto", core.AuthSigned)
-	return &WsCreateOTOOrder{c: c}
+	return &WsCreateOTOOrder{c: c, r: c.SetReq("orderList.place.oto", core.AuthSigned)}
 }
 
 // NewCreateOTOCOOrder Place new Order list - OTOCO (TRADE)
 func (c *WsClient) NewCreateOTOCOOrder() *WsCreateOTOCOOrder {
-	c.SetReq("orderList.place.otoco", core.AuthSigned)
-	return &WsCreateOTOCOOrder{c: c}
+	return &WsCreateOTOCOOrder{c: c, r: c.SetReq("orderList.place.otoco", core.AuthSigned)}
 }
 
 // NewQueryOrderList Query Order list (USER_DATA)
 func (c *WsClient) NewQueryOrderList() *WsQueryOrderList {
-	c.SetReq("orderList.status", core.AuthSigned)
-	return &WsQueryOrderList{c: c}
+	return &WsQueryOrderList{c: c, r: c.SetReq("orderList.status", core.AuthSigned)}
 }
 
 // NewCancelOrderList Cancel Order list (TRADE)
 func (c *WsClient) NewCancelOrderList() *WsCancelOrderList {
-	c.SetReq("orderList.cancel", core.AuthSigned)
-	return &WsCancelOrderList{c: c}
+	return &WsCancelOrderList{c: c, r: c.SetReq("orderList.cancel", core.AuthSigned)}
 }
 
 // NewQueryOpenOrder Current open Order lists (USER_DATA)
 func (c *WsClient) NewQueryOpenOrder() *WsQueryOpenOrder {
-	c.SetReq("openOrderLists.status", core.AuthSigned)
-	return &WsQueryOpenOrder{c: c}
+	return &WsQueryOpenOrder{c: c, r: c.SetReq("openOrderLists.status", core.AuthSigned)}
 }
 
 // NewCreateSOROrder Place new order using SOR (TRADE)
 func (c *WsClient) NewCreateSOROrder() *WsCreateSOROrder {
-	c.SetReq("sor.order.place", core.AuthSigned)
-	return &WsCreateSOROrder{c: c}
+	return &WsCreateSOROrder{c: c, r: c.SetReq("sor.order.place", core.AuthSigned)}
 }
 
 // NewCreateTestSOROrder Test new order using SOR (TRADE)
 func (c *WsClient) NewCreateTestSOROrder() *WsCreateTestSOROrder {
-	c.SetReq("sor.order.test", core.AuthSigned)
-	return &WsCreateTestSOROrder{c: c}
+	return &WsCreateTestSOROrder{c: c, r: c.SetReq("sor.order.test", core.AuthSigned)}
 }
 
 // NewAccountInformation Account information (USER_DATA)
 func (c *WsClient) NewAccountInformation() *AccountInformation {
-	c.SetReq("account.status", core.AuthSigned)
-	return &AccountInformation{c: c}
+	return &AccountInformation{c: c, r: c.SetReq("account.status", core.AuthSigned)}
 }
 
 // NewUnfilledOrder Unfilled Order Count (USER_DATA)
 func (c *WsClient) NewUnfilledOrder() *UnfilledOrder {
-	c.SetReq("account.rateLimits.orders", core.AuthSigned)
-	return &UnfilledOrder{c: c}
+	return &UnfilledOrder{c: c, r: c.SetReq("account.rateLimits.orders", core.AuthSigned)}
 }
 
 // NewAccountOrderHistory Account order history (USER_DATA)
 func (c *WsClient) NewAccountOrderHistory() *AccountOrderHistory {
-	c.SetReq("allOrders", core.AuthSigned)
-	return &AccountOrderHistory{c: c}
+	return &AccountOrderHistory{c: c, r: c.SetReq("allOrders", core.AuthSigned)}
 }
 
 // NewAllOrderList Account Order list history (USER_DATA)
 func (c *WsClient) NewAllOrderList() *AllOrderList {
-	c.SetReq("allOrderLists", core.AuthSigned)
-	return &AllOrderList{c: c}
+	return &AllOrderList{c: c, r: c.SetReq("allOrderLists", core.AuthSigned)}
 }
 
 // NewAccountTradeHistory Account trade history (USER_DATA)
 func (c *WsClient) NewAccountTradeHistory() *AccountTradeHistory {
-	c.SetReq("myTrades", core.AuthSigned)
-	return &AccountTradeHistory{c: c}
+	return &AccountTradeHistory{c: c, r: c.SetReq("myTrades", core.AuthSigned)}
 }
 
 // NewAccountPreventedMatches Account prevented matches (USER_DATA)
 func (c *WsClient) NewAccountPreventedMatches() *AccountPreventedMatches {
-	c.SetReq("myPreventedMatches", core.AuthSigned)
-	return &AccountPreventedMatches{c: c}
+	return &AccountPreventedMatches{c: c, r: c.SetReq("myPreventedMatches", core.AuthSigned)}
 }
 
 // NewAccountAllocations Account allocations (USER_DATA)
 func (c *WsClient) NewAccountAllocations() *AccountAllocations {
-	c.SetReq("myAllocations", core.AuthSigned)
-	return &AccountAllocations{c: c}
+	return &AccountAllocations{c: c, r: c.SetReq("myAllocations", core.AuthSigned)}
 }
 
 // NewAccountCommission Account Commission Rates (USER_DATA)
 func (c *WsClient) NewAccountCommission() *AccountCommission {
-	c.SetReq("account.commission", core.AuthSigned)
-	return &AccountCommission{c: c}
+	return &AccountCommission{c: c, r: c.SetReq("account.commission", core.AuthSigned)}
 }
 
 // NewSessionLogon Log in with API key (SIGNED)
 func (c *WsClient) NewSessionLogon() *SessionLogon {
-	c.SetReq("session.logon", core.AuthSigned)
-	return &SessionLogon{c: c}
+	return &SessionLogon{c: c, r: c.SetReq("session.logon", core.AuthSigned)}
 }
 
 // NewSessionStatus Query session status (SIGNED)
 func (c *WsClient) NewSessionStatus() *SessionStatus {
-	c.SetReq("session.status", core.AuthSigned)
-	return &SessionStatus{c: c}
+	return &SessionStatus{c: c, r: c.SetReq("session.status", core.AuthSigned)}
 }
 
 // NewSessionLogout Log out of the session
 func (c *WsClient) NewSessionLogout() *SessionLogout {
-	c.SetReq("session.logout", core.AuthSigned)
-	return &SessionLogout{c: c}
+	return &SessionLogout{c: c, r: c.SetReq("session.logout", core.AuthSigned)}
 }

@@ -10,6 +10,7 @@ import (
 // WsCreateOrder Send in a new order.
 type WsCreateOrder struct {
 	c *WsClient
+	r *core.WsRequest
 }
 
 type OrderResult struct {
@@ -45,97 +46,102 @@ type WsOrderResponse struct {
 }
 
 func (s *WsCreateOrder) Symbol(symbol string) *WsCreateOrder {
-	s.c.setParams("symbol", symbol)
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *WsCreateOrder) Side(side core.OrderSideEnum) *WsCreateOrder {
-	s.c.setParams("side", side)
+	s.r.Set("side", side)
 	return s
 }
 func (s *WsCreateOrder) PositionSide(positionSide core.PositionSideEnum) *WsCreateOrder {
-	s.c.setParams("positionSide", positionSide)
+	s.r.Set("positionSide", positionSide)
 	return s
 }
 
 func (s *WsCreateOrder) Type(orderType core.OrderTypeEnum) *WsCreateOrder {
-	s.c.setParams("type", orderType)
+	s.r.Set("type", orderType)
 	return s
 }
 
 func (s *WsCreateOrder) TimeInForce(timeInForce core.TimeInForceEnum) *WsCreateOrder {
-	s.c.setParams("timeInForce", timeInForce)
+	s.r.Set("timeInForce", timeInForce)
 	return s
 }
 func (s *WsCreateOrder) Quantity(quantity float64) *WsCreateOrder {
-	s.c.setParams("quantity", quantity)
+	s.r.Set("quantity", quantity)
 	return s
 }
 func (s *WsCreateOrder) ReduceOnly(reduceOnly string) *WsCreateOrder {
-	s.c.setParams("reduceOnly", reduceOnly)
+	s.r.Set("reduceOnly", reduceOnly)
 	return s
 }
 
 func (s *WsCreateOrder) Price(price float64) *WsCreateOrder {
-	s.c.setParams("price", price)
+	s.r.Set("price", price)
 	return s
 }
 func (s *WsCreateOrder) NewClientOrderId(newClientOrderId string) *WsCreateOrder {
-	s.c.setParams("newClientOrderId", newClientOrderId)
+	s.r.Set("newClientOrderId", newClientOrderId)
 	return s
 }
 func (s *WsCreateOrder) StopPrice(stopPrice float64) *WsCreateOrder {
-	s.c.setParams("stopPrice", stopPrice)
+	s.r.Set("stopPrice", stopPrice)
 	return s
 }
 func (s *WsCreateOrder) ClosePosition(closePosition string) *WsCreateOrder {
-	s.c.setParams("closePosition", closePosition)
+	s.r.Set("closePosition", closePosition)
 	return s
 }
 func (s *WsCreateOrder) ActivationPrice(activationPrice float64) *WsCreateOrder {
-	s.c.setParams("activationPrice", activationPrice)
+	s.r.Set("activationPrice", activationPrice)
 	return s
 }
 func (s *WsCreateOrder) CallbackRate(callbackRate float64) *WsCreateOrder {
-	s.c.setParams("callbackRate", callbackRate)
+	s.r.Set("callbackRate", callbackRate)
 	return s
 }
 func (s *WsCreateOrder) WorkingType(workingType core.WorkingType) *WsCreateOrder {
-	s.c.setParams("workingType", workingType)
+	s.r.Set("workingType", workingType)
 	return s
 }
 func (s *WsCreateOrder) PriceProtect(priceProtect string) *WsCreateOrder {
-	s.c.setParams("priceProtect", priceProtect)
+	s.r.Set("priceProtect", priceProtect)
 	return s
 }
 func (s *WsCreateOrder) NewOrderRespType(newOrderRespType core.OrderResponseTypeEnum) *WsCreateOrder {
-	s.c.setParams("newOrderRespType", newOrderRespType)
+	s.r.Set("newOrderRespType", newOrderRespType)
 	return s
 }
 
 func (s *WsCreateOrder) PriceMatch(priceMatch string) *WsCreateOrder {
-	s.c.setParams("priceMatch", priceMatch)
+	s.r.Set("priceMatch", priceMatch)
 	return s
 }
 func (s *WsCreateOrder) SelfTradePreventionMode(selfTradePreventionMode core.STPModeEnum) *WsCreateOrder {
-	s.c.setParams("selfTradePreventionMode", selfTradePreventionMode)
+	s.r.Set("selfTradePreventionMode", selfTradePreventionMode)
 	return s
 }
 func (s *WsCreateOrder) GoodTillDate(goodTillDate int64) *WsCreateOrder {
-	s.c.setParams("goodTillDate", goodTillDate)
+	s.r.Set("goodTillDate", goodTillDate)
 	return s
 }
 func (s *WsCreateOrder) RecvWindow(recvWindow int64) *WsCreateOrder {
-	s.c.setParams("recvWindow", recvWindow)
+	s.r.Set("recvWindow", recvWindow)
 	return s
 }
 
 func (s *WsCreateOrder) Do(ctx context.Context) (*WsOrderResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
@@ -152,56 +158,62 @@ func (s *WsCreateOrder) Do(ctx context.Context) (*WsOrderResponse, error) {
 // WsModifyOrder Order modify function, currently only LIMIT order modification is supported, modified orders will be reordered in the match queue
 type WsModifyOrder struct {
 	c *WsClient
+	r *core.WsRequest
 }
 
 func (s *WsModifyOrder) OrderId(orderId int64) *WsModifyOrder {
-	s.c.setParams("orderId", orderId)
+	s.r.Set("orderId", orderId)
 	return s
 }
 
 func (s *WsModifyOrder) OrigClientOrderId(origClientOrderId string) *WsModifyOrder {
-	s.c.setParams("origClientOrderId", origClientOrderId)
+	s.r.Set("origClientOrderId", origClientOrderId)
 	return s
 }
 
 func (s *WsModifyOrder) Symbol(symbol string) *WsModifyOrder {
-	s.c.setParams("symbol", symbol)
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 // Side BUY or SELL
 func (s *WsModifyOrder) Side(side core.OrderSideEnum) *WsModifyOrder {
-	s.c.setParams("side", side)
+	s.r.Set("side", side)
 	return s
 }
 
 func (s *WsModifyOrder) Quantity(quantity float64) *WsModifyOrder {
-	s.c.setParams("quantity", quantity)
+	s.r.Set("quantity", quantity)
 	return s
 }
 
 func (s *WsModifyOrder) Price(price float64) *WsModifyOrder {
-	s.c.setParams("price", price)
+	s.r.Set("price", price)
 	return s
 }
 
 func (s *WsModifyOrder) PriceMatch(priceMatch string) *WsModifyOrder {
-	s.c.setParams("priceMatch", priceMatch)
+	s.r.Set("priceMatch", priceMatch)
 	return s
 }
 
 // RecvWindow The value cannot be greater than 60000
 func (s *WsModifyOrder) RecvWindow(recvWindow int64) *WsModifyOrder {
-	s.c.setParams("recvWindow", recvWindow)
+	s.r.Set("recvWindow", recvWindow)
 	return s
 }
 
 func (s *WsModifyOrder) Do(ctx context.Context) (*WsOrderResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
@@ -218,31 +230,37 @@ func (s *WsModifyOrder) Do(ctx context.Context) (*WsOrderResponse, error) {
 // WsCancelOrder Cancel an active order.
 type WsCancelOrder struct {
 	c *WsClient
+	r *core.WsRequest
 }
 
 func (s *WsCancelOrder) Symbol(symbol string) *WsCancelOrder {
-	s.c.setParams("symbol", symbol)
+	s.r.Set("symbol", symbol)
 	return s
 }
 func (s *WsCancelOrder) OrderId(orderId int64) *WsCancelOrder {
-	s.c.setParams("orderId", orderId)
+	s.r.Set("orderId", orderId)
 	return s
 }
 func (s *WsCancelOrder) OrigClientOrderId(origClientOrderId string) *WsCancelOrder {
-	s.c.setParams("origClientOrderId", origClientOrderId)
+	s.r.Set("origClientOrderId", origClientOrderId)
 	return s
 }
 func (s *WsCancelOrder) RecvWindow(recvWindow int64) *WsCancelOrder {
-	s.c.setParams("recvWindow", recvWindow)
+	s.r.Set("recvWindow", recvWindow)
 	return s
 }
 
 func (s *WsCancelOrder) Do(ctx context.Context) (*WsOrderResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
@@ -259,30 +277,36 @@ func (s *WsCancelOrder) Do(ctx context.Context) (*WsOrderResponse, error) {
 // WsQueryOrder Check an order's status.
 type WsQueryOrder struct {
 	c *WsClient
+	r *core.WsRequest
 }
 
 func (s *WsQueryOrder) Symbol(symbol string) *WsQueryOrder {
-	s.c.setParams("symbol", symbol)
+	s.r.Set("symbol", symbol)
 	return s
 }
 func (s *WsQueryOrder) OrderId(orderId int64) *WsQueryOrder {
-	s.c.setParams("orderId", orderId)
+	s.r.Set("orderId", orderId)
 	return s
 }
 func (s *WsQueryOrder) OrigClientOrderId(origClientOrderId string) *WsQueryOrder {
-	s.c.setParams("origClientOrderId", origClientOrderId)
+	s.r.Set("origClientOrderId", origClientOrderId)
 	return s
 }
 func (s *WsQueryOrder) RecvWindow(recvWindow int64) *WsQueryOrder {
-	s.c.setParams("recvWindow", recvWindow)
+	s.r.Set("recvWindow", recvWindow)
 	return s
 }
 func (s *WsQueryOrder) Do(ctx context.Context) (*WsOrderResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
@@ -299,6 +323,7 @@ func (s *WsQueryOrder) Do(ctx context.Context) (*WsOrderResponse, error) {
 // WsPositionInfo Get current position information(only symbol that has position or open orders will be returned).
 type WsPositionInfo struct {
 	c *WsClient
+	r *core.WsRequest
 }
 
 type PositionInfoResult struct {
@@ -330,19 +355,24 @@ type PositionInfoResponse struct {
 }
 
 func (s *WsPositionInfo) Symbol(symbol string) *WsPositionInfo {
-	s.c.setParams("symbol", symbol)
+	s.r.Set("symbol", symbol)
 	return s
 }
 func (s *WsPositionInfo) RecvWindow(recvWindow int64) *WsPositionInfo {
-	s.c.setParams("recvWindow", recvWindow)
+	s.r.Set("recvWindow", recvWindow)
 	return s
 }
 func (s *WsPositionInfo) Do(ctx context.Context) (*PositionInfoResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():

@@ -27,10 +27,6 @@ type ApiResponse struct {
 	Error      *ApiError       `json:"error,omitempty"`
 }
 
-func (c *WsClient) setParams(key string, value any) {
-	c.SetParams(key, value)
-}
-
 func (c *WsClient) wsServe(ctx context.Context) (<-chan []byte, <-chan error) {
 	return c.WsServe(ctx)
 }
@@ -50,8 +46,8 @@ func (c *WsClient) setEndpoint(endpoint string) {
 func (c *WsClient) close() error {
 	return c.Close()
 }
-func (c *WsClient) send() error {
-	return c.Send()
+func (c *WsClient) send(r *core.WsRequest) error {
+	return c.Send(r)
 }
 
 func (c *WsClient) wsApiServe(ctx context.Context) (<-chan []byte, <-chan error) {
@@ -64,78 +60,65 @@ func (c *WsClient) NewWebsocketStreams() *WebsocketStreams {
 
 // NewDepth Order Book
 func (c *WsClient) NewDepth() *WsDepth {
-	c.SetReq("depth")
-	return &WsDepth{c: c}
+	return &WsDepth{c: c, r: c.SetReq("depth")}
 }
 
 // NewTickerPrice Symbol Price Ticker
 func (c *WsClient) NewTickerPrice() *WsTickerPrice {
-	c.SetReq("ticker.price")
-	return &WsTickerPrice{c: c}
+	return &WsTickerPrice{c: c, r: c.SetReq("ticker.price")}
 }
 
 // NewTickerBook Symbol Order Book Ticker
 func (c *WsClient) NewTickerBook() *WsTickerBook {
-	c.SetReq("ticker.book")
-	return &WsTickerBook{c: c}
+	return &WsTickerBook{c: c, r: c.SetReq("ticker.book")}
 }
 
 // NewCreateOrder New Order(TRADE)
 func (c *WsClient) NewCreateOrder() *WsCreateOrder {
-	c.SetReq("order.place", core.AuthSigned)
-	return &WsCreateOrder{c: c}
+	return &WsCreateOrder{c: c, r: c.SetReq("order.place", core.AuthSigned)}
 }
 
 // NewModifyOrder Modify Order (TRADE)
 func (c *WsClient) NewModifyOrder() *WsModifyOrder {
-	c.SetReq("order.modify", core.AuthSigned)
-	return &WsModifyOrder{c: c}
+	return &WsModifyOrder{c: c, r: c.SetReq("order.modify", core.AuthSigned)}
 }
 
 // NewCancelOrder Cancel Order (TRADE)
 func (c *WsClient) NewCancelOrder() *WsCancelOrder {
-	c.SetReq("order.cancel", core.AuthSigned)
-	return &WsCancelOrder{c: c}
+	return &WsCancelOrder{c: c, r: c.SetReq("order.cancel", core.AuthSigned)}
 }
 
 // NewQueryOrder Query Order (USER_DATA)
 func (c *WsClient) NewQueryOrder() *WsQueryOrder {
-	c.SetReq("order.status", core.AuthSigned)
-	return &WsQueryOrder{c: c}
+	return &WsQueryOrder{c: c, r: c.SetReq("order.status", core.AuthSigned)}
 }
 
 // NewPositionInfo Position Information V2 (USER_DATA)
 func (c *WsClient) NewPositionInfo() *WsPositionInfo {
-	c.SetReq("v2/account.position", core.AuthSigned)
-	return &WsPositionInfo{c: c}
+	return &WsPositionInfo{c: c, r: c.SetReq("v2/account.position", core.AuthSigned)}
 }
 
 // NewAccountBalance Futures Account Balance V2(USER_DATA)
 func (c *WsClient) NewAccountBalance() *WsAccountBalance {
-	c.SetReq("v2/account.balance", core.AuthSigned)
-	return &WsAccountBalance{c: c}
+	return &WsAccountBalance{c: c, r: c.SetReq("v2/account.balance", core.AuthSigned)}
 }
 
 // NewAccountInfo Account Information V2(USER_DATA)
 func (c *WsClient) NewAccountInfo() *WsAccountInfo {
-	c.SetReq("v2/account.status", core.AuthSigned)
-	return &WsAccountInfo{c: c}
+	return &WsAccountInfo{c: c, r: c.SetReq("v2/account.status", core.AuthSigned)}
 }
 
 // NewSessionLogon Log in with API key (SIGNED)
 func (c *WsClient) NewSessionLogon() *SessionLogon {
-	c.SetReq("session.logon", core.AuthSigned)
-	return &SessionLogon{c: c}
+	return &SessionLogon{c: c, r: c.SetReq("session.logon", core.AuthSigned)}
 }
 
 // NewSessionStatus Query session status (SIGNED)
 func (c *WsClient) NewSessionStatus() *SessionStatus {
-	c.SetReq("session.status", core.AuthSigned)
-	return &SessionStatus{c: c}
+	return &SessionStatus{c: c, r: c.SetReq("session.status", core.AuthSigned)}
 }
 
 // NewSessionLogout Log out of the session
 func (c *WsClient) NewSessionLogout() *SessionLogout {
-	c.SetReq("session.logout", core.AuthSigned)
-	return &SessionLogout{c: c}
+	return &SessionLogout{c: c, r: c.SetReq("session.logout", core.AuthSigned)}
 }

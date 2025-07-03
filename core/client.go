@@ -16,37 +16,36 @@ type Client struct {
 	Opt        *Options
 	HttpClient *http.Client
 	fullUrl    string
-	req        *request
 	resp       *response
 }
 
-func (c *Client) SetReq(path, method string, aType ...AuthType) {
+func (c *Client) SetReq(path, method string, aType ...AuthType) *Request {
 	reqType := AuthNone
 	if len(aType) > 0 {
 		reqType = aType[0]
 	}
-	c.req = &request{method: method, path: path, authType: reqType}
+	return &Request{method: method, path: path, authType: reqType}
 }
 
-func (c *Client) parseRequest() error {
-	if c.req.authType == AuthSigned {
-		c.req.set("timestamp", time.Now().UnixMilli())
+func (c *Client) parseRequest(r *Request) error {
+	if r.authType == AuthSigned {
+		r.Set("timestamp", time.Now().UnixMilli())
 	}
-	fullUrl := fmt.Sprintf("%s%s", c.Opt.Endpoint, c.req.path)
-	query := c.req.query.Encode()
-	form := c.req.form.Encode()
+	fullUrl := fmt.Sprintf("%s%s", c.Opt.Endpoint, r.path)
+	query := r.query.Encode()
+	form := r.form.Encode()
 	header := http.Header{}
-	if c.req.header != nil {
-		header = c.req.header.Clone()
+	if r.header != nil {
+		header = r.header.Clone()
 	}
-	if c.req.authType == AuthApiKey || c.req.authType == AuthSigned {
+	if r.authType == AuthApiKey || r.authType == AuthSigned {
 		header.Set("X-MBX-APIKEY", c.Opt.ApiKey)
 	}
 	if form != "" {
 		header.Set("Content-Type", "application/x-www-form-urlencoded")
-		c.req.body = bytes.NewBufferString(form)
+		r.body = bytes.NewBufferString(form)
 	}
-	if c.req.authType == AuthSigned {
+	if r.authType == AuthSigned {
 		params := fmt.Sprintf("%s%s", query, form)
 		var sf SignFunc
 		if c.Opt.SignType == SignTypeRsa {
@@ -71,13 +70,13 @@ func (c *Client) parseRequest() error {
 		fullUrl = fmt.Sprintf("%s?%s", fullUrl, query)
 	}
 	c.Opt.Logger.Debug("parsed request",
-		"method", c.req.method,
-		"path", c.req.path,
-		"auth_type", c.req.authType,
+		"method", r.method,
+		"path", r.path,
+		"auth_type", r.authType,
 		"full_url", fullUrl,
 	)
 	c.fullUrl = fullUrl
-	c.req.header = header
+	r.header = header
 	return nil
 }
 
@@ -89,27 +88,23 @@ func (c *Client) RawHeader() http.Header {
 	return c.resp.rawHeader
 }
 
-func (c *Client) Set(key string, value any) {
-	c.req.set(key, value)
+func (c *Client) Invoke(r *Request, ctx context.Context) error {
+	return c.invoke(r, ctx)
 }
 
-func (c *Client) Invoke(ctx context.Context) error {
-	return c.invoke(ctx)
-}
-
-func (c *Client) invoke(ctx context.Context) error {
-	if err := c.parseRequest(); err != nil {
+func (c *Client) invoke(r *Request, ctx context.Context) error {
+	if err := c.parseRequest(r); err != nil {
 		return err
 	}
-	req, err := http.NewRequest(c.req.method, c.fullUrl, c.req.body)
+	req, err := http.NewRequest(r.method, c.fullUrl, r.body)
 	if err != nil {
 		c.Opt.Logger.Debug("failed to create new HTTP request", "error", err)
 		c.resp = &response{err: err}
 		return err
 	}
 	req = req.WithContext(ctx)
-	if c.req.header != nil {
-		req.Header = c.req.header
+	if r.header != nil {
+		req.Header = r.header
 	}
 	res, err := c.HttpClient.Do(req)
 	if err != nil {
@@ -135,7 +130,6 @@ func (c *Client) invoke(ctx context.Context) error {
 type WsClient struct {
 	Opt  *Options
 	conn *websocket.Conn
-	req  *wsRequest
 }
 
 // connect initializes the WebSocket connection.
@@ -149,23 +143,15 @@ func (c *WsClient) connect(ctx context.Context) error {
 	c.conn = conn
 	return nil
 }
-func (c *WsClient) SetReq(method string, aType ...AuthType) {
+func (c *WsClient) SetReq(method string, aType ...AuthType) *WsRequest {
 	reqType := AuthNone
 	if len(aType) > 0 {
 		reqType = aType[0]
 	}
-	c.req = &wsRequest{Method: method, AuthType: reqType, Params: make(map[string]any)}
+	return &WsRequest{Method: method, AuthType: reqType, Params: make(map[string]any)}
 }
 func (c *WsClient) Close() error {
 	return c.close()
-}
-
-func (c *WsClient) SetParams(key string, value any) {
-	c.req.Params[key] = value
-}
-
-func (c *WsClient) GetParams(key string) any {
-	return c.req.Params[key]
 }
 
 func (c *WsClient) close() error {
@@ -312,25 +298,25 @@ func uuid4() string {
 		data[0:4], data[4:6], data[6:8], data[8:10], data[10:])
 }
 
-func (c *WsClient) Send() error {
-	return c.send()
+func (c *WsClient) Send(r *WsRequest) error {
+	return c.send(r)
 }
 
-func (c *WsClient) send() error {
+func (c *WsClient) send(r *WsRequest) error {
 	if c.conn == nil {
 		c.Opt.Logger.Debug("cannot send: connection is nil")
 		return errors.New("websocket connection is nil")
 	}
-	c.req.Id = uuid4()
-	c.Opt.Logger.Debug("generating request ID", "id", c.req.Id)
-	if c.req.AuthType == AuthSigned {
-		c.req.Params["timestamp"] = time.Now().UnixMilli()
+	r.Id = uuid4()
+	c.Opt.Logger.Debug("generating request ID", "id", r.Id)
+	if r.AuthType == AuthSigned {
+		r.Params["timestamp"] = time.Now().UnixMilli()
 	}
-	if c.req.AuthType == AuthApiKey || c.req.AuthType == AuthSigned {
-		c.req.Params["apiKey"] = c.Opt.ApiKey
+	if r.AuthType == AuthApiKey || r.AuthType == AuthSigned {
+		r.Params["apiKey"] = c.Opt.ApiKey
 	}
 
-	if c.req.AuthType == AuthSigned {
+	if r.AuthType == AuthSigned {
 		var sf SignFunc
 		if c.Opt.SignType == SignTypeRsa {
 			sf = RsaSign
@@ -339,15 +325,15 @@ func (c *WsClient) send() error {
 		} else {
 			sf = HmacSign
 		}
-		sortedData := SortMap(c.req.Params)
+		sortedData := SortMap(r.Params)
 		c.Opt.Logger.Debug("sorted params for signature", "params", sortedData)
 		sign, err := sf(c.Opt.ApiSecret, sortedData)
 		if err != nil {
 			c.Opt.Logger.Debug("signature generation failed", "error", err)
 			return err
 		}
-		c.req.Params["signature"] = sign
+		r.Params["signature"] = sign
 		c.Opt.Logger.Debug("signature added to request", "signature", sign)
 	}
-	return c.conn.WriteJSON(c.req)
+	return c.conn.WriteJSON(r)
 }

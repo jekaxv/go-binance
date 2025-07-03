@@ -10,6 +10,7 @@ import (
 // WsDepth Get current order book.
 type WsDepth struct {
 	c *WsClient
+	r *core.WsRequest
 }
 
 type DepthResult struct {
@@ -24,22 +25,27 @@ type WsDepthResponse struct {
 }
 
 func (s *WsDepth) Symbol(symbol string) *WsDepth {
-	s.c.setParams("symbol", symbol)
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 // Limit Default 100; max 5000
 func (s *WsDepth) Limit(limit uint) *WsDepth {
-	s.c.setParams("limit", limit)
+	s.r.Set("limit", limit)
 	return s
 }
 
 func (s *WsDepth) Do(ctx context.Context) (*WsDepthResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
@@ -56,6 +62,7 @@ func (s *WsDepth) Do(ctx context.Context) (*WsDepthResponse, error) {
 // WsTradesRecent Get recent trades
 type WsTradesRecent struct {
 	c *WsClient
+	r *core.WsRequest
 }
 
 type TradesResult struct {
@@ -74,21 +81,26 @@ type WsTradesRecentResponse struct {
 }
 
 func (s *WsTradesRecent) Symbol(symbol string) *WsTradesRecent {
-	s.c.setParams("symbol", symbol)
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 // Limit Default 500; max 1000
 func (s *WsTradesRecent) Limit(limit uint) *WsTradesRecent {
-	s.c.setParams("limit", limit)
+	s.r.Set("limit", limit)
 	return s
 }
 func (s *WsTradesRecent) Do(ctx context.Context) (*WsTradesRecentResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
@@ -105,6 +117,7 @@ func (s *WsTradesRecent) Do(ctx context.Context) (*WsTradesRecentResponse, error
 // WsTradesHistorical Get historical trades.
 type WsTradesHistorical struct {
 	c *WsClient
+	r *core.WsRequest
 }
 
 type WsTradesHistoricalResponse struct {
@@ -113,28 +126,33 @@ type WsTradesHistoricalResponse struct {
 }
 
 func (s *WsTradesHistorical) Symbol(symbol string) *WsTradesHistorical {
-	s.c.setParams("symbol", symbol)
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 // FromId Trade ID to begin at
 func (s *WsTradesHistorical) FromId(fromId uint64) *WsTradesHistorical {
-	s.c.setParams("fromId", fromId)
+	s.r.Set("fromId", fromId)
 	return s
 }
 
 // Limit Default 500; max 1000
 func (s *WsTradesHistorical) Limit(limit uint) *WsTradesHistorical {
-	s.c.setParams("limit", limit)
+	s.r.Set("limit", limit)
 	return s
 }
 
 func (s *WsTradesHistorical) Do(ctx context.Context) (*WsTradesHistoricalResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
@@ -151,6 +169,7 @@ func (s *WsTradesHistorical) Do(ctx context.Context) (*WsTradesHistoricalRespons
 // WsTradesAggregate Get aggregate trades.
 type WsTradesAggregate struct {
 	c *WsClient
+	r *core.WsRequest
 }
 
 type TradesAggregateResult struct {
@@ -170,34 +189,39 @@ type WsTradesAggregateResponse struct {
 }
 
 func (s *WsTradesAggregate) Symbol(symbol string) *WsTradesAggregate {
-	s.c.setParams("symbol", symbol)
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 // FromId Aggregate trade ID to begin at
 func (s *WsTradesAggregate) FromId(fromId uint64) *WsTradesAggregate {
-	s.c.setParams("fromId", fromId)
+	s.r.Set("fromId", fromId)
 	return s
 }
 func (s *WsTradesAggregate) StartTime(startTime uint64) *WsTradesAggregate {
-	s.c.setParams("startTime", startTime)
+	s.r.Set("startTime", startTime)
 	return s
 }
 func (s *WsTradesAggregate) EndTime(endTime uint64) *WsTradesAggregate {
-	s.c.setParams("endTime", endTime)
+	s.r.Set("endTime", endTime)
 	return s
 }
 func (s *WsTradesAggregate) Limit(limit uint) *WsTradesAggregate {
-	s.c.setParams("limit", limit)
+	s.r.Set("limit", limit)
 	return s
 }
 
 func (s *WsTradesAggregate) Do(ctx context.Context) (*WsTradesAggregateResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
@@ -215,6 +239,7 @@ func (s *WsTradesAggregate) Do(ctx context.Context) (*WsTradesAggregateResponse,
 // Klines are uniquely identified by their open & close time.
 type WsKline struct {
 	c *WsClient
+	r *core.WsRequest
 }
 type KlineResult struct {
 	OpenTime                 uint64          `json:"openTime"`
@@ -241,36 +266,41 @@ type WsKlineResponse struct {
 }
 
 func (s *WsKline) Symbol(symbol string) *WsKline {
-	s.c.setParams("symbol", symbol)
+	s.r.Set("symbol", symbol)
 	return s
 }
 func (s *WsKline) Interval(interval core.IntervalEnum) *WsKline {
-	s.c.setParams("interval", interval)
+	s.r.Set("interval", interval)
 	return s
 }
 func (s *WsKline) StartTime(startTime uint64) *WsKline {
-	s.c.setParams("startTime", startTime)
+	s.r.Set("startTime", startTime)
 	return s
 }
 func (s *WsKline) EndTime(endTime uint64) *WsKline {
-	s.c.setParams("endTime", endTime)
+	s.r.Set("endTime", endTime)
 	return s
 }
 func (s *WsKline) TimeZone(timeZone string) *WsKline {
-	s.c.setParams("timeZone", timeZone)
+	s.r.Set("timeZone", timeZone)
 	return s
 }
 func (s *WsKline) Limit(limit uint) *WsKline {
-	s.c.setParams("limit", limit)
+	s.r.Set("limit", limit)
 	return s
 }
 
 func (s *WsKline) Do(ctx context.Context) (*WsKlineResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
@@ -293,39 +323,45 @@ func (s *WsKline) Do(ctx context.Context) (*WsKlineResponse, error) {
 // WsUiKlines Get klines (candlestick bars) optimized for presentation.
 type WsUiKlines struct {
 	c *WsClient
+	r *core.WsRequest
 }
 
 func (s *WsUiKlines) Symbol(symbol string) *WsUiKlines {
-	s.c.setParams("symbol", symbol)
+	s.r.Set("symbol", symbol)
 	return s
 }
 func (s *WsUiKlines) Interval(interval string) *WsUiKlines {
-	s.c.setParams("interval", interval)
+	s.r.Set("interval", interval)
 	return s
 }
 func (s *WsUiKlines) StartTime(startTime uint64) *WsUiKlines {
-	s.c.setParams("startTime", startTime)
+	s.r.Set("startTime", startTime)
 	return s
 }
 func (s *WsUiKlines) EndTime(endTime uint64) *WsUiKlines {
-	s.c.setParams("endTime", endTime)
+	s.r.Set("endTime", endTime)
 	return s
 }
 func (s *WsUiKlines) TimeZone(timeZone string) *WsUiKlines {
-	s.c.setParams("timeZone", timeZone)
+	s.r.Set("timeZone", timeZone)
 	return s
 }
 func (s *WsUiKlines) Limit(limit uint) *WsUiKlines {
-	s.c.setParams("limit", limit)
+	s.r.Set("limit", limit)
 	return s
 }
 
 func (s *WsUiKlines) Do(ctx context.Context) (*WsKlineResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
@@ -348,6 +384,7 @@ func (s *WsUiKlines) Do(ctx context.Context) (*WsKlineResponse, error) {
 // WsAveragePrice Get current average price for a symbol.
 type WsAveragePrice struct {
 	c *WsClient
+	r *core.WsRequest
 }
 
 type AveragePriceResult struct {
@@ -362,16 +399,21 @@ type WsAveragePriceResponse struct {
 }
 
 func (s *WsAveragePrice) Symbol(symbol string) *WsAveragePrice {
-	s.c.setParams("symbol", symbol)
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *WsAveragePrice) Do(ctx context.Context) (*WsAveragePriceResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
@@ -388,6 +430,7 @@ func (s *WsAveragePrice) Do(ctx context.Context) (*WsAveragePriceResponse, error
 // WsTicker24h Get 24-hour rolling window price change statistics.
 type WsTicker24h struct {
 	c *WsClient
+	r *core.WsRequest
 }
 
 type Ticker24hResult struct {
@@ -426,35 +469,40 @@ type WsTicker24hResponse struct {
 
 // Symbol Query ticker for a single symbol
 func (s *WsTicker24h) Symbol(symbol string) *WsTicker24h {
-	s.c.setParams("symbol", symbol)
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 // Symbols Query ticker for multiple symbols
 func (s *WsTicker24h) Symbols(symbols []string) *WsTicker24h {
-	s.c.setParams("symbols", symbols)
+	s.r.Set("symbols", symbols)
 	return s
 }
 
 // Type ticker type: FULL (default) or MINI
 func (s *WsTicker24h) Type(type_ core.TickerTypeEnum) *WsTicker24h {
-	s.c.setParams("type", type_)
+	s.r.Set("type", type_)
 	return s
 }
 
 func (s *WsTicker24h) Do(ctx context.Context) (*WsTicker24hResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		case message := <-onMessage:
 			resp := new(WsTicker24hResponse)
-			if s.c.getParams("symbols") != nil {
+			if s.r.Get("symbols") != nil {
 				return resp, json.Unmarshal(message, &resp)
 			}
 			single := new(WsTicker24hSingleResponse)
@@ -473,6 +521,7 @@ func (s *WsTicker24h) Do(ctx context.Context) (*WsTicker24hResponse, error) {
 // WsTickerTradingDay Price change statistics for a trading day.
 type WsTickerTradingDay struct {
 	c *WsClient
+	r *core.WsRequest
 }
 
 type WsTickerTradingDaySingleResponse struct {
@@ -486,41 +535,46 @@ type WsTickerTradingDayResponse struct {
 }
 
 func (s *WsTickerTradingDay) Symbol(symbol string) *WsTickerTradingDay {
-	s.c.setParams("symbol", symbol)
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *WsTickerTradingDay) Symbols(symbols []string) *WsTickerTradingDay {
-	s.c.setParams("symbols", symbols)
+	s.r.Set("symbols", symbols)
 	return s
 }
 
 // TimeZone Default: 0 (UTC)
 func (s *WsTickerTradingDay) TimeZone(timeZone string) *WsTickerTradingDay {
-	s.c.setParams("timeZone", timeZone)
+	s.r.Set("timeZone", timeZone)
 	return s
 }
 
 // Type Supported values: FULL or MINI.
 // If none provided, the default is FULL
 func (s *WsTickerTradingDay) Type(type_ core.TickerTypeEnum) *WsTickerTradingDay {
-	s.c.setParams("type", type_)
+	s.r.Set("type", type_)
 	return s
 }
 
 func (s *WsTickerTradingDay) Do(ctx context.Context) (*WsTickerTradingDayResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		case message := <-onMessage:
 			resp := new(WsTickerTradingDayResponse)
-			if s.c.getParams("symbols") != nil {
+			if s.r.Get("symbols") != nil {
 				return resp, json.Unmarshal(message, &resp)
 			}
 			single := new(WsTickerTradingDaySingleResponse)
@@ -540,6 +594,7 @@ func (s *WsTickerTradingDay) Do(ctx context.Context) (*WsTickerTradingDayRespons
 // This request is similar to ticker.24hr, but statistics are computed on demand using the arbitrary window you specify.
 type WsTicker struct {
 	c *WsClient
+	r *core.WsRequest
 }
 type TickerResult struct {
 	Symbol             string          `json:"symbol"`
@@ -570,17 +625,17 @@ type WsTickerResponse struct {
 }
 
 func (s *WsTicker) Symbol(symbol string) *WsTicker {
-	s.c.setParams("symbol", symbol)
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *WsTicker) Symbols(symbols []string) *WsTicker {
-	s.c.setParams("symbols", symbols)
+	s.r.Set("symbols", symbols)
 	return s
 }
 
 func (s *WsTicker) Type(type_ core.TickerTypeEnum) *WsTicker {
-	s.c.setParams("type", type_)
+	s.r.Set("type", type_)
 	return s
 }
 
@@ -589,23 +644,28 @@ func (s *WsTicker) Type(type_ core.TickerTypeEnum) *WsTicker {
 // hours	1h, 2h ... 23h
 // days	1d, 2d ... 7d
 func (s *WsTicker) WindowSize(windowSize string) *WsTicker {
-	s.c.setParams("windowSize", windowSize)
+	s.r.Set("windowSize", windowSize)
 	return s
 }
 
 func (s *WsTicker) Do(ctx context.Context) (*WsTickerResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		case message := <-onMessage:
 			resp := new(WsTickerResponse)
-			if s.c.getParams("symbols") != nil {
+			if s.r.Get("symbols") != nil {
 				return resp, json.Unmarshal(message, &resp)
 			}
 			single := new(TickerSingleResponse)
@@ -624,6 +684,7 @@ func (s *WsTicker) Do(ctx context.Context) (*WsTickerResponse, error) {
 // WsTickerPrice Get the latest market price for a symbol.
 type WsTickerPrice struct {
 	c *WsClient
+	r *core.WsRequest
 }
 
 type TickerPriceResult struct {
@@ -642,28 +703,33 @@ type WsTickerPriceResponse struct {
 }
 
 func (s *WsTickerPrice) Symbol(symbol string) *WsTickerPrice {
-	s.c.setParams("symbol", symbol)
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *WsTickerPrice) Symbols(symbols []string) *WsTickerPrice {
-	s.c.setParams("symbols", symbols)
+	s.r.Set("symbols", symbols)
 	return s
 }
 
 func (s *WsTickerPrice) Do(ctx context.Context) (*WsTickerPriceResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		case message := <-onMessage:
 			resp := new(WsTickerPriceResponse)
-			if s.c.getParams("symbols") != nil {
+			if s.r.Get("symbols") != nil {
 				return resp, json.Unmarshal(message, &resp)
 			}
 			single := new(WsTickerPriceSingleResponse)
@@ -682,6 +748,7 @@ func (s *WsTickerPrice) Do(ctx context.Context) (*WsTickerPriceResponse, error) 
 // WsTickerBook Get the current best price and quantity on the order book.
 type WsTickerBook struct {
 	c *WsClient
+	r *core.WsRequest
 }
 
 type TickerBookResult struct {
@@ -703,28 +770,33 @@ type WsTickerBookResponse struct {
 }
 
 func (s *WsTickerBook) Symbol(symbol string) *WsTickerBook {
-	s.c.setParams("symbol", symbol)
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 func (s *WsTickerBook) Symbols(symbols []string) *WsTickerBook {
-	s.c.setParams("symbols", symbols)
+	s.r.Set("symbols", symbols)
 	return s
 }
 
 func (s *WsTickerBook) Do(ctx context.Context) (*WsTickerBookResponse, error) {
 	onMessage, onError := s.c.wsApiServe(ctx)
-	if err := s.c.send(); err != nil {
+	if err := s.c.send(s.r); err != nil {
 		return nil, err
 	}
-	defer s.c.close()
+	defer func(c *WsClient) {
+		err := c.close()
+		if err != nil {
+			s.c.Opt.Logger.Debug("websocket close failed", "error", err)
+		}
+	}(s.c)
 	for {
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		case message := <-onMessage:
 			resp := new(WsTickerBookResponse)
-			if s.c.getParams("symbols") != nil {
+			if s.r.Get("symbols") != nil {
 				return resp, json.Unmarshal(message, &resp)
 			}
 			single := new(WsTickerBookSingleResponse)

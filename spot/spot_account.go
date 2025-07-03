@@ -3,14 +3,14 @@ package spot
 import (
 	"context"
 	"encoding/json"
+	"github.com/jekaxv/go-binance/core"
 	"github.com/shopspring/decimal"
 )
 
 // AccountInfo Get current account information.
 type AccountInfo struct {
-	c                *Client
-	omitZeroBalances *bool
-	recvWindow       *int64
+	c *Client
+	r *core.Request
 }
 
 type AccountInfoResponse struct {
@@ -35,24 +35,18 @@ type AccountInfoResponse struct {
 // OmitZeroBalances When set to true, emits only the non-zero balances of an account.
 // Default value: false
 func (s *AccountInfo) OmitZeroBalances(omitZeroBalances bool) *AccountInfo {
-	s.omitZeroBalances = &omitZeroBalances
+	s.r.Set("omitZeroBalances", omitZeroBalances)
 	return s
 }
 
 // RecvWindow The value cannot be greater than 60000
 func (s *AccountInfo) RecvWindow(recvWindow int64) *AccountInfo {
-	s.recvWindow = &recvWindow
+	s.r.Set("recvWindow", recvWindow)
 	return s
 }
 
 func (s *AccountInfo) Do(ctx context.Context) (*AccountInfoResponse, error) {
-	if s.omitZeroBalances != nil {
-		s.c.set("omitZeroBalances", *s.omitZeroBalances)
-	}
-	if s.recvWindow != nil {
-		s.c.set("recvWindow", *s.recvWindow)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
 	var resp *AccountInfoResponse
@@ -61,14 +55,8 @@ func (s *AccountInfo) Do(ctx context.Context) (*AccountInfoResponse, error) {
 
 // AccountTrade Get trades for a specific account and symbol.
 type AccountTrade struct {
-	c          *Client
-	symbol     string
-	orderId    *int64
-	startTime  *int64
-	endTime    *int64
-	fromId     *int64
-	limit      *int64
-	recvWindow *int64
+	c *Client
+	r *core.Request
 }
 
 type AccountTradeResponse struct {
@@ -88,58 +76,39 @@ type AccountTradeResponse struct {
 }
 
 func (s *AccountTrade) Symbol(symbol string) *AccountTrade {
-	s.symbol = symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 
 // OrderId This can only be used in combination with symbol.
 func (s *AccountTrade) OrderId(orderId int64) *AccountTrade {
-	s.orderId = &orderId
+	s.r.Set("orderId", orderId)
 	return s
 }
 func (s *AccountTrade) StartTime(startTime int64) *AccountTrade {
-	s.startTime = &startTime
+	s.r.Set("startTime", startTime)
 	return s
 }
 func (s *AccountTrade) EndTime(endTime int64) *AccountTrade {
-	s.endTime = &endTime
+	s.r.Set("endTime", endTime)
 	return s
 }
 
 // FromId TradeId to fetch from. Default gets most recent trades.
 func (s *AccountTrade) FromId(fromId int64) *AccountTrade {
-	s.fromId = &fromId
+	s.r.Set("fromId", fromId)
 	return s
 }
 func (s *AccountTrade) Limit(limit int64) *AccountTrade {
-	s.limit = &limit
+	s.r.Set("limit", limit)
 	return s
 }
 func (s *AccountTrade) RecvWindow(recvWindow int64) *AccountTrade {
-	s.recvWindow = &recvWindow
+	s.r.Set("recvWindow", recvWindow)
 	return s
 }
 func (s *AccountTrade) Do(ctx context.Context) ([]*AccountTradeResponse, error) {
-	s.c.set("symbol", s.symbol)
-	if s.orderId != nil {
-		s.c.set("orderId", *s.orderId)
-	}
-	if s.startTime != nil {
-		s.c.set("startTime", *s.startTime)
-	}
-	if s.endTime != nil {
-		s.c.set("endTime", *s.endTime)
-	}
-	if s.fromId != nil {
-		s.c.set("fromId", *s.fromId)
-	}
-	if s.limit != nil {
-		s.c.set("limit", *s.limit)
-	}
-	if s.recvWindow != nil {
-		s.c.set("recvWindow", *s.recvWindow)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
 	var resp []*AccountTradeResponse
@@ -148,8 +117,8 @@ func (s *AccountTrade) Do(ctx context.Context) ([]*AccountTradeResponse, error) 
 
 // QueryUnfilledOrder Displays the user's unfilled order count for all intervals.
 type QueryUnfilledOrder struct {
-	c          *Client
-	recvWindow *int64
+	c *Client
+	r *core.Request
 }
 
 type QueryUnfilledOrderResponse struct {
@@ -161,15 +130,12 @@ type QueryUnfilledOrderResponse struct {
 }
 
 func (s *QueryUnfilledOrder) RecvWindow(recvWindow int64) *QueryUnfilledOrder {
-	s.recvWindow = &recvWindow
+	s.r.Set("recvWindow", recvWindow)
 	return s
 }
 
 func (s *QueryUnfilledOrder) Do(ctx context.Context) ([]*QueryUnfilledOrderResponse, error) {
-	if s.recvWindow != nil {
-		s.c.set("recvWindow", *s.recvWindow)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
 	var resp []*QueryUnfilledOrderResponse
@@ -178,13 +144,8 @@ func (s *QueryUnfilledOrder) Do(ctx context.Context) ([]*QueryUnfilledOrderRespo
 
 // QueryPreventedMatches Displays the list of orders that were expired due to STP.
 type QueryPreventedMatches struct {
-	c                    *Client
-	symbol               string
-	preventedMatchId     *int64
-	orderId              *int64
-	fromPreventedMatchId *int64
-	limit                *int64
-	recvWindow           *int64
+	c *Client
+	r *core.Request
 }
 type QueryPreventedMatchesResponse struct {
 	Symbol                  string          `json:"symbol"`
@@ -200,47 +161,31 @@ type QueryPreventedMatchesResponse struct {
 }
 
 func (s *QueryPreventedMatches) Symbol(symbol string) *QueryPreventedMatches {
-	s.symbol = symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 func (s *QueryPreventedMatches) PreventedMatchId(preventedMatchId int64) *QueryPreventedMatches {
-	s.preventedMatchId = &preventedMatchId
+	s.r.Set("preventedMatchId", preventedMatchId)
 	return s
 }
 func (s *QueryPreventedMatches) OrderId(orderId int64) *QueryPreventedMatches {
-	s.orderId = &orderId
+	s.r.Set("orderId", orderId)
 	return s
 }
 func (s *QueryPreventedMatches) FromPreventedMatchId(fromPreventedMatchId int64) *QueryPreventedMatches {
-	s.fromPreventedMatchId = &fromPreventedMatchId
+	s.r.Set("fromPreventedMatchId", fromPreventedMatchId)
 	return s
 }
 func (s *QueryPreventedMatches) Limit(limit int64) *QueryPreventedMatches {
-	s.limit = &limit
+	s.r.Set("limit", limit)
 	return s
 }
 func (s *QueryPreventedMatches) RecvWindow(recvWindow int64) *QueryPreventedMatches {
-	s.recvWindow = &recvWindow
+	s.r.Set("recvWindow", recvWindow)
 	return s
 }
 func (s *QueryPreventedMatches) Do(ctx context.Context) ([]*QueryPreventedMatchesResponse, error) {
-	s.c.set("symbol", s.symbol)
-	if s.preventedMatchId != nil {
-		s.c.set("preventedMatchId", *s.preventedMatchId)
-	}
-	if s.orderId != nil {
-		s.c.set("orderId", *s.orderId)
-	}
-	if s.fromPreventedMatchId != nil {
-		s.c.set("fromPreventedMatchId", *s.fromPreventedMatchId)
-	}
-	if s.limit != nil {
-		s.c.set("limit", *s.limit)
-	}
-	if s.recvWindow != nil {
-		s.c.set("recvWindow", *s.recvWindow)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
 	var resp []*QueryPreventedMatchesResponse
@@ -249,14 +194,8 @@ func (s *QueryPreventedMatches) Do(ctx context.Context) ([]*QueryPreventedMatche
 
 // QueryAllocations Retrieves allocations resulting from SOR order placement.
 type QueryAllocations struct {
-	c                *Client
-	symbol           string
-	startTime        *int64
-	endTime          *int64
-	fromAllocationId *int64
-	limit            *int64
-	orderId          *int64
-	recvWindow       *int64
+	c *Client
+	r *core.Request
 }
 
 type QueryAllocationsResponse struct {
@@ -277,54 +216,35 @@ type QueryAllocationsResponse struct {
 }
 
 func (s *QueryAllocations) Symbol(symbol string) *QueryAllocations {
-	s.symbol = symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 func (s *QueryAllocations) StartTime(startTime int64) *QueryAllocations {
-	s.startTime = &startTime
+	s.r.Set("startTime", startTime)
 	return s
 }
 func (s *QueryAllocations) EndTime(endTime int64) *QueryAllocations {
-	s.endTime = &endTime
+	s.r.Set("endTime", endTime)
 	return s
 }
 func (s *QueryAllocations) FromAllocationId(fromAllocationId int64) *QueryAllocations {
-	s.fromAllocationId = &fromAllocationId
+	s.r.Set("fromAllocationId", fromAllocationId)
 	return s
 }
 func (s *QueryAllocations) Limit(limit int64) *QueryAllocations {
-	s.limit = &limit
+	s.r.Set("limit", limit)
 	return s
 }
 func (s *QueryAllocations) OrderId(orderId int64) *QueryAllocations {
-	s.orderId = &orderId
+	s.r.Set("orderId", orderId)
 	return s
 }
 func (s *QueryAllocations) RecvWindow(recvWindow int64) *QueryAllocations {
-	s.recvWindow = &recvWindow
+	s.r.Set("recvWindow", recvWindow)
 	return s
 }
 func (s *QueryAllocations) Do(ctx context.Context) ([]*QueryAllocationsResponse, error) {
-	s.c.set("symbol", s.symbol)
-	if s.startTime != nil {
-		s.c.set("startTime", *s.startTime)
-	}
-	if s.endTime != nil {
-		s.c.set("endTime", *s.endTime)
-	}
-	if s.fromAllocationId != nil {
-		s.c.set("fromAllocationId", *s.fromAllocationId)
-	}
-	if s.limit != nil {
-		s.c.set("limit", *s.limit)
-	}
-	if s.orderId != nil {
-		s.c.set("orderId", *s.orderId)
-	}
-	if s.recvWindow != nil {
-		s.c.set("recvWindow", *s.recvWindow)
-	}
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
 	var resp []*QueryAllocationsResponse
@@ -333,8 +253,8 @@ func (s *QueryAllocations) Do(ctx context.Context) ([]*QueryAllocationsResponse,
 
 // QueryCommission Get current account commission rates.
 type QueryCommission struct {
-	c      *Client
-	symbol string
+	c *Client
+	r *core.Request
 }
 
 type QueryCommissionResponse struct {
@@ -345,12 +265,11 @@ type QueryCommissionResponse struct {
 }
 
 func (s *QueryCommission) Symbol(symbol string) *QueryCommission {
-	s.symbol = symbol
+	s.r.Set("symbol", symbol)
 	return s
 }
 func (s *QueryCommission) Do(ctx context.Context) (*QueryCommissionResponse, error) {
-	s.c.set("symbol", s.symbol)
-	if err := s.c.invoke(ctx); err != nil {
+	if err := s.c.invoke(s.r, ctx); err != nil {
 		return nil, err
 	}
 	var resp *QueryCommissionResponse
