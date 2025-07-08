@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/shopspring/decimal"
 )
 
 type UserDataStream struct {
@@ -41,56 +42,56 @@ type AccountUpdate struct {
 }
 
 type AccountBalance struct {
-	Asset  string `json:"a"`
-	Free   string `json:"f"`
-	Locked string `json:"l"`
+	Asset  string          `json:"a"`
+	Free   decimal.Decimal `json:"f"`
+	Locked decimal.Decimal `json:"l"`
 }
 
 // BalanceUpdate Balance Update occurs during the following:
 // Deposits or withdrawals from the account
 // Transfer of funds between accounts (e.g. Spot to Margin)
 type BalanceUpdate struct {
-	Asset        string `json:"a"`
-	BalanceDelta string `json:"d"`
-	ClearTime    int64  `json:"T"`
+	Asset        string          `json:"a"`
+	BalanceDelta decimal.Decimal `json:"d"`
+	ClearTime    int64           `json:"T"`
 }
 
 // OrderUpdate Orders are updated with the executionReport event.
 // We recommend using the FIX API for better performance compared to using the User Data Streams.
 type OrderUpdate struct {
-	Symbol                  string `json:"s"` // Symbol
-	ClientOrderId           string `json:"c"` // Client order ID
-	Side                    string `json:"S"` // Side
-	OrderType               string `json:"o"` // Order type
-	TimeForce               string `json:"f"` // Time in force
-	OrderQuantity           string `json:"q"` // Order quantity
-	OrderPrice              string `json:"p"` // Order price
-	StopPrice               string `json:"P"` // Stop price
-	IcebergQuantity         string `json:"F"` // Iceberg quantity
-	OrderListId             int    `json:"g"` // OrderListId
-	OriginalOrderId         string `json:"C"` // Original client order ID; This is the ID of the order being canceled
-	CurrentExecType         string `json:"x"` // Current execution type
-	CurrentOrderStatus      string `json:"X"` // Current order status
-	OrderRejectReason       string `json:"r"` // Order reject reason; will be an error code.
-	OrderId                 int    `json:"i"` // Order ID
-	LastExecQuantity        string `json:"l"` // Last executed quantity
-	CumulativeQuantity      string `json:"z"` // Cumulative filled quantity
-	LastExecPrice           string `json:"L"` // Last executed price
-	CommissionAmount        string `json:"n"` // Commission amount
-	CommissionAsset         string `json:"N"` // Commission asset
-	TransactionTime         int64  `json:"T"` // Transaction time
-	TradeId                 int    `json:"t"` // Trade ID
-	PreventedMatchId        int    `json:"v"` // Prevented Match Id; This is only visible if the order expired due to STP
-	ExecutionId             int    `json:"I"` // Execution Id
-	IsInOrderBook           bool   `json:"w"` // Is the order on the book?
-	IsMaker                 bool   `json:"m"` // Is this trade the maker side?
-	Ignore                  bool   `json:"M"` // Ignore
-	CreateTime              int64  `json:"O"` // Order creation time
-	FilledQuoteVolume       string `json:"Z"` // Cumulative quote asset transacted quantity
-	LatestQuoteVolume       string `json:"Y"` // Last quote asset transacted quantity (i.e. lastPrice * lastQty)
-	QuoteVolume             string `json:"Q"` // Quote Order Quantity
-	WorkingTime             int64  `json:"W"` // Working Time; This is only visible if the order has been placed on the book.
-	SelfTradePreventionMode string `json:"V"` // SelfTradePreventionMode
+	Symbol                  string          `json:"s"` // Symbol
+	ClientOrderId           string          `json:"c"` // Client order ID
+	Side                    string          `json:"S"` // Side
+	OrderType               string          `json:"o"` // Order type
+	TimeForce               string          `json:"f"` // Time in force
+	OrderQuantity           decimal.Decimal `json:"q"` // Order quantity
+	OrderPrice              decimal.Decimal `json:"p"` // Order price
+	StopPrice               decimal.Decimal `json:"P"` // Stop price
+	IcebergQuantity         decimal.Decimal `json:"F"` // Iceberg quantity
+	OrderListId             int             `json:"g"` // OrderListId
+	OriginalOrderId         string          `json:"C"` // Original client order ID; This is the ID of the order being canceled
+	CurrentExecType         string          `json:"x"` // Current execution type
+	CurrentOrderStatus      string          `json:"X"` // Current order status
+	OrderRejectReason       string          `json:"r"` // Order reject reason; will be an error code.
+	OrderId                 int             `json:"i"` // Order ID
+	LastExecQuantity        decimal.Decimal `json:"l"` // Last executed quantity
+	CumulativeQuantity      decimal.Decimal `json:"z"` // Cumulative filled quantity
+	LastExecPrice           decimal.Decimal `json:"L"` // Last executed price
+	CommissionAmount        decimal.Decimal `json:"n"` // Commission amount
+	CommissionAsset         string          `json:"N"` // Commission asset
+	TransactionTime         int64           `json:"T"` // Transaction time
+	TradeId                 int             `json:"t"` // Trade ID
+	PreventedMatchId        int             `json:"v"` // Prevented Match Id; This is only visible if the order expired due to STP
+	ExecutionId             int             `json:"I"` // Execution Id
+	IsInOrderBook           bool            `json:"w"` // Is the order on the book?
+	IsMaker                 bool            `json:"m"` // Is this trade the maker side?
+	Ignore                  bool            `json:"M"` // Ignore
+	CreateTime              int64           `json:"O"` // Order creation time
+	FilledQuoteVolume       decimal.Decimal `json:"Z"` // Cumulative quote asset transacted quantity
+	LatestQuoteVolume       decimal.Decimal `json:"Y"` // Last quote asset transacted quantity (i.e. lastPrice * lastQty)
+	QuoteVolume             decimal.Decimal `json:"Q"` // Quote Order Quantity
+	WorkingTime             int64           `json:"W"` // Working Time; This is only visible if the order has been placed on the book.
+	SelfTradePreventionMode string          `json:"V"` // SelfTradePreventionMode
 }
 
 type ListStatus struct {
@@ -131,9 +132,9 @@ type StreamTerminated struct {
 
 // ExternalLockUpdate is sent when part of your spot wallet balance is locked/unlocked by an external system, for example when used as margin collateral.
 type ExternalLockUpdate struct {
-	Asset           string `json:"a"` // Asset
-	Delta           string `json:"d"` // Delta
-	TransactionTime int64  `json:"T"` // Transaction Time
+	Asset           string          `json:"a"` // Asset
+	Delta           decimal.Decimal `json:"d"` // Delta
+	TransactionTime int64           `json:"T"` // Transaction Time
 }
 
 func (s *WebsocketStreams) SubscribeUserData(listenKey string) *UserDataStream {

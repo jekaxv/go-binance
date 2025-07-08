@@ -11,7 +11,7 @@ import (
 type RateLimit struct {
 	RateLimitType string `json:"rateLimitType"`
 	Interval      string `json:"interval"`
-	Limit         uint   `json:"limit"`
+	Limit         int    `json:"limit"`
 }
 
 // ExchangeFilter define exchange filter
@@ -54,7 +54,7 @@ type SymbolFilter struct {
 	BidMultiplierDown     string           `json:"bidMultiplierDown,omitempty"`
 	BidMultiplierUp       string           `json:"bidMultiplierUp,omitempty"`
 	FilterType            string           `json:"filterType,omitempty"`
-	Limit                 uint             `json:"limit,omitempty"`
+	Limit                 int              `json:"limit,omitempty"`
 	MaxNotional           string           `json:"maxNotional,omitempty"`
 	MaxNumAlgoOrders      int64            `json:"maxNumAlgoOrders,omitempty"`
 	MaxNumOrders          int64            `json:"maxNumOrders,omitempty"`
@@ -91,7 +91,7 @@ type ServerTime struct {
 }
 
 type ServerTimeResponse struct {
-	ServerTime uint64 `json:"serverTime"`
+	ServerTime int64 `json:"serverTime"`
 }
 
 func (s *ServerTime) Do(ctx context.Context) (*ServerTimeResponse, error) {
@@ -110,7 +110,7 @@ type ExchangeInfo struct {
 
 type ExchangeInfoResponse struct {
 	Timezone        string            `json:"timezone"`
-	ServerTime      uint64            `json:"serverTime"`
+	ServerTime      int64             `json:"serverTime"`
 	RateLimits      []*RateLimit      `json:"rateLimits"`
 	ExchangeFilters []*ExchangeFilter `json:"exchangeFilters"`
 	Symbols         []*SymbolInfo     `json:"symbols"`

@@ -45,10 +45,10 @@ type Trades struct {
 }
 
 type TradesResponse struct {
-	Id           uint64          `json:"id,omitempty"`
+	Id           int64           `json:"id,omitempty"`
 	Price        decimal.Decimal `json:"price,omitempty"`
 	Qty          decimal.Decimal `json:"qty,omitempty"`
-	Time         uint64          `json:"time,omitempty"`
+	Time         int64           `json:"time,omitempty"`
 	QuoteQty     decimal.Decimal `json:"quoteQty,omitempty"`
 	IsBuyerMaker bool            `json:"isBuyerMaker"`
 	IsBestMatch  bool            `json:"isBestMatch"`
@@ -91,7 +91,7 @@ func (s *HistoricalTrades) Limit(limit int) *HistoricalTrades {
 }
 
 // FromId Trade id to fetch from. Default gets most recent trades.
-func (s *HistoricalTrades) FromId(fromId uint64) *HistoricalTrades {
+func (s *HistoricalTrades) FromId(fromId int64) *HistoricalTrades {
 	s.r.Set("fromId", fromId)
 	return s
 }
@@ -126,19 +126,19 @@ func (s *AggTrades) Symbol(symbol string) *AggTrades {
 }
 
 // FromId ID to get aggregate trades from INCLUSIVE.
-func (s *AggTrades) FromId(fromId uint64) *AggTrades {
+func (s *AggTrades) FromId(fromId int64) *AggTrades {
 	s.r.Set("fromId", fromId)
 	return s
 }
 
 // StartTime Timestamp in ms to get aggregate trades from INCLUSIVE.
-func (s *AggTrades) StartTime(startTime uint64) *AggTrades {
+func (s *AggTrades) StartTime(startTime int64) *AggTrades {
 	s.r.Set("startTime", startTime)
 	return s
 }
 
 // EndTime Timestamp in ms to get aggregate trades until INCLUSIVE.
-func (s *AggTrades) EndTime(endTime uint64) *AggTrades {
+func (s *AggTrades) EndTime(endTime int64) *AggTrades {
 	s.r.Set("endTime", endTime)
 	return s
 }
@@ -173,12 +173,12 @@ func (s *KlineData) Interval(interval core.IntervalEnum) *KlineData {
 	return s
 }
 
-func (s *KlineData) StartTime(startTime uint64) *KlineData {
+func (s *KlineData) StartTime(startTime int64) *KlineData {
 	s.r.Set("startTime", startTime)
 	return s
 }
 
-func (s *KlineData) EndTime(endTime uint64) *KlineData {
+func (s *KlineData) EndTime(endTime int64) *KlineData {
 	s.r.Set("endTime", endTime)
 	return s
 }
@@ -218,13 +218,13 @@ func parseKlineData(res [][]any) []*KlineResult {
 		takerBuyBaseAssetVolume, _ := decimal.NewFromString(v[9].(string))
 		takerBuyQuoteAssetVolume, _ := decimal.NewFromString(v[10].(string))
 		resp = append(resp, &KlineResult{
-			OpenTime:                 uint64(v[0].(float64)),
+			OpenTime:                 int64(v[0].(float64)),
 			OpenPrice:                openPrice,
 			HighPrice:                highPrice,
 			LowPrice:                 lowPrice,
 			ClosePrice:               closePrice,
 			Volume:                   volumePrice,
-			CloseTime:                uint64(v[6].(float64)),
+			CloseTime:                int64(v[6].(float64)),
 			QuoteAssetVolume:         quoteAssetVolume,
 			NumberOfTrades:           int(v[8].(float64)),
 			TakerBuyBaseAssetVolume:  takerBuyBaseAssetVolume,
@@ -251,12 +251,12 @@ func (s *UIKlines) Interval(interval core.IntervalEnum) *UIKlines {
 	return s
 }
 
-func (s *UIKlines) StartTime(startTime uint64) *UIKlines {
+func (s *UIKlines) StartTime(startTime int64) *UIKlines {
 	s.r.Set("startTime", startTime)
 	return s
 }
 
-func (s *UIKlines) EndTime(endTime uint64) *UIKlines {
+func (s *UIKlines) EndTime(endTime int64) *UIKlines {
 	s.r.Set("endTime", endTime)
 	return s
 }
@@ -268,7 +268,7 @@ func (s *UIKlines) TimeZone(timeZone string) *UIKlines {
 }
 
 // Limit Default 500; max 1000.
-func (s *UIKlines) Limit(limit uint) *UIKlines {
+func (s *UIKlines) Limit(limit int) *UIKlines {
 	s.r.Set("limit", limit)
 	return s
 }

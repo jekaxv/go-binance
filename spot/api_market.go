@@ -30,7 +30,7 @@ func (s *WsDepth) Symbol(symbol string) *WsDepth {
 }
 
 // Limit Default 100; max 5000
-func (s *WsDepth) Limit(limit uint) *WsDepth {
+func (s *WsDepth) Limit(limit int) *WsDepth {
 	s.r.Set("limit", limit)
 	return s
 }
@@ -86,7 +86,7 @@ func (s *WsTradesRecent) Symbol(symbol string) *WsTradesRecent {
 }
 
 // Limit Default 500; max 1000
-func (s *WsTradesRecent) Limit(limit uint) *WsTradesRecent {
+func (s *WsTradesRecent) Limit(limit int) *WsTradesRecent {
 	s.r.Set("limit", limit)
 	return s
 }
@@ -131,13 +131,13 @@ func (s *WsTradesHistorical) Symbol(symbol string) *WsTradesHistorical {
 }
 
 // FromId Trade ID to begin at
-func (s *WsTradesHistorical) FromId(fromId uint64) *WsTradesHistorical {
+func (s *WsTradesHistorical) FromId(fromId int64) *WsTradesHistorical {
 	s.r.Set("fromId", fromId)
 	return s
 }
 
 // Limit Default 500; max 1000
-func (s *WsTradesHistorical) Limit(limit uint) *WsTradesHistorical {
+func (s *WsTradesHistorical) Limit(limit int) *WsTradesHistorical {
 	s.r.Set("limit", limit)
 	return s
 }
@@ -194,19 +194,19 @@ func (s *WsTradesAggregate) Symbol(symbol string) *WsTradesAggregate {
 }
 
 // FromId Aggregate trade ID to begin at
-func (s *WsTradesAggregate) FromId(fromId uint64) *WsTradesAggregate {
+func (s *WsTradesAggregate) FromId(fromId int64) *WsTradesAggregate {
 	s.r.Set("fromId", fromId)
 	return s
 }
-func (s *WsTradesAggregate) StartTime(startTime uint64) *WsTradesAggregate {
+func (s *WsTradesAggregate) StartTime(startTime int64) *WsTradesAggregate {
 	s.r.Set("startTime", startTime)
 	return s
 }
-func (s *WsTradesAggregate) EndTime(endTime uint64) *WsTradesAggregate {
+func (s *WsTradesAggregate) EndTime(endTime int64) *WsTradesAggregate {
 	s.r.Set("endTime", endTime)
 	return s
 }
-func (s *WsTradesAggregate) Limit(limit uint) *WsTradesAggregate {
+func (s *WsTradesAggregate) Limit(limit int) *WsTradesAggregate {
 	s.r.Set("limit", limit)
 	return s
 }
@@ -242,13 +242,13 @@ type WsKline struct {
 	r *core.WsRequest
 }
 type KlineResult struct {
-	OpenTime                 uint64          `json:"openTime"`
+	OpenTime                 int64           `json:"openTime"`
 	OpenPrice                decimal.Decimal `json:"openPrice"`
 	HighPrice                decimal.Decimal `json:"highPrice"`
 	LowPrice                 decimal.Decimal `json:"lowPrice"`
 	ClosePrice               decimal.Decimal `json:"closePrice"`
 	Volume                   decimal.Decimal `json:"volume"`
-	CloseTime                uint64          `json:"closeTime"`
+	CloseTime                int64           `json:"closeTime"`
 	QuoteAssetVolume         decimal.Decimal `json:"quoteAssetVolume"`
 	NumberOfTrades           int             `json:"numberOfTrades"`
 	TakerBuyBaseAssetVolume  decimal.Decimal `json:"takerBuyBaseAssetVolume"`
@@ -273,11 +273,11 @@ func (s *WsKline) Interval(interval core.IntervalEnum) *WsKline {
 	s.r.Set("interval", interval)
 	return s
 }
-func (s *WsKline) StartTime(startTime uint64) *WsKline {
+func (s *WsKline) StartTime(startTime int64) *WsKline {
 	s.r.Set("startTime", startTime)
 	return s
 }
-func (s *WsKline) EndTime(endTime uint64) *WsKline {
+func (s *WsKline) EndTime(endTime int64) *WsKline {
 	s.r.Set("endTime", endTime)
 	return s
 }
@@ -285,7 +285,7 @@ func (s *WsKline) TimeZone(timeZone string) *WsKline {
 	s.r.Set("timeZone", timeZone)
 	return s
 }
-func (s *WsKline) Limit(limit uint) *WsKline {
+func (s *WsKline) Limit(limit int) *WsKline {
 	s.r.Set("limit", limit)
 	return s
 }
@@ -334,11 +334,11 @@ func (s *WsUiKlines) Interval(interval string) *WsUiKlines {
 	s.r.Set("interval", interval)
 	return s
 }
-func (s *WsUiKlines) StartTime(startTime uint64) *WsUiKlines {
+func (s *WsUiKlines) StartTime(startTime int64) *WsUiKlines {
 	s.r.Set("startTime", startTime)
 	return s
 }
-func (s *WsUiKlines) EndTime(endTime uint64) *WsUiKlines {
+func (s *WsUiKlines) EndTime(endTime int64) *WsUiKlines {
 	s.r.Set("endTime", endTime)
 	return s
 }
@@ -346,7 +346,7 @@ func (s *WsUiKlines) TimeZone(timeZone string) *WsUiKlines {
 	s.r.Set("timeZone", timeZone)
 	return s
 }
-func (s *WsUiKlines) Limit(limit uint) *WsUiKlines {
+func (s *WsUiKlines) Limit(limit int) *WsUiKlines {
 	s.r.Set("limit", limit)
 	return s
 }

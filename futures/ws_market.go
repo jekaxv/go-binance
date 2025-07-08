@@ -15,8 +15,8 @@ type WsDepth struct {
 
 type DepthResult struct {
 	LastUpdateId    int64               `json:"lastUpdateId"`
-	OutputTime      uint64              `json:"E"`
-	TransactionTime uint64              `json:"T"`
+	OutputTime      int64               `json:"E"`
+	TransactionTime int64               `json:"T"`
 	Bids            [][]decimal.Decimal `json:"bids"` // [0]Price [1] Quantity
 	Asks            [][]decimal.Decimal `json:"asks"` // [0]Price [1] Quantity
 }
@@ -32,7 +32,7 @@ func (s *WsDepth) Symbol(symbol string) *WsDepth {
 }
 
 // Limit Default 500; Valid limits:[5, 10, 20, 50, 100, 500, 1000]
-func (s *WsDepth) Limit(limit uint) *WsDepth {
+func (s *WsDepth) Limit(limit int) *WsDepth {
 	s.r.Set("limit", limit)
 	return s
 }

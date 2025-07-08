@@ -30,7 +30,7 @@ type WsAccountBalanceResponse struct {
 	Result []*AccountBalanceResult `json:"result"`
 }
 
-func (s *WsAccountBalance) RecvWindow(recvWindow uint) *WsAccountBalance {
+func (s *WsAccountBalance) RecvWindow(recvWindow int) *WsAccountBalance {
 	s.r.Set("recvWindow", recvWindow)
 	return s
 }
@@ -86,7 +86,7 @@ type WsAccountInfoResponse struct {
 	Result *AccountInfoResult `json:"result"`
 }
 
-func (s *WsAccountInfo) RecvWindow(recvWindow uint) *WsAccountInfo {
+func (s *WsAccountInfo) RecvWindow(recvWindow int) *WsAccountInfo {
 	s.r.Set("recvWindow", recvWindow)
 	return s
 }
