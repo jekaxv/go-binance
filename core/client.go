@@ -257,6 +257,8 @@ func (c *WsClient) WsApiServe(ctx context.Context) (<-chan []byte, <-chan error)
 func (c *WsClient) wsApiServe(ctx context.Context) (<-chan []byte, <-chan error) {
 	onMessage := make(chan []byte, 8)
 	onError := make(chan error)
+	// Initialize writer here after successful connection (optional, but ensures writer is ready)
+	c.lazyInitWriter()
 	err := c.connect(ctx)
 	c.Opt.Logger.Debug("attempting websocket connection", "endpoint", c.Opt.Endpoint)
 	go func() {
@@ -272,8 +274,6 @@ func (c *WsClient) wsApiServe(ctx context.Context) (<-chan []byte, <-chan error)
 		}
 		defer c.conn.Close()
 		c.keepAlive()
-		// Initialize writer here after successful connection (optional, but ensures writer is ready)
-		c.lazyInitWriter()
 		for {
 			select {
 			case <-ctx.Done():
