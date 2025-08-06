@@ -208,7 +208,7 @@ func (c *WsClient) WsServe(ctx context.Context) (<-chan []byte, <-chan error) {
 
 func (c *WsClient) wsServe(ctx context.Context) (<-chan []byte, <-chan error) {
 	onMessage := make(chan []byte, 8)
-	onError := make(chan error)
+	onError := make(chan error, 1)
 
 	go func() {
 		defer func() {
