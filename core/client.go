@@ -9,7 +9,6 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
-	"sync"
 	"time"
 )
 
@@ -129,13 +128,8 @@ func (c *Client) invoke(r *Request, ctx context.Context) error {
 }
 
 type WsClient struct {
-	Opt     *Options
-	conn    *websocket.Conn
-	writeCh chan *WsRequest
-
-	writerOnce   sync.Once
-	cancelWriter context.CancelFunc
-	writerWg     sync.WaitGroup
+	Opt  *Options
+	conn *websocket.Conn
 }
 
 // connect initializes the WebSocket connection.
@@ -157,10 +151,10 @@ func (c *WsClient) SetReq(method string, aType ...AuthType) *WsRequest {
 	return &WsRequest{Method: method, AuthType: reqType, Params: make(map[string]any)}
 }
 func (c *WsClient) Close() error {
-	if c.cancelWriter != nil {
-		c.cancelWriter()
-		c.writerWg.Wait()
-	}
+	return c.close()
+}
+
+func (c *WsClient) close() error {
 	if c.conn != nil {
 		return c.conn.Close()
 	}
@@ -256,9 +250,7 @@ func (c *WsClient) WsApiServe(ctx context.Context) (<-chan []byte, <-chan error)
 
 func (c *WsClient) wsApiServe(ctx context.Context) (<-chan []byte, <-chan error) {
 	onMessage := make(chan []byte, 8)
-	onError := make(chan error)
-	// Initialize writer here after successful connection (optional, but ensures writer is ready)
-	c.lazyInitWriter()
+	onError := make(chan error, 1)
 	err := c.connect(ctx)
 	c.Opt.Logger.Debug("attempting websocket connection", "endpoint", c.Opt.Endpoint)
 	go func() {
@@ -343,49 +335,5 @@ func (c *WsClient) send(r *WsRequest) error {
 		r.Params["signature"] = sign
 		c.Opt.Logger.Debug("signature added to request", "signature", sign)
 	}
-
-	select {
-	case c.writeCh <- r:
-		return nil
-	case <-time.After(5 * time.Second):
-		c.Opt.Logger.Warn("Failed to send request to write channel: channel full or blocked.", "request_id", r.Id)
-		return errors.New("failed to send request: write channel full or blocked")
-	}
-}
-
-// lazyInitWriter initializes the write channel and starts the writer goroutine
-// This method is called internally within the WsClient.
-func (c *WsClient) lazyInitWriter() {
-	c.writerOnce.Do(func() {
-		c.writeCh = make(chan *WsRequest, 16) // Initialize with a suitable buffer size
-		var ctx context.Context
-		ctx, c.cancelWriter = context.WithCancel(context.Background())
-		c.writerWg.Add(1)
-		go c.writerGoroutine(ctx)
-		c.Opt.Logger.Debug("writer goroutine started successfully")
-	})
-}
-
-// writerGoroutine is a goroutine that continuously writes messages to the WebSocket connection.
-func (c *WsClient) writerGoroutine(ctx context.Context) {
-	defer c.writerWg.Done()
-	for {
-		select {
-		case <-ctx.Done():
-			c.Opt.Logger.Debug("Context cancelled, writer Goroutine exiting.")
-			return
-		case req, ok := <-c.writeCh:
-			if !ok {
-				c.Opt.Logger.Debug("Write channel closed, writer Goroutine exiting.")
-				return
-			}
-			if c.conn == nil {
-				c.Opt.Logger.Warn("WebSocket connection is nil, discarding request.", "id", req.Id)
-				continue
-			}
-			if err := c.conn.WriteJSON(req); err != nil {
-				c.Opt.Logger.Error("Failed to write JSON to WebSocket", "error", err, "request_id", req.Id)
-			}
-		}
-	}
+	return c.conn.WriteJSON(r)
 }
